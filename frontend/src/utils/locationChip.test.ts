@@ -40,37 +40,35 @@ function responseWithRouteOrigin(routeOrigin: LocationDebug | null): AgentRespon
   } as unknown as AgentResponse;
 }
 
-test("출발지를 정하지 않으면 기기 좌표에서 출발한다고 말한다", () => {
-  /* 출발지가 "없는" 상태는 없다 — 안 정했으면 기기 좌표가 출발지다. */
-  const model = buildLocationChipModel({ origin: null, center: "광화문역" }, null, true);
+test("출발지를 정하지 않으면 검색 기준 한 칸으로 접는다", () => {
+  /* 기기 GPS를 받지 않으므로 출발지가 없으면 서버는 검색지에서 거리를 잰다
+     (domain/ranking_origin.py). 출발지 자리를 "현재 위치"라고 하면 카드의 거리가
+     사용자가 있는 곳에서 잰 값으로 읽힌다. */
+  const model = buildLocationChipModel({ origin: null, center: "광화문역" });
 
   expect(model).toMatchObject({
-    kind: "pair",
-    origin: "현재 위치",
-    center: "광화문역",
-    isDeviceLocation: true,
-    isDeviceLocationPending: false,
-    description: "현재 위치에서 출발, 광화문역 주변에서 검색",
+    kind: "single",
+    name: "광화문역",
+    isUnset: false,
+    description: "광화문역에서 출발, 광화문역 주변에서 검색",
   });
 });
 
-test("출발지를 따로 정하면 깜빡이는 점 대신 출발지 아이콘을 쓴다", () => {
-  /* 그 점의 뜻은 "지금 GPS를 쓰는 중" 하나여야 한다. 사용자가 고른 장소 옆에서
-     실시간을 흉내 내면 거기 있는 것처럼 읽힌다. */
+test("출발지를 따로 정하면 두 칸으로 나눠 보여준다", () => {
   const model = buildLocationChipModel({ origin: "안국역", center: "광화문역" });
 
   expect(model).toMatchObject({
     kind: "pair",
     origin: "안국역",
     center: "광화문역",
-    isDeviceLocation: false,
+    description: "안국역에서 출발, 광화문역 주변에서 검색",
   });
 });
 
 test("출발지와 검색 기준이 같으면 한 칸으로 접는다", () => {
   const model = buildLocationChipModel({ origin: "안국역", center: "안국역" });
 
-  expect(model).toMatchObject({ kind: "single", name: "안국역", isDeviceLocation: false });
+  expect(model).toMatchObject({ kind: "single", name: "안국역", isUnset: false });
 });
 
 test("검색 기준을 비워두면 출발지가 검색 중심이 되어 한 칸이 된다", () => {
@@ -81,14 +79,15 @@ test("검색 기준을 비워두면 출발지가 검색 중심이 되어 한 칸
   expect(model).toMatchObject({ kind: "single", name: "안국역" });
 });
 
-test("아무것도 정하지 않았고 대화도 없으면 현재 위치 한 칸이다", () => {
-  const model = buildLocationChipModel({ origin: null, center: null }, null, true);
+test("아무것도 정하지 않았고 대화도 없으면 위치 미설정 한 칸이다", () => {
+  /* "현재 위치"라고 하면 기기 위치를 쓰는 것처럼 읽힌다. 이 버전은 그런 좌표가 없다. */
+  const model = buildLocationChipModel({ origin: null, center: null });
 
-  expect(model).toMatchObject({
+  expect(model).toEqual({
     kind: "single",
-    name: "현재 위치",
-    isDeviceLocation: true,
-    isDeviceLocationPending: false,
+    name: "위치 미설정",
+    isUnset: true,
+    description: "위치를 아직 정하지 않았어요",
   });
 });
 
@@ -97,14 +96,14 @@ test("설정이 비어 있을 때만 대화가 해석한 위치로 떨어진다"
   const fallback = buildLocationChipModel({ origin: null, center: null }, "성수동");
   const setting = buildLocationChipModel({ origin: null, center: "광화문역" }, "성수동");
 
-  expect(fallback).toMatchObject({ kind: "pair", origin: "현재 위치", center: "성수동" });
-  expect(setting).toMatchObject({ kind: "pair", center: "광화문역" });
+  expect(fallback).toMatchObject({ kind: "single", name: "성수동", isUnset: false });
+  expect(setting).toMatchObject({ kind: "single", name: "광화문역" });
 });
 
 test("긴 이름은 잘라도 낭독 문구에는 원래 이름이 남는다", () => {
   /* 화면에서 잘린 이름이 낭독까지 잘리면 그 사용자는 어디인지 알 방법이 없다. */
   const long = "서울특별시립미술관서소문본관";
-  const model = buildLocationChipModel({ origin: null, center: long });
+  const model = buildLocationChipModel({ origin: "안국역", center: long });
 
   expect(model.kind).toBe("pair");
   if (model.kind !== "pair") return;
@@ -132,37 +131,8 @@ test("이모지가 섞인 이름을 반쪽으로 자르지 않는다", () => {
 });
 
 /*
- * 이름이 "현재 위치"인 것과 좌표를 갖고 있는 것은 다른 사실이다.
- *
- * 좌표는 발화를 보낼 때만 받고, 새 대화(RESET)는 좌표만 지우고 출발지·검색지는
- * sessionStorage에 남긴다. 그래서 "현재 위치"라고 적힌 채 좌표가 없는 상태가
- * 실제로 생긴다 — 그때 초록 점이 깜빡이면 화면이 사실과 다른 말을 한다.
- */
-test("좌표를 아직 못 받았으면 기기 좌표 자리라도 초록이 아니다", () => {
-  const model = buildLocationChipModel({ origin: null, center: "광화문역" }, null, false);
-
-  expect(model).toMatchObject({
-    kind: "pair",
-    origin: "현재 위치",
-    isDeviceLocation: false,
-    isDeviceLocationPending: true,
-  });
-});
-
-test("사용자가 이름으로 정한 자리는 좌표가 없어도 대기 상태가 아니다", () => {
-  /* 회색 점은 "곧 여기가 될 텐데 아직 모른다"는 뜻이라, 사용자가 고른 장소에는
-     붙으면 안 된다. 그쪽은 지금처럼 아이콘이 붙는다. */
-  const model = buildLocationChipModel({ origin: "안국역", center: "광화문역" }, null, false);
-
-  expect(model).toMatchObject({
-    isDeviceLocation: false,
-    isDeviceLocationPending: false,
-  });
-});
-
-/*
- * 사용자 위치를 모르는 턴은 서버가 검색지에서 거리를 잰다. 그때 칩이 "현재 위치"라고
- * 하면 카드의 거리가 사용자가 있는 곳에서 잰 값으로 읽힌다.
+ * 사용자 위치를 모르는 턴은 서버가 검색지에서 거리를 잰다. 칩도 그 자리를 말해야
+ * 카드의 거리가 어디서 잰 값인지와 어긋나지 않는다.
  */
 test("검색지로 대체된 턴이면 출발지 자리에 그 검색지를 쓴다", () => {
   const substituted = readSubstitutedOrigin(
@@ -174,21 +144,26 @@ test("검색지로 대체된 턴이면 출발지 자리에 그 검색지를 쓴�
     }),
   );
 
-  const model = buildLocationChipModel(
-    { origin: null, center: "광화문역" },
-    null,
-    false,
-    substituted,
-  );
+  const model = buildLocationChipModel({ origin: null, center: "광화문역" }, null, substituted);
 
   /* 출발지와 검색 기준이 같은 이름이 되므로 한 칸으로 접힌다. */
-  expect(model).toMatchObject({
-    kind: "single",
-    name: "광화문역",
-    isDeviceLocation: false,
-    /* 기기 좌표를 쓰는 자리가 아니므로 기다리는 표시도 붙지 않는다. */
-    isDeviceLocationPending: false,
-  });
+  expect(model).toMatchObject({ kind: "single", name: "광화문역" });
+});
+
+test("출발지를 정해 뒀어도 검색지로 대체된 턴이면 대체된 이름이 앞선다", () => {
+  /* 정한 출발지 이름이 해석되지 않아 대체된 경우다. 거리를 실제로 잰 곳을 말한다. */
+  const substituted = readSubstitutedOrigin(
+    responseWithRouteOrigin({
+      name: "광화문역",
+      source: "search_center",
+      latitude: 37.5,
+      longitude: 127,
+    }),
+  );
+
+  const model = buildLocationChipModel({ origin: "안국역", center: "광화문역" }, null, substituted);
+
+  expect(model).toMatchObject({ kind: "single", name: "광화문역" });
 });
 
 /*
@@ -208,22 +183,15 @@ test("발화가 출발점을 확정한 턴은 대체로 치지 않는다", () =>
   expect(substituted).toBeNull();
 });
 
-/*
- * 첫 발화 전에는 판정할 턴이 없다. 여기서 접어버리면 GPS가 멀쩡한 기기에서도 처음엔
- * 한 칸으로 보이다가 첫 답변 뒤에 두 칸으로 바뀐다.
- */
-test("아직 한 턴도 없으면 지금까지와 같은 모양이다", () => {
+/* 첫 발화 전에는 판정할 턴이 없다. */
+test("아직 한 턴도 없으면 대체가 없다", () => {
   expect(readSubstitutedOrigin(null)).toBeNull();
   expect(readSubstitutedOrigin(responseWithRouteOrigin(null))).toBeNull();
-
-  const model = buildLocationChipModel({ origin: null, center: "광화문역" }, null, true, null);
-
-  expect(model).toMatchObject({ kind: "pair", origin: "현재 위치", center: "광화문역" });
 });
 
 /*
  * 좌표만 알고 부를 이름이 없는 지점도 있다. 이름이 없다고 "대체가 없었다"로 읽으면
- * 칩이 다시 "현재 위치"를 말하게 된다.
+ * 안 된다.
  */
 test("대체된 지점의 이름을 못 받으면 검색 기준 이름을 그 자리에 쓴다", () => {
   const substituted = readSubstitutedOrigin(
@@ -235,12 +203,7 @@ test("대체된 지점의 이름을 못 받으면 검색 기준 이름을 그 �
     }),
   );
 
-  const model = buildLocationChipModel(
-    { origin: null, center: "광화문역" },
-    null,
-    false,
-    substituted,
-  );
+  const model = buildLocationChipModel({ origin: "안국역", center: "광화문역" }, null, substituted);
 
   expect(model).toMatchObject({ kind: "single", name: "광화문역" });
 });

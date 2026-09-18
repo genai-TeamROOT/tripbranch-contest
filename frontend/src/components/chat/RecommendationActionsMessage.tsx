@@ -42,7 +42,7 @@ export function RecommendationActionsMessage({
       ? {
           widen: `Search a wider area (+${RADIUS_RELAXATION_STEP_KM} km)`,
           basedOn: (name: string) => `View results based on ${name}`,
-          currentLocation: "View results based on my current location",
+          currentLocation: "View results from my starting point",
           loading: "Loading...",
           more: "Show more places",
           hint: "Add another condition in the message box below.",
@@ -50,7 +50,9 @@ export function RecommendationActionsMessage({
       : {
           widen: `검색 반경 넓혀서 다시 찾기 (+${RADIUS_RELAXATION_STEP_KM}km)`,
           basedOn: (name: string) => `${name} 기준으로 다시 보기`,
-          currentLocation: "현재 위치 기준으로 다시 보기",
+          /* user_location은 이제 늘 사용자가 이름으로 정한 출발지다(기기 GPS를
+             받지 않는다). ChatPage가 user_input으로 보내는 문구와 같게 둔다. */
+          currentLocation: "출발지 기준으로 다시 보기",
           loading: "불러오는 중...",
           more: "다른 장소 보기",
           hint: "다른 조건이 있으면 아래 입력창에 이어서 적어주세요.",

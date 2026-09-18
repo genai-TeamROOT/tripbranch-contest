@@ -96,21 +96,14 @@ export function AppHeader({ location: locationChip = null, keepStrip = false }: 
             >
               {locationChip.kind === "pair" && (
                 <>
-                  <LocationChipIcon
-                    isDeviceLocation={locationChip.isDeviceLocation}
-                    isDeviceLocationPending={locationChip.isDeviceLocationPending}
-                    role="origin"
-                  />
+                  <LocationChipIcon role="origin" />
                   <span className="truncate">{locationChip.origin}</span>
                   <ArrowRight size={13} className="shrink-0 text-muted" aria-hidden />
                 </>
               )}
               <LocationChipIcon
-                isDeviceLocation={locationChip.kind === "single" && locationChip.isDeviceLocation}
-                isDeviceLocationPending={
-                  locationChip.kind === "single" && locationChip.isDeviceLocationPending
-                }
                 role={locationChip.kind === "single" ? "single" : "center"}
+                isUnset={locationChip.kind === "single" && locationChip.isUnset}
               />
               <span className="truncate">
                 {locationChip.kind === "single" ? locationChip.name : locationChip.center}
@@ -128,37 +121,19 @@ export function AppHeader({ location: locationChip = null, keepStrip = false }: 
  * 기준은 MapPinned(바닥 원이 깔린 핀, "그 지점"이 아니라 "그 자리 주변"이라는 뜻).
  * 두 화면이 같은 모양을 써야 한쪽에서 배운 뜻이 다른 쪽에서도 통한다.
  *
- * **깜빡이는 초록 점은 좌표를 실제로 갖고 있을 때만 쓴다.** 이름이 "현재 위치"인 것과
- * 좌표가 있는 것은 다른 사실이다 — 좌표는 발화를 보낼 때만 받고, 새 대화(RESET)는
- * 좌표만 지우고 출발지·검색지는 남긴다. 그래서 좌표 없이 초록이 깜빡이던 때가 있었다.
- * 지금은 좌표가 없으면 깜빡이지 않는 회색 점으로 낮춘다.
- *
- * **깜빡이는 초록 점은 기기 좌표일 때만 쓴다.** 전에는 이 점이 무조건 붙어 있었는데,
- * 그 자리에 뜨는 값은 검색 기준이라 사용자가 광화문역에 있지도 않은데 "실시간 내
- * 위치"가 광화문역 옆에서 깜빡였다. 이제 이 점의 뜻은 하나다 — 지금 GPS를 쓰는 중.
+ * 예전에는 기기 GPS를 쓰는 자리에 깜빡이는 초록 점(쓰는 중)과 회색 점(아직 못 받음)을
+ * 붙였다. 이 버전은 GPS를 받지 않아 그 두 상태가 없다. 아무것도 정하지 않았으면
+ * ("위치 미설정") 같은 핀을 흐리게 그려, 누르면 정하러 간다는 것만 남긴다.
  */
 function LocationChipIcon({
-  isDeviceLocation,
-  isDeviceLocationPending,
   role,
+  isUnset = false,
 }: {
-  isDeviceLocation: boolean;
-  isDeviceLocationPending: boolean;
   role: "origin" | "center" | "single";
+  isUnset?: boolean;
 }) {
-  if (isDeviceLocation) {
-    return (
-      <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden>
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
-      </span>
-    );
-  }
-  /* 여기가 기기 좌표 자리인데 아직 좌표가 없다. **깜빡이지 않는다** — 깜빡임은
-     "지금 살아 움직인다"는 뜻이라, 못 받은 상태에 붙이면 말이 어긋난다. */
-  if (isDeviceLocationPending) {
-    return <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-muted" aria-hidden />;
-  }
   const Icon = role === "origin" ? Navigation : MapPinned;
-  return <Icon size={13} className="shrink-0 text-brand" aria-hidden />;
+  return (
+    <Icon size={13} className={cn("shrink-0", isUnset ? "text-muted" : "text-brand")} aria-hidden />
+  );
 }

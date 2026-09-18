@@ -37,7 +37,6 @@ function _turn(execution: ToolExecutionDebug): DeveloperAuditTurn {
     message: "지금은 보통이에요.",
     sessionId: "session-1",
     runId: "run-1",
-    deviceLocation: null,
     elapsedMsClient: 800,
     serverElapsedMs: 700,
     stageTimings: [],

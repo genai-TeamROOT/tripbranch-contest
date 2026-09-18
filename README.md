@@ -259,8 +259,7 @@ Backend Provider는 `PROVIDER_MODE=fake|real`로 일괄 전환하며, 개별 `*_
 
 Frontend의 `VITE_API_BASE_URL`은 비워두면 `/api`를 사용하며(Vite dev 서버가
 `http://localhost:8000`으로 프록시), `VITE_SHOW_INTERPRETATION_DEBUG`는 Interpret
-디버그 카드 표시를, `VITE_TEST_DEVICE_LOCATION`은 로컬 테스트용 고정 위치를
-제어합니다. `VITE_` 변수에는 비밀값을 넣으면 안 됩니다.
+디버그 카드 표시를 제어합니다. `VITE_` 변수에는 비밀값을 넣으면 안 됩니다.
 
 예전 단일 모델 설정 `LLM_MODEL_NAME`·`LLM_FALLBACK_MODEL_NAMES`는 폐지됐으며, `.env`에
 남아 있으면 부팅에서 막습니다. 모델별 선택 근거는 `backend/.env.example` 주석과

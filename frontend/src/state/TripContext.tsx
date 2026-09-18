@@ -76,17 +76,6 @@ export interface TripState {
    * 그대로 보여주는 것이고, 메신저에서 늘 보던 모양이다.
    */
   last_turn_at: string | null;
-  /* 최초 추천 시작 시 허용받은 브라우저 위치. 같은 세션의 후속 요청에도 재사용한다. */
-  device_location: string | null;
-  /** 브라우저에서 device_location을 마지막으로 받아온 시각(ms). */
-  device_location_captured_at: number | null;
-  /*
-   * 사용자가 위치 재확인 질문에서 "이전 위치로 계속"을 눌러 다시 묻지 않기로 미룬
-   * 마감 시각(ms). device_location_captured_at과 분리한 이유는
-   * utils/locationRefresh.ts 상단 설명 참고 — capturedAt을 갱신하면 GPS를 다시
-   * 받지 않았는데도 나이 표시가 리셋되는 문제가 있었다.
-   */
-  device_location_snoozed_until: number | null;
   /*
    * 직전 턴이 추천 없이 되묻기로 끝났는지. Agent는 "직전에 무엇을 되물었는지"를
    * 다음 턴 Intent 분류에 넘기지 않아서, 사용자가 "경복궁"처럼 짧게 답하면 INFO로
@@ -133,9 +122,6 @@ const initialTripState: TripState = {
   error: null,
   session_id: null,
   last_turn_at: null,
-  device_location: null,
-  device_location_captured_at: null,
-  device_location_snoozed_until: null,
   awaiting_clarification: false,
   saved_places: [],
   recent_follow_ups: [],
@@ -159,8 +145,6 @@ type TripAction =
       type: "START_CHAT_TURN";
       payload: {
         userInput: string;
-        deviceLocation?: string | null;
-        deviceLocationCapturedAt?: number | null;
       };
     }
   | { type: "APPEND_CHAT_TURN"; payload: ChatTurnPayload }
@@ -227,8 +211,6 @@ type TripAction =
   | { type: "SET_ERROR"; payload: string }
   | { type: "CLEAR_ERROR" }
   | { type: "SET_SAVED_PLACES"; payload: { items: SavedPlaceItem[] } }
-  | { type: "SNOOZE_LOCATION_REFRESH"; payload: { until: number } }
-  | { type: "SET_DEVICE_LOCATION"; payload: { deviceLocation: string; capturedAt: number } }
   | { type: "CANCEL_CHAT_TURN" }
   | { type: "RESET" };
 
@@ -548,8 +530,6 @@ function tripReducer(state: TripState, action: TripAction): TripState {
       return {
         ...initialTripState,
         language: state.language,
-        device_location: state.device_location,
-        device_location_captured_at: state.device_location_captured_at,
         messages: restored,
         session_id: action.payload.resumable ? action.payload.session_id : null,
         last_turn_at: action.payload.restore_from_messages
@@ -563,15 +543,6 @@ function tripReducer(state: TripState, action: TripAction): TripState {
       return {
         ...state,
         user_input: action.payload.userInput,
-        device_location: action.payload.deviceLocation ?? state.device_location,
-        device_location_captured_at:
-          action.payload.deviceLocationCapturedAt ?? state.device_location_captured_at,
-        // 진짜 GPS를 새로 받은 턴이면(capturedAt이 실려 왔으면) 미뤄둔 재확인
-        // 마감도 함께 해제한다 — 방금 받은 위치가 이미 최신이라 미룰 이유가 없다.
-        device_location_snoozed_until:
-          action.payload.deviceLocationCapturedAt != null
-            ? null
-            : state.device_location_snoozed_until,
         // 옛 턴의 후속 질문 버튼은 새 발화가 나가는 순간 걷어낸다. 남겨두면 대화를
         // 위로 올렸을 때 어느 답변에 대한 제안인지 알 수 없고, 지난 답변 기준의
         // 문구를 눌러 지금 맥락과 어긋난 요청이 나간다.
@@ -702,7 +673,6 @@ function tripReducer(state: TripState, action: TripAction): TripState {
         message: response.message,
         sessionId: response.state.session_id,
         runId: response.state.run_id ?? null,
-        deviceLocation: state.device_location,
         elapsedMsClient,
         serverElapsedMs,
         stageTimings,
@@ -847,7 +817,6 @@ function tripReducer(state: TripState, action: TripAction): TripState {
         message,
         sessionId: action.payload.sessionId,
         runId: action.payload.agentResponse.state.run_id ?? null,
-        deviceLocation: state.device_location,
         elapsedMsClient: action.payload.elapsedMsClient,
         serverElapsedMs:
           action.payload.serverElapsedMs ??
@@ -911,7 +880,6 @@ function tripReducer(state: TripState, action: TripAction): TripState {
         message: action.payload.message,
         sessionId: state.session_id,
         runId: null,
-        deviceLocation: state.device_location,
         elapsedMsClient: action.payload.elapsedMsClient,
         serverElapsedMs: null,
         stageTimings: [],
@@ -1056,17 +1024,6 @@ function tripReducer(state: TripState, action: TripAction): TripState {
       return { ...state, error: null, phase: state.messages.length > 0 ? "ready" : "idle" };
     case "SET_SAVED_PLACES":
       return { ...state, saved_places: action.payload.items };
-    case "SNOOZE_LOCATION_REFRESH":
-      return { ...state, device_location_snoozed_until: action.payload.until };
-    case "SET_DEVICE_LOCATION":
-      // 위치 설정 화면에서 "위치 다시 가져오기"를 눌렀을 때. 채팅 턴을 거치지
-      // 않고도 다음 요청부터 새 좌표를 쓰도록 미리 갱신해 둔다.
-      return {
-        ...state,
-        device_location: action.payload.deviceLocation,
-        device_location_captured_at: action.payload.capturedAt,
-        device_location_snoozed_until: null,
-      };
     case "CANCEL_CHAT_TURN": {
       // 응답 대기 중 "중단"을 눌렀을 때(§7.2). 아직 생각 중 단계라 타이프라이터
       // 메시지가 없으면(로딩 버블만 있었으면) 아무 것도 안 남기고, 이미 일부

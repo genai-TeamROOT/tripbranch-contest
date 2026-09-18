@@ -11,8 +11,8 @@
  * "내 위치"로 박아 뒀다. 그래서 사용자가 위치 설정에서 출발지를 안국역으로 정해도
  * 길찾기는 GPS에서 출발했다 — 같은 화면의 추천 카드는 안국역 기준으로 잰 거리와
  * 이동시간을 보여주는데 버튼만 다른 곳에서 출발하는 어긋남이었다(TP-256).
- * 출발점을 고르는 사다리는 hooks/useNaverDirections가 맡고, 이 파일은 받은 지점을
- * 링크로 옮기기만 한다.
+ * 출발점을 정하는 일은 hooks/useNaverDirections가 맡고, 이 파일은 받은 지점을
+ * 링크로 옮기기만 한다. 지금은 기기 GPS를 쓰지 않아 출발점은 늘 위치 설정의 출발지다.
  */
 
 /** 길찾기 수단. 화장실처럼 걸어서 가는 목적지는 "walk"를 쓴다. */
@@ -22,9 +22,9 @@ export interface NaverDirectionsOrigin {
   lat: number;
   lng: number;
   /**
-   * 네이버 화면의 출발지 자리에 적힐 이름. 기기 좌표면 "내 위치", 사용자가 정한
-   * 출발지면 그 장소 이름이다. **좌표와 함께 바뀌어야 한다** — 안국역 좌표로
-   * 출발하면서 "내 위치"라고 적으면 사용자가 어디서 출발하는지 잘못 읽는다.
+   * 네이버 화면의 출발지 자리에 적힐 이름. 사용자가 정한 출발지의 장소 이름이다.
+   * **좌표와 함께 바뀌어야 한다** — 안국역 좌표로 출발하면서 다른 이름을 적으면
+   * 사용자가 어디서 출발하는지 잘못 읽는다.
    */
   name: string;
 }
@@ -63,30 +63,9 @@ export function openNaverMapSearch(destinationAddress: string): boolean {
   return true;
 }
 
-function parseLatLng(value: string): { lat: number; lng: number } | null {
-  const parts = value.split(",");
-  if (parts.length !== 2) return null;
-  const lat = Number(parts[0]);
-  const lng = Number(parts[1]);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return { lat, lng };
-}
-
-/** 기기 좌표를 쓸 때 붙는 출발지 이름. 위치 설정 화면과 같은 말을 쓴다. */
-export const DEVICE_ORIGIN_LABEL = "내 위치";
-
-/**
- * geolocation.ts가 만드는 "위도,경도" 문자열을 출발점으로 바꾼다.
- * 형식이 깨졌거나 값이 없으면 null — 호출부가 다음 칸으로 내려갈 수 있어야 한다.
- */
-export function deviceLocationToOrigin(
-  deviceLocation: string | null | undefined,
-): NaverDirectionsOrigin | null {
-  if (!deviceLocation) return null;
-  const parsed = parseLatLng(deviceLocation);
-  if (!parsed) return null;
-  return { ...parsed, name: DEVICE_ORIGIN_LABEL };
-}
+/* 출발지 이름이 비어 있을 때 네이버 화면에 대신 적을 말. 출발점은 늘 사용자가 정한
+   지점이라 "내 위치"라고 적으면 기기 위치에서 출발하는 것처럼 읽힌다. */
+const FALLBACK_ORIGIN_LABEL = "출발지";
 
 function callerAppName(): string {
   if (typeof window !== "undefined" && window.location.hostname) {
@@ -110,7 +89,7 @@ export function buildNaverDirections(
   /* 출발점 라벨. 네이버 화면의 출발지 자리에 그대로 뜬다. 경로 계산은 아래 slat·slng로
      하므로 이 값은 표시 전용이지만, 좌표와 어긋나면 사용자가 어디서 출발하는지
      잘못 읽는다. */
-  const sname = encodeURIComponent(origin.name.trim() || DEVICE_ORIGIN_LABEL);
+  const sname = encodeURIComponent(origin.name.trim() || FALLBACK_ORIGIN_LABEL);
 
   const mode = args.mode ?? "public";
 

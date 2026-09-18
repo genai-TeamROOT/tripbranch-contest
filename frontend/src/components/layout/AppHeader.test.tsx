@@ -28,11 +28,8 @@ interface ShellValue {
 
 /* 화면이 넘기는 것과 같은 경로로 모델을 만든다 — 손으로 지어내면 조립 규칙이
    바뀌어도 이 테스트는 그대로 통과한다. null이면 pill 자체가 없는 경우다. */
-function chipFor(
-  settings: { origin: string | null; center: string | null } | null,
-  hasDeviceLocation = true,
-) {
-  return settings === null ? null : buildLocationChipModel(settings, null, hasDeviceLocation);
+function chipFor(settings: { origin: string | null; center: string | null } | null) {
+  return settings === null ? null : buildLocationChipModel(settings);
 }
 
 /*
@@ -59,7 +56,7 @@ afterEach(() => {
 function renderHeader(
   settings: { origin: string | null; center: string | null } | null,
   shell?: Partial<ShellValue>,
-  extra?: { routes?: ReactNode; keepStrip?: boolean; hasDeviceLocation?: boolean },
+  extra?: { routes?: ReactNode; keepStrip?: boolean },
 ) {
   const value: ShellValue | undefined = shell
     ? { drawerOpen: false, openDrawer: vi.fn(), closeDrawer: vi.fn(), ...shell }
@@ -68,10 +65,7 @@ function renderHeader(
   return render(
     <AppShellProvider value={value}>
       <MemoryRouter initialEntries={["/chat"]}>
-        <AppHeader
-          location={chipFor(settings, extra?.hasDeviceLocation ?? true)}
-          keepStrip={extra?.keepStrip}
-        />
+        <AppHeader location={chipFor(settings)} keepStrip={extra?.keepStrip} />
         {extra?.routes}
       </MemoryRouter>
     </AppShellProvider>,
@@ -185,7 +179,7 @@ test("위치 pill을 누르면 위치 설정으로 이동한다", async () => {
 
   await user.click(
     screen.getByRole("button", {
-      name: "위치 설정으로 이동 (현재 위치에서 출발, 경복궁 근처 주변에서 검색)",
+      name: "위치 설정으로 이동 (경복궁 근처에서 출발, 경복궁 근처 주변에서 검색)",
     }),
   );
 
@@ -237,23 +231,27 @@ test("보여줄 것이 아무것도 없으면 데스크톱에서 헤더를 접�
 });
 
 /*
- * 좌표를 아직 못 받았을 때의 점.
- *
- * 깜빡이는 초록은 "지금 GPS를 쓰는 중"이라는 뜻이라, 좌표가 없는데 붙으면 화면이
- * 사실과 다른 말을 한다. 실제로 생기는 상태다 — 새 대화(RESET)는 좌표만 지우고
- * 출발지·검색지는 sessionStorage에 남는다.
+ * 기기 GPS를 받지 않으므로 깜빡이는 초록 점·회색 점은 어느 상태에서도 없다.
+ * 아무것도 정하지 않았으면 "현재 위치"가 아니라 "위치 미설정"이라고 말한다.
  */
-test("좌표를 못 받았으면 깜빡이는 초록 점을 붙이지 않는다", () => {
-  const { container } = renderHeader({ origin: null, center: "광화문역" }, undefined, {
-    hasDeviceLocation: false,
-  });
+test("아무것도 정하지 않았으면 위치 미설정을 보여주고 GPS 점을 붙이지 않는다", () => {
+  const { container } = renderHeader({ origin: null, center: null });
 
+  expect(
+    screen.getByRole("button", { name: "위치 설정으로 이동 (위치를 아직 정하지 않았어요)" }),
+  ).toHaveTextContent("위치 미설정");
+  expect(screen.queryByText("현재 위치")).not.toBeInTheDocument();
   expect(container.querySelector(".animate-ping")).toBeNull();
-  expect(container.querySelector(".bg-muted")).not.toBeNull();
+  expect(container.querySelector(".bg-green-500")).toBeNull();
 });
 
-test("좌표가 있으면 깜빡이는 초록 점을 붙인다", () => {
+test("검색 기준만 정했어도 GPS 점 없이 검색 기준 한 칸이다", () => {
   const { container } = renderHeader({ origin: null, center: "광화문역" });
 
-  expect(container.querySelector(".animate-ping")).not.toBeNull();
+  expect(
+    screen.getByRole("button", {
+      name: "위치 설정으로 이동 (광화문역에서 출발, 광화문역 주변에서 검색)",
+    }),
+  ).toBeInTheDocument();
+  expect(container.querySelector(".animate-ping")).toBeNull();
 });

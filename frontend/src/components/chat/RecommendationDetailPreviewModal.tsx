@@ -16,7 +16,6 @@ import {
   Clock,
   CreditCard,
   Dog,
-  Crosshair,
   Eye,
   Loader2,
   type LucideIcon,
@@ -32,10 +31,10 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode, type TouchEvent } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { fetchPlaceAiReason, fetchRecommendationPlaceDetails } from "../../api/trip";
-import { useTripDispatch, useTripState } from "../../state/TripContext";
+import { useTripState } from "../../state/TripContext";
 import { placeCategoryLabel } from "../../utils/placeCategory";
-import { getBrowserDeviceLocation } from "../../utils/geolocation";
 import { isAlwaysOpen } from "../../utils/operatingHours";
 import type { InfoPlaceCard, RecommendationItem } from "../../types";
 import { useNaverDirections } from "../../hooks/useNaverDirections";
@@ -1593,6 +1592,43 @@ function PlacePhotoGallery({
   );
 }
 
+/*
+ * 출발지가 없어 길찾기를 열 수 없을 때 하단 바에 대신 들어간다.
+ *
+ * 길찾기는 "출발=위치 설정의 출발지, 도착=이 좌표"라 출발지 없이는 열 수 없다. 이
+ * 버전은 브라우저 위치를 받지 않으므로 여기서 바로 좌표를 받을 수단이 없다 — 위치
+ * 설정 화면(/location)으로 보내 이름으로 정하게 한다.
+ *
+ * 따로 뗀 이유는 useNavigate가 라우터 안에서만 돌기 때문이다. 이 안내가 필요한
+ * 순간에만 그 훅을 부르게 해서, 출발지가 있는 평소 경로는 라우터에 묶이지 않는다.
+ */
+function SetOriginPrompt({ isEn, onClose }: { isEn: boolean; onClose: () => void }) {
+  const navigate = useNavigate();
+  return (
+    <div className="flex flex-col gap-2">
+      {/* 왜 필요한지를 말한다. 버튼만 두면 길찾기가 왜 안 되는지 알 수 없다. */}
+      <p className="text-center text-xs text-muted">
+        {isEn
+          ? "Set a starting point and we can show you directions."
+          : "출발지를 정하면 길을 안내해 드릴 수 있어요"}
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          /* 모달을 먼저 닫는다. 페이지가 바뀌면 어차피 언마운트되지만, 부모가 쥔
+             "열린 장소" 상태를 비워 둬야 돌아왔을 때 모달이 다시 뜨지 않는다. */
+          onClose();
+          navigate("/location");
+        }}
+        className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-brand text-base font-bold text-white transition-colors hover:bg-brand-deep"
+      >
+        <MapPin size={18} />
+        {isEn ? "Set starting point" : "출발지 정하기"}
+      </button>
+    </div>
+  );
+}
+
 /** 추천/INFO 어디서 열어도 같은 모양으로 PlaceDetails를 보여주는 상세 모달이다. */
 export function RecommendationDetailPreviewModal({
   item,
@@ -1601,38 +1637,7 @@ export function RecommendationDetailPreviewModal({
   placeName: placeNameProp,
   onClose,
 }: RecommendationDetailPreviewModalProps) {
-  const { device_location, language } = useTripState();
-  const dispatch = useTripDispatch();
-  const [isLocating, setIsLocating] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
-
-  /*
-   * 길찾기를 열려고 좌표만 받는다. 위치 설정 화면의 "현재 위치 사용"과 달리
-   * 출발지(locationSettings.origin)는 건드리지 않는다 — 저쪽 버튼의 뜻은 "내 위치는
-   * 기기 좌표다"이지만 이 버튼의 뜻은 "길찾기를 열겠다"뿐이다.
-   */
-  async function handleUseCurrentLocation() {
-    if (isLocating) return;
-    setIsLocating(true);
-    setLocationError(null);
-    try {
-      const deviceLocation = await getBrowserDeviceLocation({ forceFresh: true, language });
-      dispatch({
-        type: "SET_DEVICE_LOCATION",
-        payload: { deviceLocation, capturedAt: Date.now() },
-      });
-    } catch (error) {
-      setLocationError(
-        error instanceof Error
-          ? error.message
-          : language === "en"
-            ? "Couldn't get your location."
-            : "위치를 가져오지 못했어요.",
-      );
-    } finally {
-      setIsLocating(false);
-    }
-  }
+  const { language } = useTripState();
   const isEn = language === "en";
   // 후기로 답한 턴에서 연 카드. 추천 카드와 같은 상세를 보여준다 — 추천 순위를
   // 말하는 문장(item.recommendation_reason)이 없어도 AI 문장 절을 띄운다.
@@ -1689,8 +1694,8 @@ export function RecommendationDetailPreviewModal({
   const expectsNoPhoto = (item != null || card != null) && knownImageUrl == null;
   const showSkeleton = useDelayedSkeleton(isLoading);
   /* 목적지 좌표와 출발점이 모두 있어야 길찾기 딥링크를 만들 수 있다. 출발점은 훅이
-     정한다 — 위치 설정의 출발지가 먼저고, 없으면 기기 좌표다. */
-  const directions = useNaverDirections(device_location);
+     정한다 — 위치 설정의 출발지다. */
+  const directions = useNaverDirections();
   const hasRouteTarget = detailCard?.latitude != null && detailCard?.longitude != null;
   const canRoute = hasRouteTarget && directions.canRoute;
   /*
@@ -1701,24 +1706,21 @@ export function RecommendationDetailPreviewModal({
    * 그 전에는 열 지도가 없다. 추천 카드에는 좌표가 없어서(RecommendationItem에
    * 필드 자체가 없다) 미리 채울 수도 없다.
    *
-   * 현재 위치가 없으면 길찾기 대신 위치를 받는 자리로 쓴다. 예전에는 자리째
-   * 숨겼는데, 그러면 사용자는 버튼이 왜 없는지 알 방법이 없었다 — 위치 칩에는
-   * 출발지가 떠 있으니 위치를 아는 줄 안다. 실제로 겪는 상태다: 새 대화(RESET)는
-   * 좌표를 지우지만 출발지·검색지는 sessionStorage에 남는다.
+   * 출발지가 없으면 길찾기 대신 출발지를 정하러 가는 자리로 쓴다. 자리째 숨기면
+   * 사용자는 버튼이 왜 없는지 알 방법이 없다.
    */
   /* 목적지가 있는 카드에서만 길찾기를 말한다.
      실시간 도시데이터 INFO(혼잡도·상권·주차·지하철·버스·행사·도로소통·화장실)는 지역
      단위 데이터라 카드에 목적지 좌표가 없고, 관광 상세로 보강하지도 않는다
-     (needsDetailEnrichment가 지도·목록이 있으면 막는다). 그런 카드에서 "지금 계신 곳을
-     알아야 길을 안내할 수 있어요"를 띄우면, 위치를 줘도 갈 곳이 없어 바가 그냥
-     사라진다 — 사용자에게는 "위치를 받았더니 길찾기가 없어진" 것으로 보인다.
+     (needsDetailEnrichment가 지도·목록이 있으면 막는다). 그런 카드에서 "출발지를 정하면
+     길을 안내해 드릴 수 있어요"를 띄우면, 출발지를 정해도 갈 곳이 없어 길찾기가 끝내
+     나오지 않는다.
      공중화장실처럼 목적지가 여럿인 카드는 항목별로 여는 것이 맞고, 하단 바 하나로는
      어느 곳을 고를지 정할 수 없다. */
-  /* 출발점을 하나도 못 정할 때만 안내한다. 사용자가 위치 설정에서 출발지를 정해
-     뒀으면 기기 좌표가 없어도 길찾기를 열 수 있으므로, 여기서 좌표만 보면 열 수 있는
-     상황에도 "현재 위치를 받으세요"라고 말하게 된다. */
-  const needsDeviceLocation = hasRouteTarget && !directions.canRoute;
-  const showRouteFooter = needsDeviceLocation || canRoute || isLoading;
+  /* 출발점을 못 정할 때만 안내한다. 이 버전은 기기 위치를 받지 않으므로 출발점은
+     위치 설정의 출발지뿐이다. */
+  const needsOrigin = hasRouteTarget && !directions.canRoute;
+  const showRouteFooter = needsOrigin || canRoute || isLoading;
   // 주소는 제목 바로 아래 전용 줄로 뺐으니 "관련 정보"에서는 뺀다(중복 제거).
   const addressText = detailCard?.answer_fields.address;
   // "관련 정보"(answer_fields)에서 개요는 아래 "개요" 섹션과 내용이 같아 제외한다(중복 제거).
@@ -2203,45 +2205,8 @@ export function RecommendationDetailPreviewModal({
               aria-hidden
               className="pointer-events-none absolute inset-x-0 bottom-full h-5 bg-gradient-to-t from-bg/80 to-transparent backdrop-blur-md [mask-image:linear-gradient(to_top,rgb(0_0_0),transparent)]"
             />
-            {needsDeviceLocation ? (
-              /* 길찾기는 "출발=현재 위치, 도착=이 좌표"라 현재 위치 없이는 열 수 없다.
-                 숨기는 대신 여기서 바로 받게 한다 — 화면을 옮기지 않아도 된다.
-                 위치 설정 화면과 달리 출발지는 건드리지 않는다. 저쪽 버튼의 뜻은
-                 "내 위치는 기기 좌표다"라 출발지를 비우지만, 이 버튼의 뜻은
-                 "길찾기를 열겠다"뿐이라 사용자가 정해둔 출발지를 바꾸면 안 된다. */
-              <div className="flex flex-col gap-2">
-                {/* 왜 필요한지를 말한다. "현재 위치가 필요해요"만 쓰면, 화면 위
-                    칩에는 위치가 떠 있는 터라 "이미 아는 거 아니야?"가 된다.
-                    출발지라는 말은 쓰지 않는다 — 여기서는 개념을 꺼낼 필요 없이
-                    "지금 계신 곳"이 곧바로 읽힌다. */}
-                <p className="text-center text-xs text-muted">
-                  {isEn
-                    ? "We need to know where you are to show directions."
-                    : "지금 계신 곳을 알아야 길을 안내할 수 있어요."}
-                </p>
-                {locationError && (
-                  <p role="alert" className="text-center text-xs text-rust">
-                    {locationError}
-                  </p>
-                )}
-                <button
-                  type="button"
-                  disabled={isLocating}
-                  onClick={() => void handleUseCurrentLocation()}
-                  className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-brand text-base font-bold text-white transition-colors hover:bg-brand-deep disabled:opacity-50"
-                >
-                  <Crosshair size={18} className={isLocating ? "animate-pulse" : undefined} />
-                  {/* 위치 설정 화면과 같은 말을 쓴다 — 한쪽에서 배운 뜻이 다른
-                      쪽에서도 통해야 한다. */}
-                  {isLocating
-                    ? isEn
-                      ? "Getting your location…"
-                      : "위치를 가져오는 중이에요…"
-                    : isEn
-                      ? "Use my current location"
-                      : "현재 위치 사용"}
-                </button>
-              </div>
+            {needsOrigin ? (
+              <SetOriginPrompt isEn={isEn} onClose={onClose} />
             ) : (
               <button
                 type="button"

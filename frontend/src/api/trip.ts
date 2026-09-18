@@ -222,17 +222,15 @@ export function searchPlacesByPhoto(params: {
   image: File;
   /** 대화 세션. 앞 턴이 잡은 위치("안국역" 등)를 서버가 이어받는다. */
   sessionId?: string | null;
+  /* 위치는 이름으로만 보낸다. 서버는 latitude/longitude도 받지만 이 버전은 기기
+     좌표를 받지 않아 보낼 좌표가 없다. */
   locationQuery?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
   limit?: number;
 }) {
   const form = new FormData();
   form.append("image", params.image);
   if (params.sessionId) form.append("session_id", params.sessionId);
   if (params.locationQuery?.trim()) form.append("location_query", params.locationQuery.trim());
-  if (params.latitude != null) form.append("latitude", String(params.latitude));
-  if (params.longitude != null) form.append("longitude", String(params.longitude));
   if (params.limit != null) form.append("limit", String(params.limit));
   return apiClient.postForm<PhotoSimilarPlacesResponse>("/places/similar-by-photo", form);
 }
