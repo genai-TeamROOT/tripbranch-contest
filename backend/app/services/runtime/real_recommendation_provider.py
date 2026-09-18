@@ -17,6 +17,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from app.agent_context.enrichment_schemas import CandidateEnrichmentResponse
+from app.config import settings
 from app.domain.models import PlaceEvidenceMatch, PreferenceTag, PreferenceTagMatch
 from app.domain.scoring import match_preference_tags
 from app.domain.travel_route import TravelRoute
@@ -438,8 +439,18 @@ class RealRecommendationProvider:
     async def _with_preference_tags(
         self, response: RecommendationResponse, conditions: UserConditions
     ) -> RecommendationResponse:
-        """추천 결과에 DB의 장소별 취향 태그를 붙인다. 실패해도 추천은 유지한다."""
-        if self._preference_tags is None:
+        """추천 결과에 DB의 장소별 취향 태그를 붙인다. 실패해도 추천은 유지한다.
+
+        **취향 스위치가 꺼져 있으면 붙이지 않는다**(`taste_evidence_enabled`).
+        태그는 후기·블로그를 집계한 값이라 임베딩 검색과 같은 출처다 — 스위치가
+        임베딩만 끄고 이쪽을 남기면 화면의 "장소별 방문자 취향 태그" 표가 계속
+        뜬다. 빈 목록이 스키마의 "없음"이고(`preference_tags` 기본값), 화면은
+        태그가 하나도 없으면 표 메시지를 만들지 않는다(frontend agentMessages.ts).
+
+        저장소(`self._preference_tags`)를 None으로 주입하는 식으로 끄지 않은 이유는
+        같은 저장소를 보관함 주입이 함께 쓰기 때문이다(agent_runtime.run_agent).
+        """
+        if self._preference_tags is None or not settings.taste_evidence_enabled:
             return response
         items = [*response.recommendations, *response.unverified_recommendations]
         try:
@@ -500,8 +511,15 @@ class RealRecommendationProvider:
         조회 실패는 추천을 막지 않는다 — 취향은 순위를 다듬는 축이지 후보를
         만드는 축이 아니라서, 실패하면 임베딩 경로로 내려가는 편이 낫다
         (`_taste_matches_for()`와 같은 원칙).
+
+        **취향 스위치가 꺼져 있으면 태그를 읽지 않고 None이다.** 스위치는 원래
+        임베딩 검색만 막았는데(`get_place_evidence_provider`), 이 경로가 따로 살아
+        있어 꺼도 "혼자"·"조용한" 같은 발화에서 taste Feature가 켜지고 가중치가
+        바뀌었다. None이면 채점이 taste 키 자체를 만들지 않으므로(scoring.py
+        `uses_taste`) 순위가 "취향 없음"과 같아진다 — 빈 dict를 주면 Feature가
+        켜진 채 전원 0점이 되어 다른 축의 가중치가 줄어드니 None이어야 한다.
         """
-        if self._preference_tags is None:
+        if self._preference_tags is None or not settings.taste_evidence_enabled:
             return None
         requested_codes = _requested_preference_codes(conditions)
         if not requested_codes:

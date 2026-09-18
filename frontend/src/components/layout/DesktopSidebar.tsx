@@ -9,6 +9,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home, MapPin, PanelLeftClose, PanelLeftOpen, Route, Sparkles } from "lucide-react";
 import { useTripDispatch, useTripState } from "../../state/TripContext";
+import { useTasteEnabled } from "../../state/FeatureFlagsContext";
 import { SideDrawerContent } from "./SideDrawerContent";
 import { SidebarAccount } from "./SidebarAccount";
 
@@ -28,6 +29,7 @@ export function DesktopSidebar({ collapsed, onToggle }: DesktopSidebarProps) {
      (PR #367)에서 통째로 빠져 있었다. 문구는 펼침 사이드바와 같게 맞춘다:
      같은 버튼이 접힘/펼침에 따라 다른 이름을 가지면 안 된다. */
   const isEn = state.language === "en";
+  const tasteEnabled = useTasteEnabled();
 
   const hasConversation = state.messages.length > 0;
 
@@ -52,13 +54,20 @@ export function DesktopSidebar({ collapsed, onToggle }: DesktopSidebarProps) {
         navigate("/");
       },
     },
-    {
-      key: "preferences",
-      label: isEn ? "Preferences" : "취향 설정",
-      icon: Sparkles,
-      active: location.pathname === "/preferences",
-      onClick: () => navigate("/preferences"),
-    },
+    /* 취향이 꺼진 서버에서는 뺀다(GET /api/features). 저장한 취향이 순위에 아무
+       영향도 주지 않는 화면이라 열어 둘 이유가 없다. 펼침 쪽(SideDrawerContent)과
+       같은 조건이다 — 한쪽만 숨기면 접었을 때만 메뉴가 되살아난다. */
+    ...(tasteEnabled
+      ? [
+          {
+            key: "preferences",
+            label: isEn ? "Preferences" : "취향 설정",
+            icon: Sparkles,
+            active: location.pathname === "/preferences",
+            onClick: () => navigate("/preferences"),
+          },
+        ]
+      : []),
     {
       key: "location",
       label: isEn ? "Location" : "위치 설정",

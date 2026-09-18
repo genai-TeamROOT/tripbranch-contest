@@ -702,8 +702,11 @@ function tripReducer(state: TripState, action: TripAction): TripState {
                       text:
                         streamingMessage.text === "…"
                           ? response.message ||
+                            /* 영어 폴백은 취향을 말하지 않는다 — 한국어 쪽과 같은 뜻이고
+                               취향이 꺼진 서버에서도 참이어야 한다. 추천 턴은 위에서 빈
+                               말풍선을 지우므로, 다른 턴에서 서버 문구가 비었을 때만 뜬다. */
                             (state.language === "en"
-                              ? "Here are some places that match your preferences."
+                              ? "Here are some places for you."
                               : "이런 곳들을 찾아봤어요:")
                           : streamingMessage.text,
                       intent: response.llm_output.intent,

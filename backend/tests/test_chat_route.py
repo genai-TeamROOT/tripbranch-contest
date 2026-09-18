@@ -294,12 +294,14 @@ def test_recommendation_place_details_hides_mismatched_place_card(monkeypatch) -
 
 
 class _FakePreferenceRepository:
-    """상세 카드 취향 근거 조회만 흉내내는 저장소."""
+    """상세 카드 취향 근거 조회만 흉내내는 저장소. 불린 place_id를 남긴다."""
 
     def __init__(self, rows: list[dict]) -> None:
         self._rows = rows
+        self.calls: list[str] = []
 
     async def find_preference_insights(self, content_id: str) -> list[dict]:
+        self.calls.append(content_id)
         return self._rows
 
 
@@ -318,7 +320,7 @@ _TAG_ROWS = [
 ]
 
 
-def _place_details_provider(monkeypatch, rows: list[dict]) -> None:
+def _place_details_provider(monkeypatch, rows: list[dict]) -> _FakePreferenceRepository:
     class FakeContextProvider:
         async def fetch_info_context(self, request):
             return InfoContextResponse(
@@ -334,15 +336,21 @@ def _place_details_provider(monkeypatch, rows: list[dict]) -> None:
             )
 
     monkeypatch.setattr(chat_route, "get_context_provider", lambda client: FakeContextProvider())
-    monkeypatch.setattr(
-        chat_route, "get_place_details_repository", lambda client: _FakePreferenceRepository(rows)
-    )
+    return _preference_rows(monkeypatch, rows)
 
 
-def _preference_rows(monkeypatch, rows: list[dict]) -> None:
-    monkeypatch.setattr(
-        chat_route, "get_place_details_repository", lambda client: _FakePreferenceRepository(rows)
-    )
+def _preference_rows(monkeypatch, rows: list[dict]) -> _FakePreferenceRepository:
+    """취향 근거가 있는 장소를 만든다. **취향 스위치도 함께 켠다.**
+
+    conftest가 `taste_evidence_enabled`를 끄는데, 이 스위치가 근거 조회 자체를
+    막으므로(`_place_preference_insights`) 켜지 않으면 아래 테스트들이 태그를
+    한 줄도 못 읽은 채 "LLM을 안 불렀다"로 통과한다 — 조용한 fake다. 꺼진
+    경로를 보는 테스트는 이 함수 뒤에 다시 끈다.
+    """
+    monkeypatch.setattr(chat_route.settings, "taste_evidence_enabled", True)
+    repository = _FakePreferenceRepository(rows)
+    monkeypatch.setattr(chat_route, "get_place_details_repository", lambda client: repository)
+    return repository
 
 
 def test_place_details_never_waits_on_the_llm(monkeypatch) -> None:
@@ -497,6 +505,58 @@ def test_place_reason_skips_when_disabled(monkeypatch) -> None:
     )
 
     assert response.json()["ai_reason"] is None
+
+
+def test_place_details_omits_insights_when_taste_is_off(monkeypatch) -> None:
+    """취향 스위치가 꺼지면 상세 카드에 후기 근거가 실리지 않고 DB도 읽지 않는다.
+
+    태그가 **있는** 장소로 부른다 — 켜진 경우(위 test_place_details_never_waits_on_the_llm)
+    에는 같은 설정에서 "자연을 즐기기 좋은"이 실리므로, 빈 목록이 스위치 때문임이
+    드러난다.
+    """
+
+    repository = _place_details_provider(monkeypatch, _TAG_ROWS)
+    monkeypatch.setattr(chat_route.settings, "taste_evidence_enabled", False)
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/chat/place-details",
+        json={"place_id": "2832918", "place_name": "한옥카페 선운각"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "success"
+    # 카드 자체(주소·사진·개요)는 그대로 나간다. 후기 절만 빈다.
+    assert body["place_card"]["place_id"] == "2832918"
+    assert body["place_card"]["preference_insights"] == []
+    assert repository.calls == []
+
+
+def test_place_reason_skips_when_taste_is_off(monkeypatch) -> None:
+    """취향 스위치가 꺼지면 근거를 읽지도, LLM을 부르지도 않는다.
+
+    place_reason_enabled는 켠 채로 둔다 — 두 스위치가 따로 동작함을 보인다.
+    """
+
+    repository = _preference_rows(monkeypatch, _TAG_ROWS)
+    monkeypatch.setattr(chat_route.settings, "place_reason_enabled", True)
+    monkeypatch.setattr(chat_route.settings, "taste_evidence_enabled", False)
+
+    def _never_called():
+        raise AssertionError("취향 스위치가 꺼져 있으면 LLM을 부르지 않아야 한다")
+
+    monkeypatch.setattr(chat_route, "get_llm_provider", _never_called)
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/chat/place-details/reason",
+        json={"place_id": "2832918", "place_name": "한옥카페 선운각"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["ai_reason"] is None
+    assert repository.calls == []
 
 
 # --- SSE: 후속 질문은 done 뒤에 온다 (D-102) ---------------------------------

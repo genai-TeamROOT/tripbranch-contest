@@ -1452,8 +1452,13 @@ def _saved_taste_query(
     쭉 None으로 흘러왔다 — `get_session_context()`(state/service.py)와 같은
     `store or get_store()` 패턴이 없어서, 세션·GPS는 멀쩡한데 저장된 취향만
     프로덕션에서 한 번도 채점에 실리지 못했다(실사용 재현, 2026-09-07).
+
+    **취향 스위치(`taste_evidence_enabled`)가 꺼져 있으면 읽지 않는다.** 이 값을
+    쓰는 곳은 임베딩 검색뿐이라 꺼진 동안은 어차피 버려지는데, 읽기만 하는
+    DB 왕복을 매 턴 치를 이유가 없다. 저장값 자체는 건드리지 않는다 — 켜면
+    그대로 다시 실린다.
     """
-    if principal is None:
+    if principal is None or not settings.taste_evidence_enabled:
         return None
     store = store or get_store()
     try:

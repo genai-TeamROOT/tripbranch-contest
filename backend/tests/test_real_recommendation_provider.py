@@ -284,8 +284,22 @@ def _unavailable_concentration() -> CandidateEnrichmentResponse:
     )
 
 
+@pytest.fixture
+def taste_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    """취향 스위치를 켠다. conftest가 끄는데, 꺼져 있으면 태그를 아예 읽지 않는다.
+
+    켜지 않으면 태그 테스트가 저장소를 한 번도 부르지 않은 채 돌게 된다 —
+    기대값이 빈 목록인 테스트는 엉뚱한 이유로 통과한다.
+    """
+    monkeypatch.setattr(module.settings, "taste_evidence_enabled", True)
+
+
 class _FakePreferenceTagRepository:
+    def __init__(self) -> None:
+        self.calls: list[list[str]] = []
+
     async def find_preference_tags(self, content_ids: list[str]):
+        self.calls.append(list(content_ids))
         return {
             place_id: (
                 {
@@ -348,7 +362,7 @@ class _FakePreferenceTagRepository:
 
 
 @pytest.mark.asyncio
-async def test_requested_companion_tag_moves_to_front_and_is_marked() -> None:
+async def test_requested_companion_tag_moves_to_front_and_is_marked(taste_on: None) -> None:
     """상위 5개 밖의 요청 태그도 가져와 첫 칩으로 노출한다."""
     provider = RealRecommendationProvider(
         preference_tags=_FakePreferenceTagRepository(),  # type: ignore[arg-type]
@@ -372,7 +386,7 @@ async def test_requested_companion_tag_moves_to_front_and_is_marked() -> None:
 
 
 @pytest.mark.asyncio
-async def test_missing_requested_tag_does_not_create_a_fake_tag() -> None:
+async def test_missing_requested_tag_does_not_create_a_fake_tag(taste_on: None) -> None:
     class _WithoutKids(_FakePreferenceTagRepository):
         async def find_preference_tags(self, content_ids: list[str]):
             rows = await super().find_preference_tags(content_ids)
@@ -397,6 +411,65 @@ async def test_missing_requested_tag_does_not_create_a_fake_tag() -> None:
         "group_gathering",
     ]
     assert all(tag.is_query_match is False for tag in item.preference_tags)
+
+
+async def _recommend_for_child(
+    repository: _FakePreferenceTagRepository | None,
+) -> RecommendationResponse:
+    """사전 코드(with_kids)가 잡히는 발화로 추천한다. 임베딩 Provider는 없다.
+
+    임베딩을 빼 두면 taste Feature를 켤 수 있는 것은 태그 경로뿐이라, 스위치가
+    그 경로를 실제로 막는지가 결과에 그대로 드러난다.
+    """
+    provider = RealRecommendationProvider(preference_tags=repository)  # type: ignore[arg-type]
+    return await provider.recommend(
+        UserConditions(companion="child", taste_query="아이랑 가기 좋은"),
+        _context(place_ids=["a", "b"]),
+        excluded_place_ids=[],
+    )
+
+
+def _items(response: RecommendationResponse):
+    return [*response.recommendations, *response.unverified_recommendations]
+
+
+@pytest.mark.asyncio
+async def test_taste_tags_rank_and_reach_cards_when_taste_is_on(taste_on: None) -> None:
+    """켜진 경우의 기준선 — 태그가 taste 축을 만들고 카드에 실린다(과잉 차단 방지)."""
+    repository = _FakePreferenceTagRepository()
+
+    result = await _recommend_for_child(repository)
+
+    assert repository.calls, "태그 저장소를 불러야 한다"
+    for item in _items(result):
+        assert "taste" in item.feature_scores
+        assert "taste" in item.weights_used
+        assert item.preference_tags, "카드에 취향 태그가 실려야 한다"
+
+
+@pytest.mark.asyncio
+async def test_taste_off_drops_tag_ranking_and_card_tags() -> None:
+    """취향 스위치가 꺼지면 태그 저장소가 있어도 순위가 "취향 없음"과 같다.
+
+    conftest가 스위치를 끈 상태 그대로다. 같은 저장소로 켠 경우(위 테스트)에는
+    taste 축과 태그가 생기므로, 여기서 사라지는 것이 스위치 때문임이 드러난다.
+    """
+    repository = _FakePreferenceTagRepository()
+
+    result = await _recommend_for_child(repository)
+    baseline = await _recommend_for_child(None)
+
+    # 태그를 읽지도 않는다 — 채점용(후보 전원)도 카드용(노출분)도.
+    assert repository.calls == []
+    for item in _items(result):
+        assert "taste" not in item.feature_scores
+        assert "taste" not in item.weights_used
+        assert item.taste_tag_score is None
+        assert item.preference_tags == []
+    # 저장소가 아예 없는 경우와 순위·점수가 같다.
+    assert [(item.place_id, item.score, item.weights_used) for item in _items(result)] == [
+        (item.place_id, item.score, item.weights_used) for item in _items(baseline)
+    ]
 
 
 @pytest.mark.asyncio

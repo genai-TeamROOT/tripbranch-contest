@@ -1,7 +1,10 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { afterEach, vi } from "vitest";
 
+import { fetchFeatures } from "../../api/features";
+import { FeatureFlagsProvider } from "../../state/FeatureFlagsContext";
 import { TripProvider } from "../../state/TripContext";
 import type { RecommendationItem } from "../../types";
 import { RecommendationResultMessage } from "./RecommendationResultMessage";
@@ -25,6 +28,73 @@ function item(overrides: Partial<RecommendationItem> = {}): RecommendationItem {
     ...overrides,
   };
 }
+
+/* 캡션 테스트만 실제 FeatureFlagsProvider를 쓴다. 서버 응답(GET /api/features)만
+   바꿔 끼운다 — 나머지 테스트는 Provider 없이 렌더해 캡션과 무관하다. */
+vi.mock("../../api/features", () => ({ fetchFeatures: vi.fn() }));
+
+function withFlags({ children }: { children: ReactNode }) {
+  return (
+    <FeatureFlagsProvider>
+      <TripProvider>{children}</TripProvider>
+    </FeatureFlagsProvider>
+  );
+}
+
+function renderCaption(language: "ko" | "en") {
+  render(
+    <RecommendationResultMessage
+      recommendations={[item({ remaining_minutes: 120, warnings: [] })]}
+      unverifiedRecommendations={[]}
+      elapsedMs={0}
+      serverElapsedMs={0}
+      language={language}
+    />,
+    { wrapper: withFlags },
+  );
+}
+
+it("취향이 켜진 서버에서는 캡션이 취향을 말한다", async () => {
+  vi.mocked(fetchFeatures).mockResolvedValue({ taste_enabled: true });
+  renderCaption("ko");
+
+  expect(await screen.findByText("거리·날씨·취향 등을 고려했어요")).toBeInTheDocument();
+});
+
+it("취향이 켜진 서버에서는 영어 캡션도 취향을 말한다", async () => {
+  vi.mocked(fetchFeatures).mockResolvedValue({ taste_enabled: true });
+  renderCaption("en");
+
+  expect(
+    await screen.findByText("Ranked by distance, weather, your preferences, and more"),
+  ).toBeInTheDocument();
+});
+
+it("취향이 꺼진 서버에서는 캡션에서 취향을 뺀다", async () => {
+  /* 순위에 취향 축이 아예 없는데 "취향을 고려했다"고 쓰면 사실과 다르다. */
+  vi.mocked(fetchFeatures).mockResolvedValue({ taste_enabled: false });
+  renderCaption("ko");
+
+  await waitFor(() => expect(fetchFeatures).toHaveBeenCalled());
+  expect(screen.getByText("거리·날씨 등을 고려했어요")).toBeInTheDocument();
+  expect(screen.queryByText("거리·날씨·취향 등을 고려했어요")).not.toBeInTheDocument();
+});
+
+it("취향이 꺼진 서버에서는 영어 캡션에서도 취향을 뺀다", async () => {
+  vi.mocked(fetchFeatures).mockResolvedValue({ taste_enabled: false });
+  renderCaption("en");
+
+  await waitFor(() => expect(fetchFeatures).toHaveBeenCalled());
+  expect(screen.getByText("Ranked by distance, weather, and more")).toBeInTheDocument();
+});
+
+it("기능 조회가 실패하면 취향이 꺼진 캡션을 쓴다", async () => {
+  vi.mocked(fetchFeatures).mockRejectedValue(new Error("features down"));
+  renderCaption("ko");
+
+  await waitFor(() => expect(fetchFeatures).toHaveBeenCalled());
+  expect(screen.getByText("거리·날씨 등을 고려했어요")).toBeInTheDocument();
+});
 
 function renderResult(unverifiedRecommendations: RecommendationItem[]) {
   render(
@@ -173,4 +243,5 @@ it("추천 카드를 클릭하면 C PlaceDetails가 채워진 상세 창을 연�
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.mocked(fetchFeatures).mockReset();
 });
