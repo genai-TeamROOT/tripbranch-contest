@@ -183,6 +183,12 @@ function mockFetch() {
     if (url.endsWith("/schedules")) {
       return Response.json({ items: [] });
     }
+    /* 기능 스위치(GET /api/features)도 앱이 뜨면 한 번 나간다. 이 파일의 흐름은
+       취향이 켜진 서버 기준이다 — 404로 두면 꺼짐으로 보고 취향 메뉴·캡션이 바뀐다.
+       꺼진 경우는 SideDrawerContent.test.tsx와 RecommendationResultMessage.test.tsx가 본다. */
+    if (url.endsWith("/features")) {
+      return Response.json({ taste_enabled: true });
+    }
     return Response.json({ error: { message: "not found" } }, { status: 404 });
   });
 }

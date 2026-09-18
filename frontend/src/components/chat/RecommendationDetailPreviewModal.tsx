@@ -34,6 +34,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { fetchPlaceAiReason, fetchRecommendationPlaceDetails } from "../../api/trip";
 import { useTripState } from "../../state/TripContext";
+import { useTasteEnabled } from "../../state/FeatureFlagsContext";
 import { placeCategoryLabel } from "../../utils/placeCategory";
 import { isAlwaysOpen } from "../../utils/operatingHours";
 import type { InfoPlaceCard, RecommendationItem } from "../../types";
@@ -1642,6 +1643,15 @@ export function RecommendationDetailPreviewModal({
   // 후기로 답한 턴에서 연 카드. 추천 카드와 같은 상세를 보여준다 — 추천 순위를
   // 말하는 문장(item.recommendation_reason)이 없어도 AI 문장 절을 띄운다.
   const isReviewCard = card?.question_type === "review_opinion";
+  /*
+   * 취향(후기·블로그 데이터)이 꺼진 서버에서는 "AI가 추천하는 이유" 절을 아예
+   * 그리지 않고 부르지도 않는다. 서버도 그때 근거를 읽지 않아 ai_reason이 늘
+   * null인데(routes/chat.py), 여기서 모른 채 부르면 응답이 올 때까지 자리표시자
+   * 두 줄이 떴다가 접힌다 — 없을 줄 아는 절을 잠깐 보여줄 이유가 없다.
+   * "방문자 후기에 나타난 특징"은 서버가 빈 목록을 주고 PreferenceInsightsSection이
+   * 빈 목록이면 스스로 접으므로 따로 막지 않는다.
+   */
+  const tasteEnabled = useTasteEnabled();
   const [detailCard, setDetailCard] = useState<InfoPlaceCard | null>(card ?? null);
   const [detailStatus, setDetailStatus] = useState<"loading" | "no_data" | "unavailable">(
     "loading",
@@ -1787,7 +1797,8 @@ export function RecommendationDetailPreviewModal({
       //
       // 후기 답변 카드는 item이 없어도 부른다 — 그 카드를 연 사람은 방금 후기를
       // 물어본 사람이라, 후기에서 드러난 성격을 말하는 이 문장이 가장 읽힐 자리다.
-      const wantsReason = Boolean(item) || card?.question_type === "review_opinion";
+      const wantsReason =
+        tasteEnabled && (Boolean(item) || card?.question_type === "review_opinion");
       if (!wantsReason || !resolved?.place_id) {
         setAiReason("");
         return;
@@ -1839,7 +1850,7 @@ export function RecommendationDetailPreviewModal({
     return () => {
       cancelled = true;
     };
-  }, [card, item, placeId, placeName]);
+  }, [card, item, placeId, placeName, tasteEnabled]);
 
   // .tb-shell의 contain:layout에 기대는 대신 document.body로 포탈해, 채팅
   // 스크롤 위치나 조상 요소의 overflow/포지셔닝과 무관하게 지금 보고 있는
@@ -2022,7 +2033,7 @@ export function RecommendationDetailPreviewModal({
             {addressText && <p className="text-xs text-muted">{addressText}</p>}
           </div>
 
-          {(item || isReviewCard) && aiReason !== "" && (
+          {tasteEnabled && (item || isReviewCard) && aiReason !== "" && (
             /* **정보 표보다 위다**(2026-09-08, 사용자 결정). 이 장소가 왜 떴는지를
                운영시간 같은 사실보다 먼저 본다.
 

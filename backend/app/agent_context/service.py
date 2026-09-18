@@ -2220,8 +2220,18 @@ class ContextService:
         evidence_provider = self._tools.place_evidence
         place_id = resolved_location.place_id
         if evidence_provider is None or not place_id:
+            # 후기 검색을 하지 않았으니 **개요 질문(general_info)으로 바꿔서** 상세
+            # 조회에 넘긴다(D-127: 스위치가 꺼졌거나 인코더가 없으면 기존 상세
+            # 조회로 답한다). 유형을 review_opinion으로 둔 채 넘기면
+            # `extract_info_fields()`에 그 분기가 없어 fields가 비고, 결과가
+            # no_data가 되어 A가 "후기에서 확인하지 못했어요"라고 답했다 — 검색이
+            # 돌지도 않았는데 후기를 봤다고 말하는 셈이다. 결과의 question_type도
+            # general_info로 나가므로 A의 문장 생성·스트리밍이 개요 답변 경로를 탄다.
+            #
+            # 저장소에 없는 장소(`place_id` 없음)도 같은 이유로 같이 바꾼다 — 그
+            # 경우도 검색은 돌지 않았다.
             return await self._fetch_place_detail_info(
-                request,
+                request.model_copy(update={"question_type": "general_info"}),
                 place_name=place_name,
                 resolved_location=resolved_location,
                 location_metadata=location_metadata,

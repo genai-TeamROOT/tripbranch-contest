@@ -38,6 +38,7 @@ from app.routes.agent import router as agent_router
 from app.routes.chat import router as chat_router
 from app.routes.dev import router as dev_router
 from app.routes.favorites import router as favorites_router
+from app.routes.features import router as features_router
 from app.routes.feedback import router as feedback_router
 from app.routes.health import router as health_router
 from app.routes.interpret import router as interpret_router
@@ -237,6 +238,7 @@ def create_app() -> FastAPI:
         return _error_response("internal_server_error", "예상치 못한 오류가 발생했어요.", 500)
 
     app.include_router(health_router, prefix="/api")
+    app.include_router(features_router, prefix="/api")
     app.include_router(interpret_router, prefix="/api")
     app.include_router(recommendations_router, prefix="/api")
     app.include_router(agent_router, prefix="/api")

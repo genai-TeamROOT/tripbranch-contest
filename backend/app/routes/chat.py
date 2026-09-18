@@ -232,8 +232,16 @@ async def _place_preference_insights(place_id: str) -> list[PlacePreferenceInsig
     조회 실패를 부르는 쪽의 실패로 만들지 않는다 — 취향 근거는 상세 카드에도
     추천 이유 문장에도 부가 정보라, 이것 때문에 카드 전체가 안 나가는 것이 훨씬
     나쁘다. 상세조회와 이유 문장 두 경로가 같은 값을 읽어 여기로 모았다.
+
+    **취향 스위치(`taste_evidence_enabled`)가 꺼져 있으면 DB를 읽지 않고 빈
+    목록이다.** 태그와 대표 후기는 블로그·리뷰에서 뽑은 값이라 임베딩 검색과
+    같은 출처다. 두 경로가 여기로 모여 있어 한 줄로 둘 다 막힌다 — 상세 카드의
+    "방문자 후기에 나타난 특징"이 비고, 이유 문장은 근거가 없어 LLM을 부르지
+    않는다(아래 `recommendation_place_reason`의 `if not insights`).
     """
 
+    if not settings.taste_evidence_enabled:
+        return []
     async with create_external_client() as client:
         preference_repository = get_place_details_repository(client)
         if preference_repository is None:
@@ -273,7 +281,9 @@ async def recommendation_place_reason(request: PlaceReasonRequest) -> PlaceReaso
     요약(compose_recommendation_summary)이 같은 이유로 같은 선택을 한다.
     """
 
-    if not settings.place_reason_enabled:
+    # 스위치가 둘이다. `place_reason_enabled`는 이 문장만 끄고, 취향 스위치는
+    # 근거(취향 태그·후기)부터 끊어 아래 `if not insights`에서 멈춘다.
+    if not settings.place_reason_enabled or not settings.taste_evidence_enabled:
         return PlaceReasonResponse()
     insights = await _place_preference_insights(request.place_id)
     if not insights:

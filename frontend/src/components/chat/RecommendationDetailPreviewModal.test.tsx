@@ -32,6 +32,17 @@ vi.mock("../../api/trip", () => ({
   searchPlaces: vi.fn(),
 }));
 
+/*
+ * 기능 스위치(GET /api/features)는 기본 "켜짐"으로 둔다. Provider 없이 렌더하면
+ * 꺼짐이라(FeatureFlagsContext), 그대로 두면 AI 추천 이유 절이 통째로 사라져
+ * "문장을 접는다" 같은 테스트가 엉뚱한 이유로 통과한다. 꺼진 경우는 맨 아래
+ * 테스트가 따로 본다.
+ */
+const featureFlags = vi.hoisted(() => ({ tasteEnabled: true }));
+vi.mock("../../state/FeatureFlagsContext", () => ({
+  useTasteEnabled: () => featureFlags.tasteEnabled,
+}));
+
 /* 링크를 여는 두 함수만 가로채고 나머지는 진짜를 쓴다. */
 vi.mock("../../utils/naverDirections", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../utils/naverDirections")>()),
@@ -120,6 +131,7 @@ function recommendationItem(overrides: Partial<RecommendationItem> = {}): Recomm
 }
 
 beforeEach(() => {
+  featureFlags.tasteEnabled = true;
   mockedFetch.mockReset();
   // 문장 호출은 대부분의 테스트에서 관심 밖이다. 기본은 "문장 없음"으로 두고,
   // 문장을 보는 테스트만 각자 덮어쓴다.
@@ -1308,6 +1320,37 @@ it("문장 생성이 실패해도 그 줄만 접고 카드는 그대로 둔다",
   await waitFor(() => {
     expect(screen.queryAllByTestId("ai-reason-placeholder")).toHaveLength(0);
   });
+});
+
+it("취향이 꺼진 서버에서는 문장을 요청하지 않고 자리표시자도 그리지 않는다", async () => {
+  /* 서버는 그때 근거를 읽지 않아 ai_reason이 늘 null이다. 모른 채 부르면 응답이
+     올 때까지 자리표시자가 떴다가 접힌다. 문장 호출을 끝나지 않게 둬서, 켜진
+     경우(바로 아래 테스트)라면 자리표시자가 남아 있을 조건을 만든다. */
+  featureFlags.tasteEnabled = false;
+  mockedFetch.mockResolvedValue({
+    status: "success",
+    requested_place_id: "126508",
+    place_card: card({
+      place_id: "126508",
+      place_name: "경복궁",
+      answer_fields: { address: "서울 종로구 사직로 161" },
+    }),
+  });
+  mockedReason.mockReturnValue(new Promise(() => {}));
+
+  render(
+    <RecommendationDetailPreviewModal
+      item={recommendationItem({ recommendation_reason: "거리 조건을 종합한 1순위 추천이에요." })}
+      onClose={() => {}}
+    />,
+    { wrapper: TripProvider },
+  );
+
+  // 상세가 도착한 뒤에도(문장을 부를 시점을 지나서도) 절이 없다.
+  expect(await screen.findByText("서울 종로구 사직로 161")).toBeInTheDocument();
+  expect(screen.queryAllByTestId("ai-reason-placeholder")).toHaveLength(0);
+  expect(screen.queryByText("AI가 추천하는 이유")).not.toBeInTheDocument();
+  expect(mockedReason).not.toHaveBeenCalled();
 });
 
 it("문장이 도착하기 전에는 같은 높이의 자리를 잡아 둔다", async () => {

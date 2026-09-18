@@ -121,6 +121,29 @@ const server = vi.hoisted(() => ({
   releaseStream: null as (() => void) | null,
 }));
 
+/*
+ * 기능 스위치(GET /api/features). 기본은 켜짐이다 — 메뉴 이동을 보는 기존 테스트가
+ * "취향 설정"을 누른다. 꺼짐·실패는 맨 아래 테스트가 각각 바꿔서 본다.
+ */
+const features = vi.hoisted(() => ({
+  mode: "enabled" as "enabled" | "disabled" | "error",
+  /* 켜면 응답을 붙들고 있는다 — 스위치를 받기 전 구간을 만든다. */
+  hold: false,
+  release: null as (() => void) | null,
+}));
+
+vi.mock("../../api/features", () => ({
+  fetchFeatures: async () => {
+    if (features.hold) {
+      await new Promise<void>((resolve) => {
+        features.release = resolve;
+      });
+    }
+    if (features.mode === "error") throw new Error("features down");
+    return { taste_enabled: features.mode === "enabled" };
+  },
+}));
+
 vi.mock("../../api/trip", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../api/trip")>();
   return {
@@ -276,6 +299,9 @@ vi.mock("../../api/trip", async (importOriginal) => {
 });
 
 beforeEach(() => {
+  features.mode = "enabled";
+  features.hold = false;
+  features.release = null;
   sessionStorage.clear();
   localStorage.clear();
   localStorage.setItem("tb_favorites", JSON.stringify(SEED_FAVORITES));
@@ -451,9 +477,74 @@ test("취향 설정으로 이동하면 취향 선택 화면이 뜬다", async ()
   const user = userEvent.setup();
   await renderApp();
 
-  await user.click(within(sidebar()).getByRole("button", { name: "취향 설정" }));
+  await user.click(await within(sidebar()).findByRole("button", { name: "취향 설정" }));
 
   expect(screen.getByText(/끌리시나요/)).toBeInTheDocument();
+});
+
+/*
+ * **취향이 꺼진 서버**(TASTE_EVIDENCE_ENABLED=false). 저장한 취향이 순위에 아무
+ * 영향도 주지 않으므로 메뉴와 화면을 모두 숨긴다. 펼침·접힘 레일·모바일 드로어가
+ * 각자 메뉴 목록을 들고 있어 셋 다 본다 — 드로어는 닫혀 있어도 DOM에 있으므로
+ * hidden 요소까지 센다.
+ */
+async function expectNoPreferencesMenu(user: ReturnType<typeof userEvent.setup>) {
+  /* 메뉴 자체는 그려졌다는 것을 먼저 확인한다 — 아무것도 안 그려진 상태에서
+     "없다"를 단정하면 헛돈다. */
+  expect(within(sidebar()).getByRole("button", { name: "위치 설정" })).toBeInTheDocument();
+  expect(screen.queryAllByRole("button", { name: "취향 설정", hidden: true })).toHaveLength(0);
+
+  await user.click(screen.getByRole("button", { name: "사이드바 접기" }));
+  expect(within(sidebar()).getByRole("button", { name: "위치 설정" })).toBeInTheDocument();
+  expect(screen.queryAllByRole("button", { name: "취향 설정", hidden: true })).toHaveLength(0);
+}
+
+test("취향이 꺼진 서버에서는 취향 설정 메뉴가 없다", async () => {
+  features.mode = "disabled";
+  const user = userEvent.setup();
+  await renderApp();
+
+  await expectNoPreferencesMenu(user);
+});
+
+test("기능 조회가 실패하면 꺼진 것으로 보고 메뉴를 숨긴다", async () => {
+  /* 켜짐으로 두면 동작하지 않는 기능을 보여주게 된다(FeatureFlagsContext). */
+  features.mode = "error";
+  const user = userEvent.setup();
+  await renderApp();
+
+  await expectNoPreferencesMenu(user);
+});
+
+test("취향이 꺼진 서버에서는 /preferences 주소로 들어와도 홈으로 돌려보낸다", async () => {
+  features.mode = "disabled";
+  window.history.pushState({}, "", "/preferences");
+
+  await renderApp();
+
+  await waitFor(() => expect(window.location.pathname).toBe("/"));
+  expect(screen.queryByText(/끌리시나요/)).not.toBeInTheDocument();
+});
+
+test("취향이 켜진 서버에서는 /preferences로 바로 들어가도 그 화면이 뜬다", async () => {
+  /* 스위치를 받기 전에 돌려보내면 이 화면에서 새로고침할 때마다 홈으로 튕긴다.
+     응답을 붙들어 셸이 먼저 뜨게 한다 — 그러지 않으면 세션 확인이 더 느려서
+     셸이 뜰 때는 이미 스위치를 받은 뒤라, 받기 전 구간을 한 번도 지나지 않는다. */
+  features.hold = true;
+  window.history.pushState({}, "", "/preferences");
+  render(<App />);
+
+  expect(await screen.findByRole("complementary")).toBeInTheDocument();
+  await waitFor(() => expect(features.release).not.toBeNull());
+  // 받기 전에는 화면을 비워 두되 주소는 그대로다 — 메뉴도 아직 없다.
+  expect(window.location.pathname).toBe("/preferences");
+  expect(screen.queryByText(/끌리시나요/)).not.toBeInTheDocument();
+  expect(screen.queryAllByRole("button", { name: "취향 설정", hidden: true })).toHaveLength(0);
+
+  await act(async () => features.release?.());
+
+  expect(await screen.findByText(/끌리시나요/)).toBeInTheDocument();
+  expect(window.location.pathname).toBe("/preferences");
 });
 
 /* 화면에서만 지우고 서버에 남기면 다음에 열었을 때 되살아난다. */
@@ -758,6 +849,7 @@ test("영어로 바꾸면 접힘 레일의 이름도 영어가 된다", async ()
   await user.click(screen.getByRole("button", { name: "Collapse sidebar" }));
 
   const rail = sidebar();
+  expect(await within(rail).findByRole("button", { name: "Preferences" })).toBeInTheDocument();
   for (const name of ["New chat", "Preferences", "Location", "Schedule"]) {
     expect(within(rail).getByRole("button", { name })).toBeInTheDocument();
   }

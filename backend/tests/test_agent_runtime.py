@@ -5942,12 +5942,17 @@ class _RecordingSavedTasteProvider(RealRecommendationProvider):
 
 
 @pytest.mark.asyncio
-async def test_saved_preferences_reach_scoring_when_nothing_was_spoken() -> None:
+async def test_saved_preferences_reach_scoring_when_nothing_was_spoken(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """계정에 저장해 둔 취향이 실제로 채점까지 간다.
 
     `_saved_taste_query()` 단위 테스트만으로는 **호출부 한 줄이 지워져도 안 잡힌다** —
     되돌려서 확인했다. 1.9.0에서 provider 배선 2줄이 같은 구멍이었다.
+
+    취향 스위치를 켠다 — conftest가 끄는데, 꺼져 있으면 저장값을 아예 읽지 않는다.
     """
+    monkeypatch.setattr(settings, "taste_evidence_enabled", True)
     store = InMemoryStateStore()
     state_preferences.replace(
         store,
@@ -5981,12 +5986,13 @@ async def test_saved_preferences_reach_scoring_when_nothing_was_spoken() -> None
 
 
 @pytest.mark.asyncio
-async def test_saved_preferences_reach_both_scoring_passes() -> None:
+async def test_saved_preferences_reach_both_scoring_passes(monkeypatch: pytest.MonkeyPatch) -> None:
     """1차(실측 대상 고르기)와 2차(실측 반영)가 **같은 값**을 봐야 한다.
 
     한쪽만 주면 취향으로 후보를 좁혀 놓고 최종 순위에서는 취향을 빼게 된다 —
     2026-08-20에 그 계열의 사고가 있었다(`SCORING_VERSION` 1.4.0).
     """
+    monkeypatch.setattr(settings, "taste_evidence_enabled", True)
     store = InMemoryStateStore()
     state_preferences.replace(
         store,
