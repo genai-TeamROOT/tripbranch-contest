@@ -13,7 +13,7 @@
 
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { fetchSessionState, streamChat, toDisplayConditions } from "../api/trip";
@@ -41,12 +41,6 @@ import type { TravelOrigin } from "../types";
 import { buildAgentStageTimings } from "../utils/agentTiming";
 import { buildLocationChipModel, readSubstitutedOrigin } from "../utils/locationChip";
 import { getLatestConversationPlaceName } from "../utils/conversationPlace";
-import { getBrowserDeviceLocation } from "../utils/geolocation";
-import {
-  getLocationAgeMinutes,
-  isLocationRefreshDue,
-  LOCATION_RECONFIRM_AFTER_MS,
-} from "../utils/locationRefresh";
 
 /*
  * 로컬 테스트용 슬래시 명령. Agent에 보내지 않고 GET /api/state/{session_id}로
@@ -63,7 +57,8 @@ const CHAT_TEXT = {
     requestMore: "다른 곳 보여줘",
     relaxRadius: "검색 범위를 넓혀서 다시 추천해줘",
     basedOn: (name: string) => `${name} 기준으로 다시 보기`,
-    currentLocation: "현재 위치 기준으로 다시 보기",
+    /* user_location은 이제 늘 사용자가 이름으로 정한 출발지다(기기 GPS를 받지 않는다). */
+    currentLocation: "출발지 기준으로 다시 보기",
   },
   en: {
     developer: "Developer view",
@@ -73,14 +68,9 @@ const CHAT_TEXT = {
     requestMore: "Show more places",
     relaxRadius: "Search in a wider area",
     basedOn: (name: string) => `View results based on ${name}`,
-    currentLocation: "View results based on my current location",
+    currentLocation: "View results from my starting point",
   },
 } as const;
-interface PendingLocationRefresh {
-  text: string;
-  clarificationChoice?: string;
-  travelOriginOverride?: TravelOrigin;
-}
 
 export function ChatPage() {
   const state = useTripState();
@@ -102,8 +92,6 @@ export function ChatPage() {
     scrollToTop,
     scrollToBottom,
   } = useScrollEdgeButton(messagesContainerRef);
-  const [pendingLocationRefresh, setPendingLocationRefresh] =
-    useState<PendingLocationRefresh | null>(null);
 
   const showStatus = useCallback(
     async (text: string) => {
@@ -145,26 +133,15 @@ export function ChatPage() {
     async (
       text: string,
       clarificationChoice?: string,
-      deviceLocationOverride?: string,
-      deviceLocationCapturedAt?: number,
       travelOriginOverride?: TravelOrigin,
       /*
-       * 위치 인자가 이미 다섯이라 여섯 번째를 또 붙이면 호출부에서
-       * `send(t, undefined, undefined, undefined, undefined, true)`가 된다.
-       * 이후 확장은 이 객체에 담는다.
+       * 위치 인자를 더 붙이면 호출부에서 `send(t, undefined, undefined, true)`처럼
+       * 읽기 어려워진다. 이후 확장은 이 객체에 담는다.
        */
       options?: { scheduleFromSaved?: boolean },
     ) => {
-      const deviceLocation = deviceLocationOverride ?? state.device_location;
       const conversationPlaceName = getLatestConversationPlaceName(state.messages);
-      dispatch({
-        type: "START_CHAT_TURN",
-        payload: {
-          userInput: text,
-          deviceLocation: deviceLocationOverride,
-          deviceLocationCapturedAt,
-        },
-      });
+      dispatch({ type: "START_CHAT_TURN", payload: { userInput: text } });
       // 사용자가 입력하거나 버튼을 누른 시점부터 결과를 dispatch할 때까지를 잰다.
       const startedAt = performance.now();
       const progressEvents = [] as import("../types").AgentProgressEvent[];
@@ -179,7 +156,6 @@ export function ChatPage() {
             user_input: text,
             language: state.language,
             session_id: state.session_id,
-            device_location: deviceLocation,
             selected_search_center: loadLocationSettings().center,
             selected_current_location: loadLocationSettings().origin,
             conversation_place_name: conversationPlaceName,
@@ -312,7 +288,6 @@ export function ChatPage() {
     [
       dispatch,
       refreshSavedIfAny,
-      state.device_location,
       state.language,
       state.messages,
       state.recent_follow_ups,
@@ -323,87 +298,13 @@ export function ChatPage() {
   /*
    * 보관함 CTA. 인텐트 분류를 건너뛰도록 schedule_from_saved만 세우고, user_input에는
    * 버튼 label을 채운다 — 채팅 이력에 "무엇을 눌렀는지"가 남아야 하기 때문이다.
-   *
-   * requestSend가 아니라 send를 직접 부른다. 위치 재확인 게이트는 GPS 나이가
-   * 기준인데, 이 턴이 쓰는 좌표는 담을 때 찍힌 스냅샷이라 지금 위치를 다시
-   * 받아도 편성 결과가 달라지지 않는다.
    */
   const planFromSaved = useCallback(() => {
     const label = state.language === "en" ? "Plan a trip with these" : "이 장소들로 일정 짜기";
-    void send(label, undefined, undefined, undefined, undefined, { scheduleFromSaved: true });
+    void send(label, undefined, undefined, { scheduleFromSaved: true });
   }, [send, state.language]);
 
   const handlePhotoSelect = usePhotoSimilarSearch();
-
-  const locationAgeMinutes = getLocationAgeMinutes(state.device_location_captured_at);
-
-  const requestSend = useCallback(
-    async (text: string, clarificationChoice?: string, travelOriginOverride?: TravelOrigin) => {
-      if (
-        isLocationRefreshDue(
-          state.device_location,
-          state.device_location_captured_at,
-          state.device_location_snoozed_until,
-        )
-      ) {
-        setPendingLocationRefresh({ text, clarificationChoice, travelOriginOverride });
-        return;
-      }
-      await send(text, clarificationChoice, undefined, undefined, travelOriginOverride);
-    },
-    [
-      send,
-      state.device_location,
-      state.device_location_captured_at,
-      state.device_location_snoozed_until,
-    ],
-  );
-
-  const usePreviousLocation = useCallback(() => {
-    if (!pendingLocationRefresh) return;
-    const pending = pendingLocationRefresh;
-    setPendingLocationRefresh(null);
-    // 실제 GPS는 다시 받지 않았으니 device_location_captured_at은 그대로 두고,
-    // 재확인 질문만 30분 동안 미룬다 — 그래야 다음 턴 나이 표시가 실제 경과
-    // 시간을 계속 정확히 보여준다(utils/locationRefresh.ts 참고).
-    dispatch({
-      type: "SNOOZE_LOCATION_REFRESH",
-      payload: { until: Date.now() + LOCATION_RECONFIRM_AFTER_MS },
-    });
-    void send(
-      pending.text,
-      pending.clarificationChoice,
-      undefined,
-      undefined,
-      pending.travelOriginOverride,
-    );
-  }, [dispatch, pendingLocationRefresh, send]);
-
-  const refreshBrowserLocation = useCallback(async () => {
-    if (!pendingLocationRefresh) return;
-    try {
-      // 버튼 클릭이라는 사용자 제스처 안에서 호출해야 브라우저가 위치 권한을 다시 요청할 수 있다.
-      const deviceLocation = await getBrowserDeviceLocation({ forceFresh: true });
-      const pending = pendingLocationRefresh;
-      setPendingLocationRefresh(null);
-      await send(
-        pending.text,
-        pending.clarificationChoice,
-        deviceLocation,
-        Date.now(),
-        pending.travelOriginOverride,
-      );
-    } catch (error) {
-      /* 위치 갱신은 사용자가 고른 발화가 아니라 그 앞단계라 다시 보낼 값이 없다 —
-         retryInput 없이 사유만 남긴다. */
-      dispatch({
-        type: "FAIL_TURN",
-        payload: {
-          message: error instanceof Error ? error.message : "현재 위치를 가져오지 못했어요.",
-        },
-      });
-    }
-  }, [dispatch, pendingLocationRefresh, send]);
 
   if (!hasConversation) {
     return <Navigate to="/" replace />;
@@ -415,7 +316,7 @@ export function ChatPage() {
       await showStatus(text.trim());
       return;
     }
-    await requestSend(text);
+    await send(text);
   }
 
   /* 위치 설정 화면과 같은 것을 보여준다 — 두 화면이 같은 사실을 말해야 한다.
@@ -426,11 +327,10 @@ export function ChatPage() {
      있으면 서버가 그 위치를 들고 있어서 다음 발화도 거기서 찾는다.
 
      예전 기본값이던 "종로구"는 뺐다. 지원 지역이 종로구뿐이던 시절의 값이라
-     지금은 사실이 아니고, 아무것도 모를 때 실제로 쓰이는 것은 기기 좌표다. */
+     지금은 사실이 아니다. 아무것도 모르면 칩은 "위치 미설정"이다. */
   const locationChip = buildLocationChipModel(
     locationSettings,
     state.interpreted_conditions?.location_query ?? null,
-    Boolean(state.device_location),
     /* 직전 턴이 사용자 위치를 몰라 검색지에서 거리를 쟀으면 칩도 그렇게 말한다
        (utils/locationChip.ts). 그런 턴이 아니거나 아직 한 턴도 없으면 null이라
        지금까지와 같은 모양이다. */
@@ -493,31 +393,21 @@ export function ChatPage() {
             messages={state.messages}
             showDebug={false}
             isLoading={isLoading}
-            deviceLocation={state.device_location}
-            onRequestMore={() => void requestSend(text.requestMore)}
-            onRelaxRadius={() => void requestSend(text.relaxRadius)}
-            onSelectClarificationOption={(optionId, label) => void requestSend(label, optionId)}
+            onRequestMore={() => void send(text.requestMore)}
+            onRelaxRadius={() => void send(text.relaxRadius)}
+            onSelectClarificationOption={(optionId, label) => void send(label, optionId)}
             // 되묻기 버튼과 달리 override 없이 문구만 보낸다 — 사용자가 직접 입력한
             // 것과 같은 경로로 분류를 태운다.
             onSelectFollowUpSuggestion={(suggestion) => void handleFollowUp(suggestion)}
             onSetLocation={() => navigate("/location")}
-            onRetryTurn={(input) => void requestSend(input)}
+            onRetryTurn={(input) => void send(input)}
             onToggleTravelOrigin={(toggle) => {
               const label =
                 toggle.alternative_origin === "search_center"
                   ? text.basedOn(toggle.alternative_origin_name)
                   : text.currentLocation;
-              void requestSend(label, undefined, toggle.alternative_origin);
+              void send(label, undefined, toggle.alternative_origin);
             }}
-            locationRefresh={
-              pendingLocationRefresh
-                ? {
-                    ageMinutes: locationAgeMinutes,
-                    onUsePrevious: usePreviousLocation,
-                    onRefreshLocation: () => void refreshBrowserLocation(),
-                  }
-                : null
-            }
             progress={state.agentProgress}
             language={state.language}
           />

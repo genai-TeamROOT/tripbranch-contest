@@ -3,24 +3,24 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, it, vi } from "vitest";
-import { fetchRecommendationPlaceDetails } from "../../api/trip";
+import { fetchRecommendationPlaceDetails, searchPlaces } from "../../api/trip";
+import { clearDirectionsOriginCache } from "../../hooks/useNaverDirections";
+import { clearLocationSettings, setLocationOrigin } from "../../state/locationSettings";
 import { TripProvider } from "../../state/TripContext";
-import type { TripState } from "../../state/TripContext";
-import { clearState, saveState } from "../../state/storage";
 import type { InfoPlaceCard as InfoPlaceCardData } from "../../types";
 import { openNaverDirections, openNaverMapSearch } from "../../utils/naverDirections";
 import { PlaceInfoCard } from "./PlaceInfoCard";
 
-// 상세 모달이 useTripState(현재 위치)를 읽으므로 TripProvider로 감싼다.
+// 카드가 useTripState(언어)를 읽으므로 TripProvider로 감싼다.
 const renderWithTrip = (ui: Parameters<typeof render>[0]) => render(ui, { wrapper: TripProvider });
 
 vi.mock("../../api/trip", () => ({
   fetchRecommendationPlaceDetails: vi.fn(),
+  // 길찾기 훅이 위치 설정의 출발지 이름을 좌표로 풀 때 부른다.
+  searchPlaces: vi.fn(),
 }));
 
-/* 링크를 여는 두 함수만 가로채고 나머지는 진짜를 쓴다. deviceLocationToOrigin은
-   훅이 "출발점을 정할 수 있는가"를 판단할 때 부르므로, 통째로 가짜를 씌우면 길찾기
-   버튼이 항상 잠긴 채로 테스트된다. */
+/* 링크를 여는 두 함수만 가로채고 나머지는 진짜를 쓴다. */
 vi.mock("../../utils/naverDirections", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../utils/naverDirections")>()),
   openNaverMapSearch: vi.fn(),
@@ -700,34 +700,10 @@ it("실시간 지하철 도착은 호선 색으로 묶고, 상행·하행을 별
   expect(screen.getByText("도착 정보 미제공")).not.toHaveClass("text-emerald-700");
 });
 
-function seedDeviceLocation(deviceLocation: string): void {
-  saveState({
-    language: "ko",
-    user_input: "",
-    interpreted_conditions: null,
-    recommendations: [],
-    unverified_recommendations: [],
-    shown_place_ids: [],
-    messages: [],
-    auditTurns: [],
-    phase: "ready",
-    error: null,
-    session_id: "session-1",
-    last_turn_at: null,
-    device_location: deviceLocation,
-    device_location_captured_at: Date.now(),
-    device_location_snoozed_until: null,
-    awaiting_clarification: false,
-    saved_places: [],
-    recent_follow_ups: [],
-    agentProgress: null,
-    streamingIntent: null,
-  } satisfies TripState);
-}
-
 describe("근처 공중화장실 카드", () => {
   afterEach(() => {
-    clearState();
+    clearLocationSettings();
+    clearDirectionsOriginCache();
   });
 
   const toiletCard: InfoPlaceCardData = {
@@ -782,18 +758,30 @@ describe("근처 공중화장실 카드", () => {
     expect(screen.getByText("지금은 닫혀 있음")).toHaveClass("text-rust");
   });
 
-  it("좌표와 현재 위치가 있으면 카드를 눌러 도보 길찾기를 연다", async () => {
+  it("좌표와 출발지가 있으면 카드를 눌러 도보 길찾기를 연다", async () => {
     const user = userEvent.setup();
-    // TripProvider가 복원할 상태에 현재 위치를 심는다 — 이게 없으면 주소 검색으로
-    // 폴백한다(SavedPlacesBar.test.tsx와 같은 방식).
-    seedDeviceLocation("37.5739,126.9852");
+    // 위치 설정에 출발지를 심는다 — 이게 없으면 주소 검색으로 폴백한다.
+    setLocationOrigin("인사동");
+    vi.mocked(searchPlaces).mockResolvedValue({
+      places: [
+        {
+          name: "인사동",
+          address: null,
+          road_address: null,
+          category: null,
+          latitude: 37.5739,
+          longitude: 126.9852,
+        },
+      ],
+      outside_service_area_count: 0,
+    });
     renderWithTrip(<PlaceInfoCard card={toiletCard} />);
 
     await user.click(
       screen.getByRole("button", { name: "인사동마루 신관 개방화장실까지 네이버 지도 도보 길찾기" }),
     );
 
-    expect(openNaverDirections).toHaveBeenCalledWith(
+    await waitFor(() => expect(openNaverDirections).toHaveBeenCalledWith(
       expect.objectContaining({
         destLat: 37.57432,
         destLng: 126.98563,
@@ -801,10 +789,10 @@ describe("근처 공중화장실 카드", () => {
         // 화장실은 걸어서 가므로 대중교통이 아니다.
         mode: "walk",
       }),
-    );
+    ));
   });
 
-  it("현재 위치가 없으면 주소로 지도 검색을 폴백한다", async () => {
+  it("출발지가 없으면 주소로 지도 검색을 폴백한다", async () => {
     const user = userEvent.setup();
     renderWithTrip(<PlaceInfoCard card={toiletCard} />);
 

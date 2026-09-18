@@ -27,7 +27,7 @@ function seedEverything() {
   setLocationCenter("안국역");
   rememberRecentSearch("안국역");
   saveVisitedIndices("sched-1", [0, 2]);
-  sessionStorage.setItem("tripbranch_state", JSON.stringify({ version: 6, state: {} }));
+  sessionStorage.setItem("tripbranch_state", JSON.stringify({ version: 7, state: {} }));
 }
 
 test("로그아웃하면 취향·즐겨찾기·검색 위치·대화가 모두 사라진다", () => {

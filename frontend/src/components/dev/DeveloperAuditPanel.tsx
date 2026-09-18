@@ -1378,7 +1378,6 @@ export function DeveloperAuditPanel({
                   />
                   <DetailRow label="Session ID" value={selectedTurn.sessionId} />
                   <DetailRow label="Run ID" value={selectedTurn.runId} />
-                  <DetailRow label="기기 GPS" value={selectedTurn.deviceLocation} />
                   <DetailRow
                     label="클라이언트 소요"
                     value={formatDuration(selectedTurn.elapsedMsClient)}
@@ -1495,7 +1494,6 @@ export function DeveloperAuditPanel({
                       label="검색 중심"
                       value={selectedTurn.afterConditions?.search_center}
                     />
-                    <DetailRow label="기기 GPS" value={selectedTurn.deviceLocation} />
                     <DetailRow
                       label="API 날씨 캐시"
                       value={selectedTurn.response.state.api_context?.api_weather}

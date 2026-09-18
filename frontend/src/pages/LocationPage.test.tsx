@@ -1,9 +1,9 @@
 /*
- * 역할: 위치 설정 화면의 장소 검색과 검색 위치 지정, "현재 위치 사용" 동작,
- *   즐겨찾기·최근 검색 목록을 검증한다.
- * 입력: mocked navigator.geolocation, mocked searchPlaces().
+ * 역할: 위치 설정 화면의 장소 검색과 검색 위치 지정, 즐겨찾기·최근 검색 목록을
+ *   검증한다. 기기 위치를 받는 버튼이 없다는 것도 여기서 못 박는다.
+ * 입력: mocked searchPlaces().
  * 출력: 검색 결과 목록과 빈 결과 문구, 고른 장소가 검색 위치·최근 검색·즐겨찾기로
- *   이어지는지, 좌표 갱신, 실패 시 오류 문구, 즐겨찾기 추가/삭제.
+ *   이어지는지, 즐겨찾기 추가/삭제.
  * 호출 시점: vitest 실행 시.
  */
 
@@ -61,9 +61,6 @@ function renderPage() {
 beforeEach(() => {
   sessionStorage.clear();
   localStorage.clear();
-  // 로컬 .env의 Codex 테스트 좌표가 이 테스트의 mocked navigator 응답을 가리지
-  // 않게 한다(App.test.tsx와 같은 이유 — utils/geolocation.ts의 개발 전용 우회).
-  vi.stubEnv("VITE_TEST_DEVICE_LOCATION", "");
   searchPlacesMock.mockReset();
   /* 계정 동기화 결과는 페이지 로드당 한 번만 계산된다 — 테스트마다 그 경계를 만든다. */
   resetFavoritesSync();
@@ -73,52 +70,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-test('현재 위치 사용을 누르면 좌표 대신 "현재 위치"로 표시하고, 고른 검색 위치를 내려놓는다', async () => {
-  const user = userEvent.setup();
-  vi.stubGlobal("navigator", {
-    geolocation: {
-      getCurrentPosition: vi.fn((success: PositionCallback) =>
-        success({
-          coords: { latitude: 37.5, longitude: 127.0 },
-          timestamp: Date.now(),
-        } as GeolocationPosition),
-      ),
-    },
-  });
+test("기기 위치를 받는 버튼이 없고, 열어도 브라우저 위치를 묻지 않는다", () => {
+  /* 이 버전은 위치를 이름으로만 정한다 — "현재 위치 사용"은 없다. */
+  const getCurrentPosition = vi.fn();
+  vi.stubGlobal("navigator", { geolocation: { getCurrentPosition } });
   renderPage();
 
-  await user.click(screen.getByRole("button", { name: "현재 위치 사용" }));
-
-  /* 좌표는 사용자에게 숫자 두 개일 뿐이라 화면에 싣지 않는다. */
-  expect(await screen.findByText(/^현재 위치 · /)).toBeInTheDocument();
-  expect(screen.queryByText(/37.5,127/)).not.toBeInTheDocument();
-  // getLocationAgeMinutes는 최소 1분으로 올림한다(utils/locationRefresh.ts) —
-  // 방금 받아온 위치도 "1분 전"으로 보인다.
-  expect(screen.getByText(/1분 전에 확인했어요/)).toBeInTheDocument();
-  /* 내 위치로 찾겠다는 뜻이므로 골라둔 검색 위치는 함께 풀린다. */
-  expect(loadLocationSettings().center).toBeNull();
-});
-
-test("위치를 가져오지 못하면 오류 문구를 보여준다", async () => {
-  const user = userEvent.setup();
-  vi.stubGlobal("navigator", {
-    geolocation: {
-      getCurrentPosition: vi.fn((_success: PositionCallback, error: PositionErrorCallback) =>
-        error({
-          code: 1,
-          PERMISSION_DENIED: 1,
-          POSITION_UNAVAILABLE: 2,
-          TIMEOUT: 3,
-          message: "denied",
-        } as GeolocationPositionError),
-      ),
-    },
-  });
-  renderPage();
-
-  await user.click(screen.getByRole("button", { name: "현재 위치 사용" }));
-
-  await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+  expect(screen.queryByRole("button", { name: /현재 위치 사용/ })).not.toBeInTheDocument();
+  expect(screen.queryByText(/분 전에 확인했어요/)).not.toBeInTheDocument();
+  expect(getCurrentPosition).not.toHaveBeenCalled();
 });
 
 test("즐겨찾기가 없으면 안내 문구와 0/10을, 별을 눌러 담으면 목록과 개수를 함께 보여준다", async () => {
@@ -294,11 +254,13 @@ test("칩이 출발지와 검색 기준을 각각 보여주고, 하나만 되돌
   expect(screen.getByText(/혜화역에서 출발/)).toBeInTheDocument();
 });
 
-test("아무것도 정하지 않았으면 둘 다 현재 위치라고 말한다", () => {
+test("아무것도 정하지 않았으면 현재 위치가 아니라 미설정이라고 말한다", () => {
+  /* 기기 위치를 받지 않으므로 "현재 위치"라고 하면 없는 위치를 쓰는 것처럼 읽힌다. */
   renderPage();
 
-  expect(screen.getByText(/현재 위치에서 출발/)).toBeInTheDocument();
-  expect(screen.getByText(/현재 위치 주변/)).toBeInTheDocument();
+  expect(screen.getByText("출발지 미설정")).toBeInTheDocument();
+  expect(screen.getByText("검색 위치 미설정")).toBeInTheDocument();
+  expect(screen.queryByText(/현재 위치/)).not.toBeInTheDocument();
 });
 
 test("같은 장소라도 출발지로 고르면 검색 기준은 그대로 둔다", async () => {
@@ -316,30 +278,16 @@ test("같은 장소라도 출발지로 고르면 검색 기준은 그대로 둔�
   expect(loadLocationSettings()).toEqual({ origin: "안국역", center: null });
 });
 
-test("현재 위치 사용은 되묻지 않고 출발지만 기기 좌표로 되돌린다", async () => {
-  /* 이 버튼의 뜻은 "내 위치는 기기 좌표다" 하나뿐이라 쓰임새를 물을 것이 없다.
-     검색 기준으로 잡아둔 곳은 그대로 남는다 - 그건 다른 질문의 답이다. */
+test("출발지 칩의 ✕는 출발지만 지우고 검색 기준은 남긴다", async () => {
   const user = userEvent.setup();
   setLocationOrigin("혜화역");
   setLocationCenter("안국역");
-  vi.stubGlobal("navigator", {
-    geolocation: {
-      getCurrentPosition: vi.fn((success: PositionCallback) =>
-        success({
-          coords: { latitude: 37.5, longitude: 127.0 },
-          timestamp: Date.now(),
-        } as GeolocationPosition),
-      ),
-    },
-  });
   renderPage();
 
-  await user.click(screen.getByRole("button", { name: "현재 위치 사용" }));
+  await user.click(screen.getByRole("button", { name: "출발지 지우기" }));
 
-  await waitFor(() => expect(loadLocationSettings()).toEqual({ origin: null, center: "안국역" }));
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  expect(await screen.findByText(/^현재 위치 · /)).toBeInTheDocument();
-  expect(screen.getByText(/현재 위치에서 출발/)).toBeInTheDocument();
+  expect(loadLocationSettings()).toEqual({ origin: null, center: "안국역" });
+  expect(screen.getByText("출발지 미설정")).toBeInTheDocument();
   expect(screen.getByText(/안국역 주변/)).toBeInTheDocument();
 });
 

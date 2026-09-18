@@ -168,7 +168,7 @@ describe("PhotoSimilarResultMessage", () => {
     render(
       <PhotoSimilarResultMessage
         imageUrl={null}
-        centerName="현재 위치"
+        centerName="성수동"
         candidateCount={40}
         places={[place()]}
       />,

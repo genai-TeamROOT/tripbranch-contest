@@ -67,7 +67,6 @@ function _turn(execution: ToolExecutionDebug): DeveloperAuditTurn {
     message: "추천 결과예요.",
     sessionId: "session-1",
     runId: "run-1",
-    deviceLocation: null,
     elapsedMsClient: 1200,
     serverElapsedMs: 1100,
     stageTimings: [],

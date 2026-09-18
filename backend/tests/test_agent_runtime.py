@@ -891,7 +891,7 @@ async def test_tool_needs_clarification_skips_recommendation() -> None:
     clarification = response.llm_output.clarification
     assert clarification is not None
     assert clarification.message == (
-        "어디 근처에서 찾아드릴까요? 현재 위치나 원하시는 지역을 알려주세요."
+        "어디 근처에서 찾아드릴까요? 원하시는 지역을 알려주세요."
     )
     option_ids = {option.id for option in clarification.options}
     assert option_ids == {"경복궁", "인사동", "광화문", "북촌"}

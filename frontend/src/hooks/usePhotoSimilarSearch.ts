@@ -1,6 +1,6 @@
 /*
  * 역할: "+" 버튼으로 고른 사진과 분위기가 닮은 장소를 찾아 대화에 붙인다.
- * 입력: 없음(TripContext에서 기기 위치를 읽는다).
+ * 입력: 없음(위치는 위치 설정에서, 세션은 TripContext에서 읽는다).
  * 출력: ChatComposer의 onPhotoSelect에 그대로 넘길 수 있는 함수.
  * 호출 시점: ChatPage와 DeveloperChatPage가 입력창을 조립할 때.
  *
@@ -8,19 +8,19 @@
  * 재현한 것이 사용자 화면과 달라진다.
  *
  * **위치를 정하는 규칙은 일반 채팅과 같다.** 다른 것은 텍스트냐 사진이냐뿐이다 —
- * 위치 설정 화면의 검색 기준(center) → 출발지(origin) → 기기 GPS 순으로 쓴다.
- * 채팅이 selected_search_center·selected_current_location·device_location을
- * 함께 보내는 것과 같은 순서다(ChatPage·HomePage).
+ * 위치 설정 화면의 검색 기준(center) → 출발지(origin) 순으로 쓴다. 채팅이
+ * selected_search_center·selected_current_location을 함께 보내는 것과 같은
+ * 순서다(ChatPage·HomePage). 기기 GPS는 쓰지 않는다 — 이 버전은 위치를 이름으로만
+ * 받는다.
  *
  * 예전에는 위치 설정을 아예 안 읽고 기기 좌표만 보냈다. 그래서 검색 기준을
  * "성수동"으로 정해 둔 사용자가 사진을 올려도 그 값이 요청에 실리지 않았고,
  * 서버도 알 길이 없어(세션 조건은 채팅을 보내야 채워진다) 위치를 정했는데도
  * "어디 근처에서 찾을까요?"가 나왔다.
  *
- * **위치가 하나도 없으면 기기 위치를 한 번 물어본다.** 채팅도 같은 자리에서
- * 같은 일을 한다(HomePage). 거절당하면 요청을 보내지 않고 화면에서 위치를
- * 먼저 정하도록 안내한다 — 보내봐야 서버가 location_required로 되돌려줄 뿐이고,
- * 그 되돌림은 오류 배너로 나와서 사용자가 할 수 있는 일이 없다.
+ * **위치가 하나도 없으면 요청을 보내지 않고** 화면에서 위치를 먼저 정하도록
+ * 안내한다 — 보내봐야 서버가 location_required로 되돌려줄 뿐이고, 그 되돌림은
+ * 오류 배너로 나와서 사용자가 할 수 있는 일이 없다.
  *
  * START_PHOTO_SIMILAR 디스패치(대화에 메시지가 생기는 시점)는 축소본을 만들기
  * *전에* 동기적으로 실행된다 — HomePage가 발화 없이 사진만 고르고 바로 /chat으로
@@ -35,7 +35,6 @@ import { ApiError } from "../api/client";
 import { searchPlacesByPhoto } from "../api/trip";
 import { loadLocationSettings } from "../state/locationSettings";
 import { useTripDispatch, useTripState } from "../state/TripContext";
-import { getBrowserDeviceLocation } from "../utils/geolocation";
 import { createThumbnailDataUrl } from "../utils/imageThumbnail";
 
 export function usePhotoSimilarSearch() {
@@ -64,30 +63,10 @@ export function usePhotoSimilarSearch() {
           dispatch({ type: "SET_PHOTO_SIMILAR_IMAGE", payload: { messageId, imageUrl } });
       });
 
-      /* 지명이 하나도 없을 때만 기기 위치를 묻는다 — 설정해 둔 사용자에게 권한
-         팝업을 띄울 이유가 없다(HomePage가 origin을 보고 같은 판단을 한다).
-         이 호출은 사용자가 사진을 고른 직후라 브라우저가 팝업을 정상적으로
-         띄운다. 위 dispatch는 동기라 그 사이에 끼어들지 않는다. */
-      let deviceLocation = state.device_location;
-      if (!locationQuery && !deviceLocation) {
-        try {
-          deviceLocation = await getBrowserDeviceLocation();
-        } catch {
-          deviceLocation = null;
-        }
-      }
-
-      // "37.5788,126.9770" 형식이다. 값이 없거나 깨졌으면 좌표를 안 보낸다 —
-      // NaN을 실어 보내면 서버가 좌표가 있는 줄 알고 되묻지 않는다.
-      const [latitude, longitude] = (deviceLocation ?? "")
-        .split(",")
-        .map((value) => Number(value.trim()));
-      const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
-
       /* 보낼 위치가 없으면 요청하지 않는다. 서버는 location_required로 되돌려줄
          뿐이고 그것은 오류 배너로 나와서 사용자가 할 수 있는 일이 없다. 대신
          화면에서 위치를 먼저 정하도록 안내한다. */
-      if (!locationQuery && !hasCoordinates) {
+      if (!locationQuery) {
         dispatch({ type: "PHOTO_SIMILAR_NEEDS_LOCATION", payload: { messageId } });
         return;
       }
@@ -96,11 +75,8 @@ export function usePhotoSimilarSearch() {
         const response = await searchPlacesByPhoto({
           image: file,
           // 앞 턴에서 "안국역"이라고 말했으면 서버가 그 위치를 이어받는다.
-          // 좌표는 대화가 위치를 안 잡았을 때의 기본값이다.
           sessionId: state.session_id,
           locationQuery,
-          latitude: hasCoordinates ? latitude : null,
-          longitude: hasCoordinates ? longitude : null,
           // 다섯 곳만 보여준다. 일반 추천과 개수를 맞추고, 무엇보다 **품질이
           // 아래로 갈수록 떨어진다** — 사람 눈가림 채점에서 상위 3곳과 5곳의
           // 성적 차이가 뚜렷했다. 서버 기본값은 10이라 이 줄이 없으면 재본 적
@@ -130,6 +106,6 @@ export function usePhotoSimilarSearch() {
         });
       }
     },
-    [dispatch, state.device_location, state.session_id],
+    [dispatch, state.session_id],
   );
 }
