@@ -1,0 +1,36 @@
+﻿scope,center,query,candidate_count,matched,passed_cut,avg_similarity
+place_tag/카페,경복궁,조용한,46,45,2,0.3094
+place_tag/카페,경복궁,조용한 곳,46,45,10,0.3812
+place_tag/카페,경복궁,조용한 카페,46,45,38,0.4776
+place_tag/카페,종각,조용한,50,46,2,0.3041
+place_tag/카페,종각,조용한 곳,50,46,9,0.3745
+place_tag/카페,종각,조용한 카페,50,46,38,0.4716
+place_tag/카페,혜화,조용한,40,40,1,0.3007
+place_tag/카페,혜화,조용한 곳,40,40,7,0.3712
+place_tag/카페,혜화,조용한 카페,40,40,32,0.4702
+place_tag/카페,부암동,조용한,28,28,1,0.3239
+place_tag/카페,부암동,조용한 곳,28,28,11,0.4000
+place_tag/카페,부암동,조용한 카페,28,28,24,0.4969
+place_type/attraction,경복궁,조용한 곳,190,168,19,0.3230
+place_type/attraction,경복궁,조용한 관광지,190,168,63,0.3923
+place_type/attraction,경복궁,조용한 명소,190,168,58,0.3877
+place_type/attraction,경복궁,조용한 볼거리,190,168,49,0.3846
+place_type/cultural_facility,경복궁,조용한 곳,184,171,17,0.3241
+place_type/cultural_facility,경복궁,조용한 문화시설,184,171,36,0.3754
+place_type/cultural_facility,경복궁,조용한 전시,184,171,48,0.3708
+place_type/cultural_facility,경복궁,조용한 박물관,184,171,62,0.3907
+place_type/festival,경복궁,조용한 곳,58,32,1,0.3010
+place_type/festival,경복궁,조용한 축제,58,32,0,0.3023
+place_type/festival,경복궁,조용한 행사,58,32,0,0.2759
+place_type/leisure,경복궁,조용한 곳,10,8,0,0.2948
+place_type/leisure,경복궁,조용한 레저,10,8,0,0.3093
+place_type/leisure,경복궁,조용한 체험,10,8,0,0.2843
+place_type/leisure,경복궁,조용한 액티비티,10,8,0,0.2900
+place_type/shopping,경복궁,조용한 곳,500,412,7,0.2290
+place_type/shopping,경복궁,조용한 쇼핑,500,414,10,0.3034
+place_type/shopping,경복궁,조용한 상점,500,414,26,0.3232
+place_type/shopping,경복궁,조용한 쇼핑몰,500,414,8,0.2784
+place_type/restaurant,경복궁,조용한 곳,269,262,17,0.2851
+place_type/restaurant,경복궁,조용한 식당,269,262,46,0.3740
+place_type/restaurant,경복궁,조용한 맛집,269,262,118,0.4252
+place_type/restaurant,경복궁,조용한 음식점,269,262,57,0.3890

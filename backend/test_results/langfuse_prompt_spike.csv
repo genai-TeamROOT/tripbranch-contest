@@ -1,0 +1,10 @@
+measure,target,result
+folder_name,spike__slash/nested/name,합격
+compile_equal,_shared/rules/budget.md,합격
+compile_equal,info/extract.md,합격
+compile_equal,synthetic_review/system_instruction.md,합격
+dependency,spike__dep_parent,지원 — label=production
+parameterized_fragment,spike__param_parent,합격 — 조각 안 자리표시자가 부모 compile로 채워진다
+latency_ms_median,spike___shared/rules/budget,60
+serial_43_sec_est,-,2.6
+pooled_43_sec,-,0.4

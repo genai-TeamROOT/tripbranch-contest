@@ -1,0 +1,286 @@
+{
+  "요약": {
+    "모델": [
+      "gemini-3.6-flash"
+    ],
+    "거리_km": [
+      0.3,
+      0.6,
+      0.85,
+      1.2,
+      2.0,
+      3.5
+    ],
+    "규칙_기준선": [
+      "walking",
+      "walking",
+      "walking",
+      "transit",
+      "transit",
+      "transit"
+    ],
+    "모델별": {
+      "gemini-3.6-flash": {
+        "지연_p50_ms": 1258.8,
+        "지연_p95_ms": 1756.9,
+        "호출_수": 14,
+        "규칙과_전부_일치한_회차": 7,
+        "회차_수": 14
+      }
+    }
+  },
+  "행": [
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "없음/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 1568.7
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "없음/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 1711.2
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "비/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 4,
+      "전체_구간": 6,
+      "전환_수": 5,
+      "첫_줄": "walking",
+      "지연ms": 1185.2
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "비/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 4,
+      "전체_구간": 6,
+      "전환_수": 5,
+      "첫_줄": "walking",
+      "지연ms": 1476.6
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "맑음/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 1236.5
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "맑음/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 1240.4
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "노인동행/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 1219.2
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "노인동행/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 4,
+      "전체_구간": 6,
+      "전환_수": 5,
+      "첫_줄": "walking",
+      "지연ms": 1756.9
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "유모차/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 1096.6
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "유모차/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 1304.1
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "휠체어/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 1094.5
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "휠체어/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 2171.5
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "비+유모차/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 4,
+      "전체_구간": 6,
+      "전환_수": 5,
+      "첫_줄": "walking",
+      "지연ms": 1009.3
+    },
+    {
+      "모델": "gemini-3.6-flash",
+      "조건": "비+유모차/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 4,
+      "전체_구간": 6,
+      "전환_수": 5,
+      "첫_줄": "walking",
+      "지연ms": 1277.2
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+owner: C
+slots:
+  follow_up.suggest:
+    description: 방금 끝난 턴을 보고 서비스가 실제로 처리할 수 있는 범위 안에서 후속 질문 버튼 문구를 만든다.
+    version: "1.6.0"
+    template: suggest_instruction.md
+    bundle:
+      - _shared/persona/trivi.md
+      - follow_up/capability_rules.md
+    evals: evals/README.md

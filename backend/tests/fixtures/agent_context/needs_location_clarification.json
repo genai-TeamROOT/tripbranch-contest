@@ -1,0 +1,20 @@
+{
+  "request_id": "req_context_clarification_001",
+  "intent": "RECOMMEND",
+  "contract_version": "draft-v0",
+  "status": "needs_clarification",
+  "context": null,
+  "clarification": {
+    "code": "location_required",
+    "missing_fields": [
+      "current_location"
+    ],
+    "candidates": []
+  },
+  "warnings": [],
+  "error": null,
+  "metadata": {
+    "rule_versions": {},
+    "provider_metadata": []
+  }
+}

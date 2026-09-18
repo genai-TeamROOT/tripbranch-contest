@@ -1,0 +1,12 @@
+﻿content_id,place_title,concentration_title,concentration_search_key,concentration_search_keys,concentration_aliases,match_status,match_method,confidence_score,verified_at
+1115042,봉화산(서울),봉화산(서울),,"[""봉화산(서울)"", ""봉화산""]",[],matched,exact,1.0000,
+1115203,망우산(서울),망우산(서울),,"[""망우산(서울)"", ""망우산""]",[],matched,exact,1.0000,
+1115299,봉화산근린공원,봉화산근린공원,,"[""봉화산근린공원""]",[],matched,exact,1.0000,
+1117141,사가정공원,사가정공원,,"[""사가정공원""]",[],matched,exact,1.0000,
+1606052,극락사(서울),극락사(서울),,"[""극락사(서울)"", ""극락사""]",[],matched,exact,1.0000,
+1606096,성덕사,성덕사,,"[""성덕사""]",[],matched,exact,1.0000,
+2759985,면목시장,면목시장,,"[""면목시장""]",[],matched,exact,1.0000,
+2759990,우림시장(중랑),우림시장,,"[""우림시장""]",[],matched,normalized,1.0000,
+2761478,태릉시장,태릉시장,,"[""태릉시장""]",[],matched,exact,1.0000,
+2774468,삼룡사,삼룡사,,"[""삼룡사""]",[],matched,exact,1.0000,
+814123,용마산,용마산,,"[""용마산""]",[],matched,exact,1.0000,

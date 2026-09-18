@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- iOS는 manifest의 icons를 읽지 않는다 — 홈 화면에 추가할 때 쓸 아이콘을 따로 준다. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- manifest의 theme_color와 같은 값이어야 한다 — 브라우저는 이 태그를 먼저 본다. -->
+    <meta name="theme-color" content="#ffffff" />
+    <meta
+      name="description"
+      content="지금 시각과 위치에 맞는 여행지를 찾아 하루 동선을 짜 주는 AI 여행 도우미"
+    />
+    <title>TripBranch</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

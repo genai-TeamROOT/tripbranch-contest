@@ -1,0 +1,7 @@
+intent: OUT_OF_SCOPE
+owner: A
+slots:
+  out_of_scope.classify:
+    version: "1.0.0"
+    template: classify.md
+    evals: evals/README.md

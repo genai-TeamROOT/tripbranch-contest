@@ -1,0 +1,180 @@
+{
+  "reps": 3,
+  "prompt": "경복궁 근처 카페 추천해줘 — 이 문장의 의도를 한 단어로만 답해.",
+  "results": {
+    "gemini-2.5-flash": {
+      "예산=0": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      },
+      "예산=512": {
+        "status": "성공",
+        "thinking_tokens": [
+          382,
+          354,
+          475
+        ],
+        "median": 382
+      },
+      "레벨=최소": {
+        "status": "거부(400)",
+        "thinking_tokens": [],
+        "median": null
+      },
+      "설정없음": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          462
+        ],
+        "median": 0
+      }
+    },
+    "gemini-2.5-flash-lite": {
+      "예산=0": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      },
+      "예산=512": {
+        "status": "성공",
+        "thinking_tokens": [
+          303,
+          383,
+          281
+        ],
+        "median": 303
+      },
+      "레벨=최소": {
+        "status": "거부(400)",
+        "thinking_tokens": [],
+        "median": null
+      },
+      "설정없음": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      }
+    },
+    "gemini-3.5-flash": {
+      "예산=0": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      },
+      "예산=512": {
+        "status": "성공",
+        "thinking_tokens": [
+          195,
+          221,
+          242
+        ],
+        "median": 221
+      },
+      "레벨=최소": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      },
+      "설정없음": {
+        "status": "성공",
+        "thinking_tokens": [
+          389,
+          377,
+          300
+        ],
+        "median": 377
+      }
+    },
+    "gemini-3.5-flash-lite": {
+      "예산=0": {
+        "status": "거부(400)",
+        "thinking_tokens": [],
+        "median": null
+      },
+      "예산=512": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      },
+      "레벨=최소": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      },
+      "설정없음": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      }
+    },
+    "gemini-3.6-flash": {
+      "예산=0": {
+        "status": "거부(400)",
+        "thinking_tokens": [],
+        "median": null
+      },
+      "예산=512": {
+        "status": "성공",
+        "thinking_tokens": [
+          185,
+          379,
+          195
+        ],
+        "median": 195
+      },
+      "레벨=최소": {
+        "status": "성공",
+        "thinking_tokens": [
+          0,
+          0,
+          0
+        ],
+        "median": 0
+      },
+      "설정없음": {
+        "status": "성공",
+        "thinking_tokens": [
+          406,
+          296,
+          530
+        ],
+        "median": 406
+      }
+    }
+  }
+}

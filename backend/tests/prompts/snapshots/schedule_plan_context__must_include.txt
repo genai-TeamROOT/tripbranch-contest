@@ -1,0 +1,22 @@
+[시작 시각]
+14:00
+
+[후보 목록]
+- place-1 | 경복궁 | attraction | 운영시간=확인불가 | score=0.90 | 경복궁은(는) 조건에 맞는 장소예요.
+- place-2 | 국립고궁박물관 | cultural_facility | 운영시간=확인불가 | score=0.90 | 국립고궁박물관은(는) 조건에 맞는 장소예요.
+- place-3 | 두가헌 레스토랑 | restaurant | 운영시간=확인불가 | score=0.90 | 두가헌 레스토랑은(는) 조건에 맞는 장소예요.
+
+[반드시 포함]
+- 국립고궁박물관(place-2)
+- 두가헌 레스토랑(place-3)
+
+[후보 간 거리]
+- place-1-place-2: 0.60km
+- place-1-place-3: 1.10km
+- place-2-place-3: 0.70km
+
+[함께 방문된 이력]
+(없음)
+
+[사용자 조건]
+{"search_center":"경복궁","place_types":[],"place_tags":["카페"],"weather_intent":"AVOID","time_available":240,"environment":"indoor","exclude_tags":[],"special_requirements":[],"accessibility_needs":[]}

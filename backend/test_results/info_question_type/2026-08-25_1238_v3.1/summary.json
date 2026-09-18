@@ -1,0 +1,19 @@
+{
+  "label": "v3.1",
+  "repeat": 10,
+  "cases": 19,
+  "accuracy": 1.0,
+  "stable_cases": 19,
+  "by_group": {
+    "visit_suitability": {
+      "cases": 10,
+      "accuracy": 1.0,
+      "stable_cases": 10
+    },
+    "neighbor": {
+      "cases": 9,
+      "accuracy": 1.0,
+      "stable_cases": 9
+    }
+  }
+}

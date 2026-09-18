@@ -1,0 +1,547 @@
+/*
+ * 역할: TripBranch 디자인 시스템의 토큰·기반 스타일을 정의한다.
+ * 근거: package_D/DESIGN_SYSTEM.md — §2 디자인 토큰, §3 토큰 이식, §4 레이아웃 셸.
+ * 주의: Tailwind 기본 팔레트는 "클래스명을 바꾸지 않고 값만 재정의"한다(§3.2).
+ *       테스트가 bg-emerald-500 같은 클래스명을 직접 단언하므로 이름을 바꾸면 깨진다.
+ */
+
+/* Tailwind가 @import "tailwindcss"를 자기 CSS로 치환하면서, 뒤에 오는 일반
+   @import는 최종 결과물에서 @layer 뒤로 밀려나 "@import must precede all
+   other statements" 경고와 함께 무시된다 — 폰트 import를 먼저 둬서 피한다. */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css");
+@import "tailwindcss";
+
+/* 다크 모드 미지원(라이트 전용, DESIGN_SYSTEM.md §1). 기존 코드의 dark: 클래스를
+   전부 지우는 대신 변형을 클래스 기반으로 바꿔서, .dark를 아무 데도 안 붙이면
+   자동으로 죽는다 — 나중에 다크 테마를 정식 지원하면 이 한 줄만 되돌리면 된다. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+
+  --color-brand: #2454e0;
+  --color-brand-deep: #17348c;
+  --color-sky-soft: #a9c0f2;
+  --color-sky-light: #e6edfd;
+  --color-gold: #e0a83e;
+  --color-gold-tint: #fbeed3;
+  --color-calm: #2f9e5c;
+  --color-chip: #eef1f8;
+  --color-rust: #c0432c;
+  --color-rust-tint: #fbe4de;
+  --color-ink: #101828;
+  --color-ink-strong: #03060d;
+  --color-label: #1f2937;
+  --color-muted: #64748b;
+  --color-border: #e2e6ee;
+  --color-surface: #ffffff;
+  --color-bg: #ffffff;
+
+  --shadow-resting: 0 2px 12px rgba(36, 84, 224, 0.1);
+  --shadow-card: 0 12px 28px rgba(23, 52, 140, 0.16);
+
+  /* 중립 */
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #eef1f8;
+  --color-gray-200: #e2e6ee;
+  --color-gray-300: #cbd3e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #101828;
+  --color-gray-950: #03060d;
+
+  /* 파랑 → 브랜드 */
+  --color-blue-50: #eef3fe;
+  --color-blue-100: #e6edfd;
+  --color-blue-200: #cbdafa;
+  --color-blue-300: #a9c0f2;
+  --color-blue-400: #6389e9;
+  --color-blue-500: #2454e0;
+  --color-blue-600: #1e47c4;
+  --color-blue-700: #17348c;
+  --color-blue-800: #142c74;
+  --color-blue-900: #12276a;
+  --color-blue-950: #0b1840;
+
+  --color-sky-50: #eef3fe;
+  --color-sky-100: #e6edfd;
+  --color-sky-300: #a9c0f2;
+  --color-sky-500: #2454e0;
+  --color-sky-700: #17348c;
+  --color-sky-900: #12276a;
+
+  --color-indigo-50: #eef3fe;
+  --color-indigo-100: #e6edfd;
+  --color-indigo-300: #a9c0f2;
+  --color-indigo-500: #2454e0;
+  --color-indigo-600: #1e47c4;
+  --color-indigo-700: #17348c;
+  --color-indigo-900: #12276a;
+  --color-indigo-950: #0b1840;
+
+  /* 성공/여유 */
+  --color-emerald-50: #e9f7ef;
+  --color-emerald-100: #d3efdf;
+  --color-emerald-200: #a9dfbf;
+  --color-emerald-300: #7fcf9f;
+  --color-emerald-500: #2f9e5c;
+  --color-emerald-600: #268650;
+  --color-emerald-700: #1f6e42;
+  --color-emerald-900: #14452a;
+  --color-emerald-950: #0a2216;
+
+  /* 실패/혼잡 */
+  --color-red-50: #fdeeea;
+  --color-red-100: #fbe4de;
+  --color-red-300: #eda595;
+  --color-red-400: #dc7660;
+  --color-red-500: #c0432c;
+  --color-red-600: #a63823;
+  --color-red-700: #8c2f1d;
+  --color-red-900: #5a1e13;
+  --color-red-950: #2f0f09;
+
+  /* 경고/보통 */
+  --color-amber-50: #fdf6e9;
+  --color-amber-100: #fbeed3;
+  --color-amber-300: #efc978;
+  --color-amber-400: #e9b95a;
+  --color-amber-500: #e0a83e;
+  --color-amber-600: #c08c26;
+  --color-amber-700: #a97a24;
+  --color-amber-900: #6b4c16;
+  --color-amber-950: #3a2a0c;
+
+  --color-orange-100: #fbeed3;
+  --color-orange-500: #e0a83e;
+  --color-orange-700: #a97a24;
+}
+
+@layer base {
+  /*
+   * **문서(html/body) 자체는 스크롤되지 않는다**(2026-09-07). 실제 스크롤은
+   * 전부 `.tb-shell`(height:100dvh + overflow-y:auto)이 맡는다.
+   *
+   * **1차 시도(`overflow: hidden`만)로는 안 잡혔다** — 실기기(iOS)에서 재확인
+   * 결과 문서가 계속 위아래로 움직였다. iOS Safari는 `overflow: hidden`을
+   * `body`에 걸어도 **터치 스크롤(고무줄 바운스)을 그대로 통과시키는 것으로
+   * 잘 알려진 버그**가 있다 — CSS 오버플로 제한이 아니라 네이티브 제스처라서
+   * 안 막힌다. `.tb-drawer`는 `position:fixed`라 시각 뷰포트에 고정돼 있는데,
+   * 문서가 그 아래에서 밀리면서 평소엔 `.tb-shell`이 완전히 가리던 드로어가
+   * 위아래 틈으로 비쳤다.
+   *
+   * **2차: body를 `position: fixed`로 문서 흐름 자체에서 뺀다.** fixed
+   * 요소는 애초에 "스크롤되는 문서"가 아니라서 iOS의 바운스 제스처가 붙을
+   * 대상 자체가 없어진다. `.tb-drawer`가 같은 이유로(`fixed inset-y-0`)
+   * 안정적으로 뷰포트에 고정되는 것과 같은 원리를 body에도 적용한 것뿐이다.
+   */
+  html {
+    color-scheme: light;
+    overflow-x: hidden;
+    height: 100%;
+    /*
+     * 세로는 고무줄 바운스를, **가로는 "끝까지 밀면 뒤로 가기"를** 막는다
+     * (2026-09-09). Android Chrome 은 이 한 줄로 잡히고, iOS 사파리의 가장자리
+     * 제스처는 CSS 로 안 잡혀서 useEdgeSwipeBackGuard 가 따로 막는다.
+     */
+    overscroll-behavior: none;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: var(--color-chip);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  /* min-height가 아니라 height다 — min-height는 내용이 넘치면 그만큼 자라서
+     스크롤할 거리를 다시 만들어준다. dvh를 못 읽는 브라우저를 위해 100%를
+     먼저 적어 둔다 — dvh 줄이 무효 처리되면 이 값이 대신 남는다. */
+  #root {
+    height: 100%;
+    height: 100dvh;
+  }
+
+  /* ── 레이아웃 셸(§4) ──────────────────────────────────────────────
+   * 모바일은 가운데 한 칼럼, 768px 이상은 사이드바 + 본문이 화면 끝까지.
+   * 각 속성을 왜 넣었는지는 §4 "왜 이렇게 했는지" 표에 있다. 지우면 재발한다.
+   */
+  .tb-app-root {
+    display: flex;
+    justify-content: center;
+    min-height: 100dvh;
+    overflow-x: hidden;
+
+    /*
+     * 768px 미만에서 본문 칼럼의 최대 폭. **셸과 드로어가 이 값을 함께 쓴다** —
+     * 한쪽만 고치면 둘의 왼쪽 모서리가 어긋나 드로어가 여백으로 비친다
+     * (.tb-drawer 주석 참고).
+     */
+    --tb-shell-max: 640px;
+  }
+
+  .tb-shell {
+    width: 100%;
+    max-width: var(--tb-shell-max);
+    /* min-height 가 아니라 height. 박스가 늘어나면 그 안의 position:fixed
+       하단 버튼이 늘어난 바닥에 붙어 화면 밖으로 스크롤돼 사라진다. */
+    height: 100dvh;
+    overflow-y: auto;
+    background: var(--color-bg);
+    position: relative;
+    /* SideDrawer 와 같은 z-index. 같으면 DOM 순서상 뒤가 이기므로 평소엔
+       셸이 드로어를 덮고, --pushed 로 밀려날 때만 드러난다. */
+    z-index: 10;
+    /* position:fixed 자식의 기준 박스가 된다. 데스크톱에서 하단바·모달이
+       브라우저 창 전체가 아니라 이 칼럼 안에 머문다. */
+    contain: layout;
+    box-shadow: 0 0 48px rgba(16, 24, 40, 0.08);
+    transition: transform 0.28s ease;
+    /* Chrome 이 transform 종료 후 합성 레이어를 애니메이션 중간 크기로
+       남기는 경우가 있다. 미리 승격해두면 안정적. */
+    will-change: transform;
+  }
+
+  /*
+   * 채팅 입력창을 화면 맨 아래에 세우고, 소프트 키보드가 뜨면 그만큼 올린다
+   * (2026-09-09, useKeyboardInset). 올리는 것(.tb-keyboard-lift)과 아래 여백
+   * (.tb-composer-dock)을 나눠 둔 것은, 컴포저 위에 뜨는 스크롤 이동 버튼이
+   * 올리기만 같이 받아야 하기 때문이다(ChatPage).
+   *
+   * **올리는 것은 translate 다.** 높이나 margin 을 건드리면 위쪽 본문이 다시
+   * 배치된다 — 요구사항은 "입력창만 움직이고 본문은 그대로"다.
+   *
+   * 아래 여백은 홈 인디케이터(Safe Area)를 피하는 값인데, **키보드가 떠 있으면
+   * 그 자리를 키보드가 덮고 있어 의미가 없다.** 가린 만큼 빼면 음수가 되어
+   * max() 가 1rem 을 고르고, 키보드가 내려가면 다시 Safe Area 값이 이긴다.
+   */
+  /*
+   * **키보드가 떠 있는 동안에만 걸린다.**(2026-09-09) 값이 0이어도 `translate`
+   * 속성이 붙어 있으면 그 요소는 이동 변환이 있는 것으로 취급된다 — 조상이
+   * 그러면 안쪽 `backdrop-filter` 가 뒤를 못 읽어 컴포저의 유리 배경이 흰
+   * 박스로 칠해지고(실기기 확인), `position: sticky` 도 갱신을 멈춘다.
+   * 평소에는 이 규칙 자체가 적용되지 않아 HEAD 와 같은 화면이 된다.
+   */
+  /*
+   * **셸의 직계 자식만 고른다.** .tb-page-enter 는 화면 전환 래퍼라 한 화면 안에
+   * 또 나올 수 있다(일정 화면이 목록↔상세 전환에 한 겹 더 쓴다). 그냥
+   * `.tb-page-enter` 로 잡으면 중첩된 만큼 보정이 겹쳐서 두 배로 내려간다
+   * (2026-09-09에 실제로 그랬다). 셸 바로 아래 한 겹만 움직이면 된다.
+   */
+  :root[data-tb-kb] .tb-shell > .tb-page-enter {
+    /*
+     * 브라우저가 밀어 올린 만큼 도로 내려 **본문을 제자리에 둔다**. iOS 사파리는
+     * 포커스된 입력칸을 보이게 하려고 보이는 창을 문서 아래쪽으로 내려붙인다
+     * (실측: offsetTop 0 → 301, offsetTop + 창높이 = 레이아웃 높이). body 가
+     * position:fixed 라 문서는 안 움직이는데 창만 움직여서, 화면 전체가 위로
+     * 뜬 것처럼 보인다.
+     *
+     * **셸이 아니라 셸 안쪽을 내린다**(2026-09-09). 셸을 통째로 내렸더니 위쪽에
+     * 셸이 비운 자리가 생겼고, 그 자리로 뒤에 있던 드로어가 드러났다(실기기
+     * 확인 — 키보드를 띄운 채 스크롤하면 사이드바가 비쳤다). 셸은 제자리에서
+     * 화면을 덮고 있고 그 안의 화면만 내려가면 그런 자리가 안 생긴다. 넘치는
+     * 아래쪽은 셸의 overflow 가 잘라 준다.
+     *
+     * **높이는 건드리지 않는다.** 줄이면 안쪽 flex 배치가 다시 계산돼 본문이
+     * 재배치되고 스크롤 위치까지 흔들린다.
+     *
+     * **`transform` 이 아니라 `translate` 다.** 이 요소에는 화면 전환 애니메이션이
+     * transform 으로 걸리고, .tb-shell 에는 드로어를 미는
+     * `transition: transform 0.28s ease` 가 있다. translate 는 별개 속성이라
+     * 어느 쪽도 덮어쓰지 않고 함께 쌓인다.
+     */
+    translate: 0 var(--tb-vv-top, 0px);
+  }
+
+  :root[data-tb-kb] .tb-keyboard-lift {
+    translate: 0 calc(-1 * var(--tb-kb, 0px));
+  }
+
+  .tb-composer-dock {
+    padding-bottom: max(1rem, calc(env(safe-area-inset-bottom) - var(--tb-kb, 0px)));
+  }
+
+  /*
+   * 키보드가 **내려갈 때만** 컴포저가 따라 내려가는 것을 보여준다.
+   *
+   * 브라우저는 내려가는 키보드의 위치를 한 번도 알려주지 않는다 — `resize` 가
+   * 방향당 1회고, 내려갈 때는 그 순간 이미 최종값이 온다(2026-09-09 실측).
+   * 올라갈 때는 즉시가 맞다(컴포저가 먼저 서고 키보드가 뒤따라 그 아래로 온다).
+   * 내려갈 때만 즉시로 두면 컴포저가 아직 키보드가 덮은 자리로 곧장 가서
+   * 0.25초 동안 사라진다.
+   *
+   * 180ms 는 훅의 KEYBOARD_RESTORE_MS 와 같아야 한다(테스트가 대조한다).
+   */
+  :root[data-tb-kb="closing"] .tb-keyboard-lift {
+    transition: translate 180ms ease-out;
+  }
+
+  @media (max-width: 767px) {
+    /* 오버레이 드로어가 아니다. 드로어는 왼쪽에 고정으로 있고 본문이 밀려나며
+       드러난다. 그림자는 드로어가 아니라 밀려나는 본문 왼쪽 모서리에 준다. */
+    .tb-shell--pushed {
+      transform: translateX(300px);
+      box-shadow: -16px 0 32px rgba(16, 24, 40, 0.1);
+    }
+  }
+
+  /*
+   * 모바일 푸시 드로어. **왼쪽을 창 끝이 아니라 본문 칼럼의 왼쪽에 맞춘다.**
+   *
+   * 드로어는 오버레이가 아니라 늘 왼쪽에 놓여 있고 본문이 밀려나며 드러난다
+   * (SideDrawer.tsx). 그런데 셸은 768px 미만에서 최대 640px 짜리 가운데 칼럼이라,
+   * 창이 그보다 넓어지면 양옆에 여백이 생긴다. 드로어가 `left: 0` 이면 그 여백
+   * 사이로 **닫혀 있는 드로어가 그대로 비친다** — 641~767px 구간에서 (창폭-640)/2
+   * 만큼, 767px 에서 63.5px 이 보였다(2026-09-06 실측).
+   *
+   * 그래서 셸과 같은 지점에서 시작시킨다. 열렸을 때 셸이 +300px 밀리는 동작은
+   * 그대로다. 768px 이상에서는 드로어 자체가 md:hidden 이라 이 값이 쓰이지 않는다.
+   *
+   * 닫혔을 때 감추는 방법(display:none)은 쓰지 않았다 — 닫는 0.28초 동안 셸이
+   * 되돌아오는 사이 뒤가 빈 배경으로 보인다.
+   */
+  .tb-drawer {
+    left: max(0px, calc(50% - var(--tb-shell-max) / 2));
+  }
+
+  .tb-sidebar {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .tb-sidebar {
+      display: flex;
+      flex-direction: column;
+      width: 272px;
+      flex: none;
+      /* .tb-shell 과 같은 이유로 min-height 가 아니라 height 다. 최소 높이만 주면
+         내용(대화 목록·저장한 일정)이 화면을 넘길 때 박스가 그대로 늘어나고,
+         안쪽 SideDrawerContent 의 `flex-1 min-h-0 overflow-y-auto` 가 나눠 가질
+         **확정된 전체 높이**가 없어 스크롤이 발동하지 않는다. 모바일 드로어는
+         `fixed inset-y-0` 이라 이 문제가 없었다(2026-09-04 실측). */
+      height: 100dvh;
+      background: var(--color-bg);
+      transition: width 0.2s ease;
+    }
+
+    .tb-sidebar--collapsed {
+      width: 72px;
+    }
+
+    .tb-shell {
+      max-width: none;
+      flex: 1;
+      box-shadow: none;
+    }
+  }
+}
+
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * 화면 전환 — 새 화면이 나타나는 동작(PageTransition).
+ *
+ * 들어올 때만 움직인다. 나가는 화면까지 기다리면 이동이 그만큼 늦어져서,
+ * 부드러워지는 대신 느려진 것처럼 느껴진다.
+ *
+ * 두 단계로 나눠 둔 이유가 있다. `prefers-reduced-motion`이 줄이려는 것은
+ * 이동·확대처럼 **화면이 움직이는** 동작이고, 서서히 나타나는 것 자체는 그
+ * 대상이 아니다 — Apple도 WCAG도 움직임을 크로스페이드로 **대체하라고**
+ * 안내한다. 그래서 페이드는 항상 걸고, 떠오르는 동작만 조건부로 얹는다.
+ *
+ * 이걸 하나로 묶어 전부 껐더니, 동작 줄이기를 켜 둔 환경에서는 전환이 예전과
+ * 똑같이 딱딱했다(2026-09-02 실제로 그랬다).
+ */
+/*
+ * **터치 기기에서 입력칸 글자는 16px 아래로 내려가지 않는다**(2026-09-09).
+ *
+ * iOS 사파리는 16px 미만인 입력칸에 포커스가 가면 읽으라고 화면을 확대하고,
+ * 되돌려 주지 않는다. 일정 검색·즐겨찾기 이름 바꾸기가 그랬고, 채팅 입력창만
+ * 멀쩡했던 것은 거기만 text-base(16px)였기 때문이다.
+ *
+ * **`@layer base` 안에 두면 안 된다.** 캐스케이드는 특이도보다 레이어 순서를
+ * 먼저 따진다 — base 에 둔 이 규칙은 utilities 레이어의 `.text-sm` 에 무조건
+ * 진다. 처음에 base 안에 넣었다가 실기기에서 그대로 확대됐다. 레이어 밖 규칙은
+ * 모든 레이어를 이기므로 여기(레이어 밖)에 둔다.
+ *
+ * `maximum-scale=1` 로 확대 자체를 막는 방법도 있지만 쓰지 않는다 — 눈이 불편한
+ * 사용자가 손으로 확대하는 길까지 함께 막힌다. 글자를 키우는 쪽이 원인을 없앤다.
+ *
+ * 마우스 환경(pointer: fine)은 그대로 둔다 — 거기서는 확대가 일어나지 않고,
+ * 촘촘한 화면의 글자 크기는 디자인이 정한 값이 맞다.
+ *
+ * **입력칸에 16px보다 큰 글자를 의도한 곳이 생기면 이 규칙이 그것도 깎는다.**
+ * 지금은 그런 곳이 없다(전수 조사 결과 가장 큰 것이 text-base).
+ */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+@keyframes tb-page-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tb-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 움직임 없이 나타나는 것까지가 기본이다. 어떤 설정에서도 이건 걸린다. */
+.tb-page-enter {
+  animation: tb-page-fade 180ms ease-out;
+}
+
+/*
+ * 움직임을 허용한 환경에서만 떠오르는 동작을 더한다. 8px만 올린다 — 더 크게
+ * 움직이면 페이지가 "튀어 오르는" 느낌이 되고, 하단 고정 바(position:fixed)까지
+ * 같이 흔들려서 눈에 걸린다.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .tb-page-enter {
+    animation: tb-page-enter 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/*
+ * 진입 스플래시(components/SplashScreen.tsx).
+ *
+ * 셸 위의 모든 층(바텀시트 z-30대, 모달 z-50)보다 위다 — 앱이 뜨는 순간에 시트가
+ * 함께 복원되는 경로(state.backgroundLocation)가 있어서, 그때 시트가 스플래시를
+ * 뚫고 보이면 안 된다.
+ *
+ * 바탕을 흰색이 아니라 옅은 브랜드 톤에서 시작한다. 흰 화면에서 흰 화면으로
+ * 넘어가면 걷히는 동작 자체가 보이지 않아 "조금 보여주고 부드럽게" 라는 요구가
+ * 화면에 남지 않는다.
+ */
+.tb-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #e6edfd 0%, #f6f8fe 52%, #ffffff 100%);
+}
+
+.tb-splash__mark {
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-brand);
+}
+
+/*
+ * 페이드는 어떤 설정에서도 건다 — tb-page-enter와 같은 근거다(위 주석). 덮은
+ * 층이 즉시 사라지는 것은 "줄여야 할 움직임"이 아니라 그 자체로 거슬리는 전환이다.
+ */
+@keyframes tb-splash-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+.tb-splash--leaving {
+  animation: tb-splash-leave 420ms ease-in forwards;
+}
+
+@keyframes tb-splash-mark-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 걷힐 때 살짝 커진다 — 위로 걷어내는 인상을 준다. 1.06을 넘기면 사라지는 게
+   아니라 화면으로 다가오는 것처럼 보인다. */
+@keyframes tb-splash-leave-motion {
+  to {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tb-splash__mark {
+    animation: tb-splash-mark-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .tb-splash--leaving {
+    animation: tb-splash-leave-motion 420ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+}
+
+/*
+ * 홈 히어로 유리 오브(pages/HomePage).
+ *
+ * **가만히 있는 그림 하나다**(2026-09-07 사용자 결정). 뒤에 깔던 브랜드색 번짐과
+ * 흔들리는 움직임을 뺐다 — 오브 자체가 유리라 뒤에 색을 더 깔면 둘이 겹쳐
+ * 탁해지고, 유리 구슬은 가만히 있을 때가 제일 유리로 보인다.
+ *
+ * 흰 바탕에 흰 구슬이지만 묻히지 않는다(순백과 다른 픽셀 74.3%, 평균 밝기
+ * 226.6/255, 2026-09-07 실측).
+ *
+ * **그림자를 두 겹으로 겹친다.** 짧고 진한 것 하나로는 바닥에 붙어 보이고,
+ * 길고 연한 것 하나로는 흐릿하게 번지기만 한다. 가까운 접지 그림자로 무게를
+ * 주고 그 밑에 멀리 퍼지는 브랜드색 그림자를 깔면 물체가 떠 있는 것처럼 읽힌다.
+ *
+ * 화면이 낮으면 줄인다. 안 줄이면 헤드라인과 예시 질문 사이 칸을 뚫고 나가
+ * 글자와 겹친다. **`max-height: 100%` 로는 안 된다** — 부모 높이가 flex 로
+ * 정해져서 백분율이 확정값으로 안 풀린다(칸이 96px 로 줄어도 이미지는 233px
+ * 그대로였다, 375×667 실측). 그래서 화면 높이를 직접 보고 확정값을 준다.
+ */
+.tb-orb__img {
+  display: block;
+  width: 76px;
+  height: auto;
+  filter: drop-shadow(0 5px 7px rgba(16, 24, 40, 0.12))
+    drop-shadow(0 22px 28px rgba(23, 52, 140, 0.3));
+}
+
+@media (max-height: 780px) {
+  .tb-orb__img {
+    width: 64px;
+  }
+}
+
+@media (max-height: 680px) {
+  .tb-orb__img {
+    width: 56px;
+  }
+}

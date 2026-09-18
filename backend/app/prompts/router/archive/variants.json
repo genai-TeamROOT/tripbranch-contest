@@ -1,0 +1,8 @@
+{
+  "router-context@legacy-1.0.0": {
+    "description": "TP-67 위치 전환 규칙 도입 전 router.context_rules 기준선",
+    "overrides": {
+      "router/context_rules.md": "router/archive/context_rules__legacy-1.0.0.md"
+    }
+  }
+}

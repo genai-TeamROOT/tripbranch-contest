@@ -1,0 +1,105 @@
+{
+  "models": [
+    "gemini-2.5-flash",
+    "gemini-3.5-flash-lite"
+  ],
+  "reference_date": "2026-08-12",
+  "대상": 1,
+  "상이": 1,
+  "오류": [],
+  "diffs": [
+    {
+      "번호": "103",
+      "입력문장": "사람 많아도 괜찮아",
+      "기대_intent": "MODIFY",
+      "payload": {
+        "gemini-2.5-flash": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "gemini-3.5-flash-lite": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "SEEK",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        }
+      }
+    }
+  ],
+  "raw": {
+    "gemini-2.5-flash": {
+      "103": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 4247
+      }
+    },
+    "gemini-3.5-flash-lite": {
+      "103": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "SEEK",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 1584
+      }
+    }
+  }
+}

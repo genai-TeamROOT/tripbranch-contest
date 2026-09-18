@@ -1,0 +1,251 @@
+{
+  "models": [
+    "gemini-2.5-flash",
+    "gemini-3.5-flash-lite"
+  ],
+  "reference_date": "2026-08-12",
+  "대상": 3,
+  "상이": 3,
+  "오류": [],
+  "diffs": [
+    {
+      "번호": "7",
+      "입력문장": "나 경복궁인데 카페 추천",
+      "기대_intent": "RECOMMEND",
+      "payload": {
+        "gemini-2.5-flash": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "current_location": "경복궁",
+              "search_center": "경복궁",
+              "place_types": [
+                "restaurant"
+              ],
+              "place_tags": [
+                "카페"
+              ],
+              "weather_intent": "NO_MENTION",
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "gemini-3.5-flash-lite": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "current_location": "경복궁",
+              "place_types": [
+                "restaurant"
+              ],
+              "place_tags": [
+                "카페"
+              ],
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "번호": "16",
+      "입력문장": "경복궁 오늘 열어? 안 열면 다른 곳",
+      "기대_intent": "INFO",
+      "payload": {
+        "gemini-2.5-flash": {
+          "intent": "INFO",
+          "status": "complete",
+          "info": {
+            "place_name": "경복궁",
+            "place_context": "explicit",
+            "question_type": "operating_hours",
+            "specific_question": "경복궁 오늘 열어?",
+            "visit_time": "2026-08-12"
+          }
+        },
+        "gemini-3.5-flash-lite": {
+          "intent": "INFO",
+          "status": "complete",
+          "info": {
+            "place_name": "경복궁",
+            "place_context": "explicit",
+            "question_type": "operating_hours",
+            "specific_question": "경복궁 오늘 열어? 안 열면 다른 곳"
+          }
+        }
+      }
+    },
+    {
+      "번호": "32",
+      "입력문장": "야외도 괜찮아",
+      "기대_intent": "MODIFY",
+      "payload": {
+        "gemini-2.5-flash": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "environment": "any",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "environment"
+            ],
+            "target_indices": []
+          }
+        },
+        "gemini-3.5-flash-lite": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "environment": "outdoor",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "environment"
+            ],
+            "target_indices": []
+          }
+        }
+      }
+    }
+  ],
+  "raw": {
+    "gemini-2.5-flash": {
+      "7": {
+        "payload": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "current_location": "경복궁",
+              "search_center": "경복궁",
+              "place_types": [
+                "restaurant"
+              ],
+              "place_tags": [
+                "카페"
+              ],
+              "weather_intent": "NO_MENTION",
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "오류": null,
+        "지연ms": 3250
+      },
+      "16": {
+        "payload": {
+          "intent": "INFO",
+          "status": "complete",
+          "info": {
+            "place_name": "경복궁",
+            "place_context": "explicit",
+            "question_type": "operating_hours",
+            "specific_question": "경복궁 오늘 열어?",
+            "visit_time": "2026-08-12"
+          }
+        },
+        "오류": null,
+        "지연ms": 3540
+      },
+      "32": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "environment": "any",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "environment"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 2567
+      }
+    },
+    "gemini-3.5-flash-lite": {
+      "7": {
+        "payload": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "current_location": "경복궁",
+              "place_types": [
+                "restaurant"
+              ],
+              "place_tags": [
+                "카페"
+              ],
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "오류": null,
+        "지연ms": 1851
+      },
+      "16": {
+        "payload": {
+          "intent": "INFO",
+          "status": "complete",
+          "info": {
+            "place_name": "경복궁",
+            "place_context": "explicit",
+            "question_type": "operating_hours",
+            "specific_question": "경복궁 오늘 열어? 안 열면 다른 곳"
+          }
+        },
+        "오류": null,
+        "지연ms": 1337
+      },
+      "32": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "environment": "outdoor",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "environment"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 1528
+      }
+    }
+  }
+}

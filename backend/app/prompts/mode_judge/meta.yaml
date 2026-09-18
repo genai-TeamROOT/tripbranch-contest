@@ -1,0 +1,10 @@
+owner: C
+slots:
+  mode_judge.select:
+    description: 일정 구간과 추천 후보의 이동수단을, 거리뿐 아니라 날씨·동행·무장애까지 보고 전 구간을 한 번에 정한다.
+    version: "1.1.0"
+    template: select_instruction.md
+    bundle:
+      - mode_judge/mode_rules.md
+      - mode_judge/condition_rules.md
+    evals: evals/README.md

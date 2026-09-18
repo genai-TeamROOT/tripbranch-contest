@@ -1,0 +1,498 @@
+{
+  "models": [
+    "gemini-3.5-flash",
+    "gemini-3.6-flash"
+  ],
+  "repeat": 1,
+  "time_available": "120,180,300,420,none",
+  "must_include": "2824891",
+  "폴백_낀_회차": [],
+  "raw": {
+    "gemini-3.5-flash": {
+      "120분": [
+        {
+          "오류": null,
+          "항목수": 2,
+          "상한": 3,
+          "총소요분": 134,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "삼청동 한식당",
+            "북촌한옥마을"
+          ],
+          "체류시간": [
+            60,
+            60
+          ],
+          "지연ms": 2593,
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": 14,
+            "time_available_min": 120,
+            "total_duration_min": 134,
+            "item_capacity": 3,
+            "item_count": 2,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 1,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.5-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 263,
+          "사고토큰": 0
+        }
+      ],
+      "180분": [
+        {
+          "오류": null,
+          "항목수": 3,
+          "상한": 4,
+          "총소요분": 203,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "삼청동 한식당",
+            "북촌한옥마을",
+            "국립민속박물관"
+          ],
+          "체류시간": [
+            60,
+            60,
+            60
+          ],
+          "지연ms": 2221,
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": 23,
+            "time_available_min": 180,
+            "total_duration_min": 203,
+            "item_capacity": 4,
+            "item_count": 3,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 2,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.5-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 336,
+          "사고토큰": 0
+        }
+      ],
+      "300분": [
+        {
+          "오류": null,
+          "항목수": 4,
+          "상한": 5,
+          "총소요분": 303,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "경복궁",
+            "국립민속박물관",
+            "삼청동 한식당",
+            "북촌한옥마을"
+          ],
+          "체류시간": [
+            75,
+            55,
+            60,
+            70
+          ],
+          "지연ms": 3099,
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": 3,
+            "time_available_min": 300,
+            "total_duration_min": 303,
+            "item_capacity": 5,
+            "item_count": 4,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 3,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.5-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 460,
+          "사고토큰": 0
+        }
+      ],
+      "420분": [
+        {
+          "오류": null,
+          "항목수": 5,
+          "상한": 5,
+          "총소요분": 422,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "경복궁",
+            "국립민속박물관",
+            "삼청동 한식당",
+            "북촌한옥마을",
+            "인사동 쌈지길"
+          ],
+          "체류시간": [
+            100,
+            75,
+            60,
+            80,
+            55
+          ],
+          "지연ms": 3501,
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": 2,
+            "time_available_min": 420,
+            "total_duration_min": 422,
+            "item_capacity": 5,
+            "item_count": 5,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 4,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.5-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 566,
+          "사고토큰": 0
+        }
+      ],
+      "미지정": [
+        {
+          "오류": null,
+          "항목수": 4,
+          "상한": 5,
+          "총소요분": 252,
+          "예산판정": null,
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "경복궁",
+            "국립민속박물관",
+            "북촌한옥마을",
+            "삼청동 한식당"
+          ],
+          "체류시간": [
+            60,
+            40,
+            60,
+            60
+          ],
+          "지연ms": 2675,
+          "지표": {
+            "time_budget_status": null,
+            "time_budget_delta_min": null,
+            "time_available_min": null,
+            "total_duration_min": 252,
+            "item_capacity": 5,
+            "item_count": 4,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 3,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.5-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 1994,
+          "출력토큰": 452,
+          "사고토큰": 0
+        }
+      ]
+    },
+    "gemini-3.6-flash": {
+      "120분": [
+        {
+          "오류": null,
+          "항목수": 2,
+          "상한": 3,
+          "총소요분": 134,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "삼청동 한식당",
+            "북촌한옥마을"
+          ],
+          "체류시간": [
+            60,
+            60
+          ],
+          "지연ms": 2363,
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": 14,
+            "time_available_min": 120,
+            "total_duration_min": 134,
+            "item_capacity": 3,
+            "item_count": 2,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 1,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.6-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 181,
+          "사고토큰": 0
+        }
+      ],
+      "180분": [
+        {
+          "오류": null,
+          "항목수": 3,
+          "상한": 4,
+          "총소요분": 203,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "국립민속박물관",
+            "북촌한옥마을",
+            "삼청동 한식당"
+          ],
+          "체류시간": [
+            60,
+            60,
+            60
+          ],
+          "지연ms": 2684,
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": 23,
+            "time_available_min": 180,
+            "total_duration_min": 203,
+            "item_capacity": 4,
+            "item_count": 3,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 2,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.6-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 236,
+          "사고토큰": 0
+        }
+      ],
+      "300분": [
+        {
+          "오류": null,
+          "항목수": 4,
+          "상한": 5,
+          "총소요분": 313,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "경복궁",
+            "국립민속박물관",
+            "삼청동 한식당",
+            "북촌한옥마을"
+          ],
+          "체류시간": [
+            90,
+            60,
+            60,
+            60
+          ],
+          "지연ms": 3399,
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": 13,
+            "time_available_min": 300,
+            "total_duration_min": 313,
+            "item_capacity": 5,
+            "item_count": 4,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 3,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.6-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 427,
+          "사고토큰": 0
+        }
+      ],
+      "420분": [
+        {
+          "오류": null,
+          "항목수": 5,
+          "상한": 5,
+          "총소요분": 416,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "경복궁",
+            "국립민속박물관",
+            "북촌한옥마을",
+            "삼청동 한식당",
+            "인사동 쌈지길"
+          ],
+          "체류시간": [
+            95,
+            75,
+            70,
+            70,
+            65
+          ],
+          "지연ms": 2791,
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": -4,
+            "time_available_min": 420,
+            "total_duration_min": 416,
+            "item_capacity": 5,
+            "item_count": 5,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 4,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.6-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 391,
+          "사고토큰": 0
+        }
+      ],
+      "미지정": [
+        {
+          "오류": null,
+          "항목수": 4,
+          "상한": 5,
+          "총소요분": 263,
+          "예산판정": null,
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "경복궁",
+            "국립민속박물관",
+            "삼청동 한식당",
+            "북촌한옥마을"
+          ],
+          "체류시간": [
+            60,
+            40,
+            60,
+            60
+          ],
+          "지연ms": 2701,
+          "지표": {
+            "time_budget_status": null,
+            "time_budget_delta_min": null,
+            "time_available_min": null,
+            "total_duration_min": 263,
+            "item_capacity": 5,
+            "item_count": 4,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 3,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.6-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 1994,
+          "출력토큰": 318,
+          "사고토큰": 0
+        }
+      ]
+    }
+  }
+}

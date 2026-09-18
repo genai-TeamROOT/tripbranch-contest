@@ -1,0 +1,1567 @@
+[
+ {
+  "text": "명절, 월2회 일요일",
+  "n": 10,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "일"
+  ],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "2,4주 일요일",
+  "n": 61,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매달 첫째, 셋째 화요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매달 첫째, 셋째 월요일 / 매달 둘째, 넷째 일요일 / 설·추석 연휴",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     1,
+     3
+    ]
+   },
+   {
+    "weekday": "일",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "설·추석 연휴 휴무"
+ },
+ {
+  "text": "매달 첫째·셋째 화요일 / 법정공휴일 (단, 공휴일과 겹친 일요일 휴관) / 도서관 사정으로 임시로 정하는 휴일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "법정공휴일 휴무, 공휴일과 겹친 일요일 휴관, 임시 휴일 있음"
+ },
+ {
+  "text": "월요일 (단, 월요일이 공휴일인 경우 공휴일 다음 첫 번째 평일 휴관) / 1월 1일 / 설·추석 당일",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "월"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "월요일이 공휴일인 경우 공휴일 다음 첫 번째 평일 휴관, 1월 1일 및 설·추석 당일 휴무"
+ },
+ {
+  "text": "매달 첫째/셋째 목요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "목",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "공휴일, 명절, 일요일",
+  "n": 5,
+  "neg": false,
+  "weekly": [
+   "일"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "공휴일 및 명절 휴무"
+ },
+ {
+  "text": "공휴일, 1주 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     1
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "공휴일 휴무"
+ },
+ {
+  "text": "- 봄, 가을 : 월요일, 화요일<br>- 여름, 겨울 : 월요일, 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [],
+  "note": "계절별 상이: 봄, 가을은 월요일, 화요일 휴무 / 여름, 겨울은 월요일, 일요일 휴무"
+ },
+ {
+  "text": "매달 둘째 화요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     2
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 첫째 주, 셋째 주 일요일 (전화문의)",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "전화문의"
+ },
+ {
+  "text": "매월 두번 째, 네번 째, 다섯번 째 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     2,
+     4,
+     5
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "명절, 월 1회 월요일",
+  "n": 88,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "월요일"
+  ],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "매달 둘째, 넷째 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "4주 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "명절, 2,4주 일요일",
+  "n": 5,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "공휴일, 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "일"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "공휴일 휴무"
+ },
+ {
+  "text": "매월 둘째, 넷째 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 둘째 화요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     2
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "첫째·셋째주 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월요일",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "명절, 일요일",
+  "n": 7,
+  "neg": false,
+  "weekly": [
+   "일요일"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "매월 둘째, 넷째주 수요일 / 일요일을 제외한 법정공휴일(단, 공휴일과 일요일이 겹칠 경우 휴관) / 임시 휴관일",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 법정공휴일(단, 공휴일과 일요일이 겹칠 경우 휴관) 및 임시 휴관일"
+ },
+ {
+  "text": "일요일",
+  "n": 17,
+  "neg": false,
+  "weekly": [
+   "일"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "월요일 / 명절은 별도 공지",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "월"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "명절은 별도 공지"
+ },
+ {
+  "text": "격주 일요일",
+  "n": 2,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "일"
+  ],
+  "note": ""
+ },
+ {
+  "text": "금요일 / 토요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "금요일",
+   "토요일"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "1,3주 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "명절, 3주 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "2,4주 수요일",
+  "n": 3,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "월1회 월요일",
+  "n": 5,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "월요일"
+  ],
+  "note": ""
+ },
+ {
+  "text": "매월 둘째, 넷째 수요일 / 법정공휴일 (단, 일요일과 공휴일이 겹치는 경우에는 휴관) / 기타 도서관장이 정하는 임시공휴일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "법정공휴일 휴관 (단, 일요일과 공휴일이 겹치는 경우에는 휴관), 기타 도서관장이 정하는 임시공휴일 휴관"
+ },
+ {
+  "text": "매월 첫째, 셋째 목요일 / 일요일을 제외한 법정공휴일 / 도서관 사정으로 임시로 정하는 휴일",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "목요일",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 법정공휴일 및 도서관 임시 휴일 휴무"
+ },
+ {
+  "text": "월2회 월요일",
+  "n": 2,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "월요일"
+  ],
+  "note": ""
+ },
+ {
+  "text": "월 1회 월요일",
+  "n": 15,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "월"
+  ],
+  "note": ""
+ },
+ {
+  "text": "명절, 월1회 월요일",
+  "n": 73,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "월요일"
+  ],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "명절, 월 2회 일요일",
+  "n": 2,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "일요일"
+  ],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "일요일 및 공휴일 휴관",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "일요일"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "공휴일 휴관"
+ },
+ {
+  "text": "매월 첫째 주 / 셋째 주 월요일 / 설·추석 당일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "설·추석 당일 휴무"
+ },
+ {
+  "text": "매월 첫째, 셋째 수요일 / 법정 공휴일(일요일과 겹칠 경우 휴관) / 임시휴관일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "법정 공휴일 휴무 (일요일과 겹칠 경우 휴관), 임시휴관일 휴무"
+ },
+ {
+  "text": "매월 넷째 화요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 두 번째, 네 번째 수요일 / 법정 공휴일 ※ 일요일과 법정공휴일이 겹칠 경우 휴관",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "법정 공휴일 휴관 (일요일과 법정공휴일이 겹칠 경우 휴관)"
+ },
+ {
+  "text": "매월 셋째 주 화요일<br>※ 점포 별로 상이함",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "점포 별로 상이함"
+ },
+ {
+  "text": "매월 첫째·셋째 월요일 / 일요일을 제외한 법정 공휴일(단, 법정공휴일과 겹친 일요일에는 휴관) / 도서관 사정으로 임시로 정하는 휴일",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 법정 공휴일 (단, 공휴일과 겹친 일요일은 휴관, 도서관 사정에 따른 임시 휴일)"
+ },
+ {
+  "text": "매월 둘쨰, 넷째 월요일 / 공휴일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "공휴일 휴무"
+ },
+ {
+  "text": "매월 마지막 주 일요일 / 공휴일 (단,일요일 제외) / 임시휴관일",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [],
+  "note": "매월 마지막 주 일요일 휴무, 일요일을 제외한 공휴일 및 임시휴관일 휴관"
+ },
+ {
+  "text": "[정기휴관일] 매월 둘째, 넷째 월요일 / 공휴일<br>(※ 단, 일요일은 개관하되, 일요일과 다른 공휴일이 겹치는 경우에는 휴관)",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "매월 둘째, 넷째 월요일 및 공휴일 휴관 (일요일은 개관하되 공휴일과 겹치는 경우 휴관)"
+ },
+ {
+  "text": "토요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "토"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "[야시장]<br>매월 셋째주 일요일<br>※ 단, 시장 점포 별로 상이함",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "시장 점포 별로 상이함"
+ },
+ {
+  "text": "매달 첫째, 셋째 월요일 / 설·추석 연휴",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "설·추석 연휴 휴무"
+ },
+ {
+  "text": "월 3회 토요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "토요일"
+  ],
+  "note": "월 3회 토요일 휴무"
+ },
+ {
+  "text": "월 2회 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "일요일"
+  ],
+  "note": "월 2회 일요일 휴무"
+ },
+ {
+  "text": "매월 둘째, 넷째 토요일 / 일요일을 제외한 공휴일 (단, 공휴일과 겹친 토요일·일요일 휴관)",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "토",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 공휴일, 단 공휴일과 겹친 토요일·일요일 휴관"
+ },
+ {
+  "text": "매월 둘째·넷째 금요일 / 법정공휴일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "금",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "법정공휴일"
+ },
+ {
+  "text": "월요일",
+  "n": 9,
+  "neg": false,
+  "weekly": [
+   "월"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "명절, 목요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "목"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "매월 둘째, 넷째 월요일 / 설·추석 당일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "설·추석 당일 휴무"
+ },
+ {
+  "text": "매달 셋째 월요일 / 1월 1일 / 설·추석 당일 및 그 다음날",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "1월 1일, 설·추석 당일 및 그 다음날 휴무"
+ },
+ {
+  "text": "공휴일, 명절, 수요일, 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "수",
+   "일"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "공휴일, 명절 휴무"
+ },
+ {
+  "text": "매월 둘째, 넷째 월요일일요일을 제외한 관공서 공휴일 (단, 명절 연휴 기간 중 일요일은 휴관)임시휴관일 (특별한 사유로 관장이 필요하다고 인정한 경우)※ 어린이날 개관",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 관공서 공휴일 휴관 (단, 명절 연휴 기간 중 일요일은 휴관, 어린이날 개관)"
+ },
+ {
+  "text": "매월 둘째, 넷째 화요일 / 국경일 / 법정공휴일 (단, 일요일과 법정공휴일이 겹칠경우 휴관) / 기타 도서관 필요에 의해 정하는 날",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "국경일, 법정공휴일(일요일과 법정공휴일이 겹칠 경우 휴관), 도서관 필요에 의해 정하는 날 휴관"
+ },
+ {
+  "text": "매월 둘째, 넷째 화요일",
+  "n": 2,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 첫째, 셋째 월요일",
+  "n": 2,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 첫째 주 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     1
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 둘째, 넷째 주 수요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 첫째, 셋째 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "1,3주 월요일",
+  "n": 3,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 첫째, 셋째 목요일 / 일요일을 제외한 법정공휴일 및 임시공휴일 (단, 일요일과 다른 공휴일이 겹치는 경우에는 휴관)",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "목요일",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 법정공휴일 및 임시공휴일 휴관 (일요일과 공휴일이 겹치는 경우 휴관)"
+ },
+ {
+  "text": "매월 둘째·넷째 월요일 / 공휴일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "공휴일 휴무"
+ },
+ {
+  "text": "매월 둘째, 넷째 월요일 / 일요일을 제외한 관공서의 공휴일",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월요일",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 관공서의 공휴일 휴무"
+ },
+ {
+  "text": "매월 첫째 일요일 / 공휴일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     1
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "공휴일 휴무"
+ },
+ {
+  "text": "매달 넷째 주 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "2주 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     2
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 둘째·넷째 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매달 2, 4번째 목요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "목",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 첫째, 셋째, 넷째 화요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     1,
+     3,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "월2회 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "일"
+  ],
+  "note": ""
+ },
+ {
+  "text": "매월 첫째, 셋째 수요일 / 일요일을 제외한 법정공휴일 (단, 공휴일과 일요일이 겹칠 경우 휴관) / 도서관 사정으로 임시로 정하는 휴일",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 법정공휴일(단, 공휴일과 일요일이 겹칠 경우 휴관) 및 도서관 사정에 따른 임시 휴관일"
+ },
+ {
+  "text": "매월 마지막 월요일 (단, 공휴일일 경우 공휴일이 끝난 다음날) / 1월 1일 / 설·추석 당일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [],
+  "note": "매월 마지막 월요일 (단, 공휴일일 경우 공휴일이 끝난 다음날) / 1월 1일 / 설·추석 당일 휴관"
+ },
+ {
+  "text": "매월 첫째, 셋째 수요일 / 법정공휴일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "법정공휴일 휴무"
+ },
+ {
+  "text": "매월 둘째, 넷째 월요일 / 국경일 / 정부지정 공휴일 / 도서관 운영상 도서관장이 필요하다고 지정한 날",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월요일",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "국경일, 정부지정 공휴일 및 도서관장이 지정한 날 휴관"
+ },
+ {
+  "text": "매월 첫째주·셋째주 월요일 / 일요일을 제외한 법정공휴일 (단, 일요일과 법정공휴일이 겹칠 경우 휴관)",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 법정공휴일 휴관 (단, 일요일과 법정공휴일이 겹칠 경우 휴관)"
+ },
+ {
+  "text": "매월 첫째·셋째 일요일",
+  "n": 2,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 둘째·넷째·다섯째 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     2,
+     4,
+     5
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "11:30-22:00 (라스트오더 20:30) / 일요일 휴무 / 설날, 추석 휴무",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "일"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "설날, 추석 휴무"
+ },
+ {
+  "text": "매월 마지막 주 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     5
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "매월 마지막 주 월요일"
+ },
+ {
+  "text": "월요일, 1월 1일, 설날, 추석날",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "월"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "1월 1일, 설날, 추석날 휴무"
+ },
+ {
+  "text": "매달 첫째·셋째 수요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매달 셋째 화요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "명절, 월2회 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "월요일"
+  ],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "[휴관일]1월 1일 / 설·추석 당일[정기휴실일]매년 3월, 6월, 9월, 12월 첫 번째 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월요일",
+    "ordinals": [
+     1
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "1월 1일 및 설·추석 당일 휴관. 매년 3월, 6월, 9월, 12월 첫 번째 월요일 휴실"
+ },
+ {
+  "text": "매월 둘째주, 넷째주 화요일 / 법정공휴일 (일요일을 제외한 관공서 공휴일) / 도서관 및 기타 사정으로 도서관장이 정한 날",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "법정공휴일(일요일 제외), 도서관장이 정한 날 휴관"
+ },
+ {
+  "text": "명절, 월2회 수요일",
+  "n": 2,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "수요일"
+  ],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "매월 첫째 주, 셋째 주 월요일 / 근로자의 날 / 일요일을 제외한 법정 공휴일 / 재단 창립일",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "근로자의 날, 일요일을 제외한 법정 공휴일, 재단 창립일 휴무"
+ },
+ {
+  "text": "매월 둘째, 넷째 월요일 / 법정공휴일(일요일 제외) / 5월 1일",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "법정공휴일(일요일 제외), 5월 1일 휴무"
+ },
+ {
+  "text": "매월 두번째 화요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "화",
+    "ordinals": [
+     2
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 첫번째·세번째 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매월 두번째·네번째 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "일",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ },
+ {
+  "text": "매달 둘째·넷째 월요일 / 일요일을 제외한 법정공휴일(단, 공휴일과 일요일이 겹칠 경우 휴관) / 임시휴관일",
+  "n": 1,
+  "neg": true,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월요일",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "일요일을 제외한 법정공휴일 휴관 (단, 공휴일과 일요일이 겹칠 경우 휴관), 임시휴관일"
+ },
+ {
+  "text": "명절, 수요일, 일요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [
+   "수",
+   "일"
+  ],
+  "nth": [],
+  "uncertain": [],
+  "note": "명절 휴무"
+ },
+ {
+  "text": "월2회 수요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [],
+  "uncertain": [
+   "수요일"
+  ],
+  "note": "월 2회 수요일 휴무"
+ },
+ {
+  "text": "[하이디하우스 / 메디테라]- 매월 둘째, 넷째 수요일[카페 우마니]- 주말",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     2,
+     4
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "주말 휴무 정보는 요일 주기로 해석되지 않아 제외함"
+ },
+ {
+  "text": "매월 첫째·셋째 수요일 / 법정공휴일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "수",
+    "ordinals": [
+     1,
+     3
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": "법정공휴일 휴무"
+ },
+ {
+  "text": "매월 5번째 월요일",
+  "n": 1,
+  "neg": false,
+  "weekly": [],
+  "nth": [
+   {
+    "weekday": "월요일",
+    "ordinals": [
+     5
+    ]
+   }
+  ],
+  "uncertain": [],
+  "note": ""
+ }
+]

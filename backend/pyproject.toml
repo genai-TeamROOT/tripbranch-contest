@@ -1,0 +1,88 @@
+[project]
+name = "tripbranch-backend"
+version = "0.1.0"
+description = "TripBranch FastAPI backend scaffold"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "sse-starlette>=2.1",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "httpx>=0.27",
+  # multipart/form-data 파싱. FastAPI의 Form·File이 이 패키지 없이는 앱 조립
+  # 시점에 RuntimeError를 낸다 — 사진 업로드 라우트 하나 때문에 앱 전체가 못 뜬다.
+  # fastapi의 선택 의존성이라 따로 적는다.
+  "python-multipart>=0.0.9",
+  "google-genai>=1.0",
+  # D-062: Supabase 신원 토큰(ES256) 검증. crypto extra가 있어야 EC 서명을 다룬다.
+  "pyjwt[crypto]>=2.8",
+  # 인텐트 라우팅 그래프(docs/design/langgraph-adoption.md). 1단계는 GENERAL 경로만
+  # 그래프로 태우고 나머지는 기존 run_agent_flow()가 그대로 처리한다.
+  # langchain-core가 의존성으로 함께 설치된다(langchain 본체·통합 패키지는 아님).
+  "langgraph>=1.2",
+  # LLMOps 관측(package_D/[계획] Langfuse 도입, roadmap 13번). 기본값이 꺼짐이라
+  # 설치만으로는 아무 동작도 바뀌지 않는다 — LANGFUSE_ENABLED=true여야 켜진다.
+  # OpenTelemetry SDK와 protobuf를 함께 끌고 온다. 2026-08-25 확인 기준 protobuf는
+  # 미설치 상태였고 google-genai는 optional extra에서만 요구해 충돌하지 않는다.
+  # **여기만 상한을 둔다.** 다른 의존성은 상한 없는 `>=`인데, 이 패키지는 v3 → v4에서
+  # 계약이 통째로 바뀐 전례가 있고 관측 계층이 v4 전용 API(`propagate_attributes`,
+  # `start_as_current_observation`, `run_experiment`, `langfuse.experiment.Evaluation`)에
+  # 직접 올라가 있다. 상한이 없으면 v5가 나오는 순간 조용히 올라타 관측이 깨진다 —
+  # 그런데 관측 실패는 예외를 올리지 않고 로그 한 줄만 남기도록 설계돼 있어서
+  # (`langfuse_tracing._guard`) **깨진 걸 한동안 모른다.**
+  "langfuse>=4.14,<5",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+  "ruff>=0.6",
+  # tests/prompts/test_prompt_assets.py가 app/prompts/*/meta.yaml을 파싱해 선언(template·
+  # bundle)과 실제 조합이 어긋나지 않는지 검사한다. 런타임은 Markdown만 읽으므로
+  # 기본 의존성에는 넣지 않는다.
+  "pyyaml>=6.0",
+]
+# package_D 취향 근거 RAG 스크립트 전용(scripts/measure_similarity_distribution.py).
+# torch를 끌고 와 설치가 무거워 기본 설치·dev extras에는 안 넣는다. 모델 가중치
+# (jhgan/ko-sroberta-multitask)는 첫 실행 시 Hugging Face Hub에서 자동 다운로드된다.
+embeddings = [
+  "sentence-transformers>=5.7",
+]
+# 사진 분위기 임베딩 전용(app/providers/place_mood_encoder.py). 적재는 코랩에서
+# 했고 서버는 올린 사진 한 장을 인코딩할 때만 쓴다. embeddings와 분리한 이유는
+# 두 모델이 서로 필요 없기 때문이다 — 취향 검색만 켜는 배포가 SigLIP까지 받을
+# 이유가 없다. torch는 양쪽이 공유하므로 둘 다 설치해도 한 벌만 받는다.
+# 모델 가중치(google/siglip2-base-patch16-224)는 첫 적재 때 Hugging Face Hub에서
+# 자동 다운로드된다.
+mood = [
+  "transformers>=4.49",
+  "torch>=2.2",
+  "pillow>=10.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*", "scripts*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+  "smoke: calls real external providers and requires explicit environment opt-in",
+  "inspection: prints sanitized real provider requests and raw responses",
+]

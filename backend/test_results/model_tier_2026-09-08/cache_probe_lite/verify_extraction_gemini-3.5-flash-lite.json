@@ -1,0 +1,314 @@
+{
+  "요청_모델": "gemini-3.5-flash-lite",
+  "반복": 1,
+  "케이스_수": 18,
+  "흔들린_케이스_수": 0,
+  "행": [
+    {
+      "그룹": "골드셋",
+      "발화": "광화문 반나절 일정 짜줘",
+      "기대_center": "광화문",
+      "기대_time": 240,
+      "centers": [
+        null
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1573
+    },
+    {
+      "그룹": "골드셋",
+      "발화": "반나절 일정 짜줘",
+      "기대_center": null,
+      "기대_time": 240,
+      "centers": [
+        null
+      ],
+      "times": [
+        240
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1523
+    },
+    {
+      "그룹": "골드셋",
+      "발화": "경복궁 근처 반나절 일정 짜줘",
+      "기대_center": "경복궁",
+      "기대_time": 240,
+      "centers": [
+        "경복궁"
+      ],
+      "times": [
+        240
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1753
+    },
+    {
+      "그룹": "골드셋",
+      "발화": "경복궁 근처 3시간 코스 짜줘",
+      "기대_center": "경복궁",
+      "기대_time": 180,
+      "centers": [
+        null
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1560
+    },
+    {
+      "그룹": "시간표현",
+      "발화": "광화문 하루 종일 일정 짜줘",
+      "기대_center": "광화문",
+      "기대_time": "*",
+      "centers": [
+        null
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1763
+    },
+    {
+      "그룹": "시간표현",
+      "발화": "광화문 오후 내내 일정 짜줘",
+      "기대_center": "광화문",
+      "기대_time": "*",
+      "centers": [
+        null
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 945
+    },
+    {
+      "그룹": "시간표현",
+      "발화": "광화문 두세 시간 코스 짜줘",
+      "기대_center": "광화문",
+      "기대_time": "*",
+      "centers": [
+        null
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1150
+    },
+    {
+      "그룹": "시간표현",
+      "발화": "광화문 4시간 일정 짜줘",
+      "기대_center": "광화문",
+      "기대_time": 240,
+      "centers": [
+        null
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1151
+    },
+    {
+      "그룹": "위치표현",
+      "발화": "경복궁 코스 짜줘",
+      "기대_center": "경복궁",
+      "기대_time": "*",
+      "centers": [
+        null
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1558
+    },
+    {
+      "그룹": "위치표현",
+      "발화": "경복궁 일정 짜줘",
+      "기대_center": "경복궁",
+      "기대_time": "*",
+      "centers": [
+        "경복궁"
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1661
+    },
+    {
+      "그룹": "위치표현",
+      "발화": "경복궁 근처 일정 짜줘",
+      "기대_center": "경복궁",
+      "기대_time": "*",
+      "centers": [
+        "경복궁"
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1460
+    },
+    {
+      "그룹": "위치표현",
+      "발화": "북촌 반나절 코스",
+      "기대_center": "북촌",
+      "기대_time": 240,
+      "centers": [
+        "북촌"
+      ],
+      "times": [
+        240
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1470
+    },
+    {
+      "그룹": "대조군",
+      "발화": "경복궁 근처 카페 추천해줘",
+      "기대_center": "경복궁",
+      "기대_time": null,
+      "centers": [
+        "경복궁"
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1483
+    },
+    {
+      "그룹": "대조군",
+      "발화": "종로에서 15분 이내 카페 추천해줘",
+      "기대_center": "종로",
+      "기대_time": null,
+      "centers": [
+        "종로"
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1825
+    },
+    {
+      "그룹": "칸없음",
+      "발화": "토요일 오후 2시부터 5시간 코스 짜줘",
+      "기대_center": null,
+      "기대_time": 300,
+      "centers": [
+        null
+      ],
+      "times": [
+        300
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1713
+    },
+    {
+      "그룹": "칸없음",
+      "발화": "5시간 코스 짜줘",
+      "기대_center": null,
+      "기대_time": 300,
+      "centers": [
+        null
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1199
+    },
+    {
+      "그룹": "칸없음",
+      "발화": "홍대입구에서 인사동으로 이동하는 5시간 코스",
+      "기대_center": "인사동",
+      "기대_time": 300,
+      "centers": [
+        null
+      ],
+      "times": [
+        null
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1253
+    },
+    {
+      "그룹": "칸없음",
+      "발화": "인사동 근처 5시간 코스",
+      "기대_center": "인사동",
+      "기대_time": 300,
+      "centers": [
+        "인사동"
+      ],
+      "times": [
+        300
+      ],
+      "models": [
+        "gemini-3.5-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1763
+    }
+  ]
+}

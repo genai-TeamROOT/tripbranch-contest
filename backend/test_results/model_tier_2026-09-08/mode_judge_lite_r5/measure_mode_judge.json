@@ -1,0 +1,304 @@
+{
+  "요약": {
+    "모델": [
+      "gemini-3.5-flash-lite"
+    ],
+    "거리_km": [
+      0.3,
+      0.6,
+      0.85,
+      1.2,
+      2.0,
+      3.5
+    ],
+    "규칙_기준선": [
+      "walking",
+      "walking",
+      "walking",
+      "transit",
+      "transit",
+      "transit"
+    ],
+    "모델별": {
+      "gemini-3.5-flash-lite": {
+        "지연_p50_ms": 800.6,
+        "지연_p95_ms": 832.9,
+        "호출_수": 15,
+        "규칙과_전부_일치한_회차": 7,
+        "회차_수": 15
+      }
+    }
+  },
+  "행": [
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "없음/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 1082.0
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "없음/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 732.5
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "없음/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 800.6
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "없음/추천",
+      "시도": 4,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 726.6
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "없음/추천",
+      "시도": 5,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 745.6
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "비/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 811.6
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "비/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 726.8
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "비/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 831.4
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "비/추천",
+      "시도": 4,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 830.4
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "비/추천",
+      "시도": 5,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 829.9
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "맑음/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 668.7
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "맑음/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 5,
+      "전체_구간": 6,
+      "전환_수": 4,
+      "첫_줄": "walking",
+      "지연ms": 742.3
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "맑음/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 770.0
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "맑음/추천",
+      "시도": 4,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 832.9
+    },
+    {
+      "모델": "gemini-3.5-flash-lite",
+      "조건": "맑음/추천",
+      "시도": 5,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "규칙과_같은_구간": 6,
+      "전체_구간": 6,
+      "전환_수": 3,
+      "첫_줄": "walking",
+      "지연ms": 831.0
+    }
+  ]
+}

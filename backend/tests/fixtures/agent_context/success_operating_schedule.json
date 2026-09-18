@@ -1,0 +1,26 @@
+{
+  "request_id": "req_context_operating_schedule_001",
+  "intent": "RECOMMEND",
+  "contract_version": "draft-v0",
+  "status": "success",
+  "context": {
+    "location": {"status": "success", "data": {"requested_query": "경복궁", "resolved_name": "경복궁", "source": "query", "location": {"latitude": 37.579617, "longitude": 126.977041}, "address": "서울특별시 종로구 사직로 161"}, "error": null, "warnings": [], "provider_metadata": [{"source": "naver_geocoding", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}]},
+    "weather": {"status": "success", "data": {"forecast_for": "2026-08-15T11:00:00+09:00", "temperature_celsius": 26.0, "precipitation": "none", "sky": "cloudy"}, "error": null, "warnings": [], "provider_metadata": [{"source": "kma_ultra_short_forecast", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}]},
+    "places": {
+      "status": "success",
+      "data": [
+        {"place_id": "schedule-open-1", "name": "운영 중인 박물관", "category": "cultural_facility", "lcls_systm1": "VE", "lcls_systm2": "VE07", "lcls_systm3": "VE070100", "location": {"latitude": 37.5801, "longitude": 126.9775}, "operating_hours_raw": "09:00~18:00", "rest_date_raw": "월요일", "operating_schedule": {"availability": "scheduled", "time_ranges": [{"open_time": "09:00", "close_time": "18:00", "crosses_midnight": false}], "closure_rules": [{"weekdays": ["monday"]}], "parse_status": "parsed"}},
+        {"place_id": "schedule-closed-1", "name": "방문 시각 폐점 카페", "category": "restaurant", "lcls_systm1": "FD", "lcls_systm2": "FD05", "lcls_systm3": "FD050100", "location": {"latitude": 37.5803, "longitude": 126.9777}, "operating_hours_raw": "06:00~10:00", "rest_date_raw": "연중무휴", "operating_schedule": {"availability": "scheduled", "time_ranges": [{"open_time": "06:00", "close_time": "10:00", "crosses_midnight": false}], "closure_rules": [], "parse_status": "parsed"}},
+        {"place_id": "schedule-all-day-1", "name": "24시간 산책로", "category": "attraction", "lcls_systm1": "VE", "lcls_systm2": "VE04", "lcls_systm3": "VE040300", "location": {"latitude": 37.5810, "longitude": 126.9785}, "operating_hours_raw": "상시 개방", "rest_date_raw": "연중무휴", "operating_schedule": {"availability": "all_day", "time_ranges": [], "closure_rules": [], "parse_status": "parsed"}}
+      ],
+      "error": null,
+      "warnings": [],
+      "provider_metadata": [{"source": "tour_api_place", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}]
+    },
+    "holidays": {"status": "success", "data": [{"date": "2026-08-15", "name": "광복절"}], "error": null, "warnings": [], "provider_metadata": [{"source": "kasi_holiday", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}]}
+  },
+  "clarification": null,
+  "warnings": [],
+  "error": null,
+  "metadata": {"rule_versions": {"category_mapping": "v1", "operating_hours_normalization": "operating-hours-1.0.0", "weather_condition_normalization": "v1"}, "provider_metadata": [{"source": "naver_geocoding", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}, {"source": "kma_ultra_short_forecast", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}, {"source": "tour_api_place", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}, {"source": "kasi_holiday", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}]}
+}

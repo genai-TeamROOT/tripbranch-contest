@@ -1,0 +1,9 @@
+owner: C
+slots:
+  closure.extract:
+    description: 관광지 휴무 안내 원문에서 정기 휴무를 뽑는다. 매주·주기·불확실을 갈라 담고 부정 표현을 뒤집지 않는다.
+    version: "1.0.0"
+    template: extract.md
+    bundle:
+      - closure/pattern_rules.md
+    evals: evals/README.md

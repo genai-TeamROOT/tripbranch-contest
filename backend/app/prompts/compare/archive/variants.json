@@ -1,0 +1,9 @@
+{
+  "compare-summary@legacy-1.0.10": {
+    "description": "COMPARE 요약 슬롯의 최초 승인 기준선",
+    "overrides": {
+      "compare/summary_instruction.md": "compare/archive/compare_summary__legacy-1.0.10.md",
+      "_shared/persona/trivi.md": "_shared/archive/persona__legacy-1.0.5.md"
+    }
+  }
+}

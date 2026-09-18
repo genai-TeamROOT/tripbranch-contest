@@ -1,0 +1,170 @@
+{
+  "request_id": "req_context_success_001",
+  "intent": "RECOMMEND",
+  "contract_version": "draft-v0",
+  "status": "success",
+  "context": {
+    "location": {
+      "status": "success",
+      "data": {
+        "requested_query": "경복궁",
+        "resolved_name": "경복궁",
+        "source": "query",
+        "location": {
+          "latitude": 37.579617,
+          "longitude": 126.977041
+        },
+        "address": "서울특별시 종로구 사직로 161"
+      },
+      "error": null,
+      "warnings": [],
+      "provider_metadata": [
+        {
+          "source": "naver_geocoding",
+          "status": "success",
+          "retrieved_at": "2026-08-14T09:00:00+09:00"
+        }
+      ]
+    },
+    "weather": {
+      "status": "success",
+      "data": {
+        "forecast_for": "2026-08-15T11:00:00+09:00",
+        "temperature_celsius": 28.0,
+        "precipitation": "none",
+        "sky": "clear"
+      },
+      "error": null,
+      "warnings": [],
+      "provider_metadata": [
+        {
+          "source": "kma_ultra_short_forecast",
+          "status": "success",
+          "retrieved_at": "2026-08-14T09:00:00+09:00"
+        }
+      ]
+    },
+    "places": {
+      "status": "success",
+      "data": [
+        {
+          "place_id": "126508",
+          "name": "경복궁",
+          "category": "attraction",
+          "lcls_systm1": "HS",
+          "lcls_systm2": "HS01",
+          "lcls_systm3": "HS010100",
+          "location": {
+            "latitude": 37.579617,
+            "longitude": 126.977041
+          },
+          "operating_hours_raw": "09:00~18:00 (입장마감 17:00)",
+          "rest_date_raw": "매주 화요일",
+          "operating_schedule": {
+            "availability": "scheduled",
+            "time_ranges": [
+              {
+                "open_time": "09:00",
+                "close_time": "18:00",
+                "crosses_midnight": false
+              }
+            ],
+            "closure_rules": [
+              {
+                "weekdays": [
+                  "tuesday"
+                ]
+              }
+            ],
+            "parse_status": "parsed"
+          }
+        },
+        {
+          "place_id": "130100",
+          "name": "국립민속박물관",
+          "category": "cultural_facility",
+          "lcls_systm1": "VE",
+          "lcls_systm2": "VE07",
+          "lcls_systm3": "VE070100",
+          "location": {
+            "latitude": 37.581661,
+            "longitude": 126.978984
+          },
+          "operating_hours_raw": "09:00~18:00",
+          "rest_date_raw": "1월 1일, 설날 및 추석 당일",
+          "operating_schedule": {
+            "availability": "scheduled",
+            "time_ranges": [
+              {
+                "open_time": "09:00",
+                "close_time": "18:00",
+                "crosses_midnight": false
+              }
+            ],
+            "closure_rules": [],
+            "parse_status": "partial"
+          }
+        }
+      ],
+      "error": null,
+      "warnings": [],
+      "provider_metadata": [
+        {
+          "source": "tour_api_place",
+          "status": "success",
+          "retrieved_at": "2026-08-14T09:00:00+09:00"
+        }
+      ]
+    },
+    "holidays": {
+      "status": "success",
+      "data": [
+        {
+          "date": "2026-08-15",
+          "name": "광복절"
+        }
+      ],
+      "error": null,
+      "warnings": [],
+      "provider_metadata": [
+        {
+          "source": "kasi_holiday",
+          "status": "success",
+          "retrieved_at": "2026-08-14T09:00:00+09:00"
+        }
+      ]
+    }
+  },
+  "clarification": null,
+  "warnings": [],
+  "error": null,
+  "metadata": {
+    "rule_versions": {
+      "category_mapping": "v1",
+      "operating_hours_normalization": "operating-hours-1.0.0",
+      "weather_condition_normalization": "v1"
+    },
+    "provider_metadata": [
+      {
+        "source": "naver_geocoding",
+        "status": "success",
+        "retrieved_at": "2026-08-14T09:00:00+09:00"
+      },
+      {
+        "source": "kma_ultra_short_forecast",
+        "status": "success",
+        "retrieved_at": "2026-08-14T09:00:00+09:00"
+      },
+      {
+        "source": "tour_api_place",
+        "status": "success",
+        "retrieved_at": "2026-08-14T09:00:00+09:00"
+      },
+      {
+        "source": "kasi_holiday",
+        "status": "success",
+        "retrieved_at": "2026-08-14T09:00:00+09:00"
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+owner: synthetic-review-generation
+slots:
+  synthetic_review.generate:
+    description: 공식 TourAPI 사실과 사전 결정된 페르소나·계획으로 합성 리뷰를 생성한다. 리뷰 수는 장소의 공식 근거 수를 따라 3~5로 달라진다.
+    version: "2.1.0"
+    template: system_instruction.md

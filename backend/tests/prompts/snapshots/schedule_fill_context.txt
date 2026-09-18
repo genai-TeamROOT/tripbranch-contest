@@ -1,0 +1,22 @@
+[시작 시각]
+14:00
+
+[이미 확정된 일정 (pinned_items — 그대로 유지, 다시 고르지 마세요)]
+- order=1 | place-1 | 경복궁 | 도착=14:00 | 체류=90분
+
+[채워야 할 자리 (target_orders)]
+[2]
+
+[새로 고를 후보 목록]
+- place-1 | 경복궁 | attraction | 운영시간=확인불가 | score=0.90 | 경복궁은(는) 조건에 맞는 장소예요.
+- place-2 | 국립고궁박물관 | cultural_facility | 운영시간=확인불가 | score=0.90 | 국립고궁박물관은(는) 조건에 맞는 장소예요.
+- place-3 | 두가헌 레스토랑 | restaurant | 운영시간=확인불가 | score=0.90 | 두가헌 레스토랑은(는) 조건에 맞는 장소예요.
+
+[후보 간 거리]
+- place-1-place-2: 0.60km
+
+[함께 방문된 이력]
+(없음)
+
+[사용자 조건]
+{"search_center":"경복궁","place_types":[],"place_tags":["카페"],"weather_intent":"AVOID","time_available":240,"environment":"indoor","exclude_tags":[],"special_requirements":[],"accessibility_needs":[]}

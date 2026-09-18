@@ -1,0 +1,15 @@
+intent: ROUTER
+owner: A
+slots:
+  router.classify:
+    version: "2.7.0"
+    template: classify.md
+    bundle:
+      - router/intent_definitions.md
+      - router/intent_priority.md
+      - router/context_rules.md
+      - router/boundary_cases.md
+      - router/interaction_mode.md
+      - out_of_scope/classify.md
+      - _shared/rules/conversation_history.md
+    evals: evals/README.md

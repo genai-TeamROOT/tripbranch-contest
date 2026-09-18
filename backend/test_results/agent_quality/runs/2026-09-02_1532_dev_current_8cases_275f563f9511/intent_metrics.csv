@@ -1,0 +1,3 @@
+﻿intent,support,precision,recall,f1
+RECOMMEND,7,1.0,1.0,1.0
+SCHEDULE,1,1.0,1.0,1.0

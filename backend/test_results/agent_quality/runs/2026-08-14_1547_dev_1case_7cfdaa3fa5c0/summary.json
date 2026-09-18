@@ -1,0 +1,26 @@
+{
+  "turn_count": 1,
+  "intent_accuracy": 1.0,
+  "macro_precision": 1.0,
+  "macro_recall": 1.0,
+  "macro_f1": 1.0,
+  "case_count": 1,
+  "case_pass_rate": 1.0,
+  "condition_field_accuracy": 1.0,
+  "condition_exact_match_rate": 1.0,
+  "multi_turn_case_pass_rate": 0.0,
+  "error_count": 0,
+  "client_latency_p50_ms": 3373.02,
+  "client_latency_p95_ms": 3373.02,
+  "condition_accuracy_by_field": {
+    "place_tags": 1.0,
+    "place_types": 1.0,
+    "search_center": 1.0
+  },
+  "run_id": "2026-08-14_1547_dev_1case_7cfdaa3fa5c0",
+  "created_at": "2026-08-14T15:47:27+09:00",
+  "split": "dev",
+  "dataset_digest": "7cfdaa3fa5c0",
+  "previous_run_id": null,
+  "delta_from_previous": {}
+}

@@ -1,0 +1,15 @@
+﻿구분,회차,소요시간_ms,items_개수
+thinking_on,1,15722.8,3
+thinking_on,2,15643.6,3
+thinking_on,3,17201.9,3
+thinking_on,4,17380.3,3
+thinking_on,5,16901.3,3
+thinking_off,1,2988.5,3
+thinking_off,2,2402.8,3
+thinking_off,3,2308.0,3
+thinking_off,4,2356.2,3
+thinking_off,5,2717.9,3
+
+구분,평균_ms,중앙값_ms,최소_ms,최대_ms
+thinking_on,16570.0,16901.3,15643.6,17380.3
+thinking_off,2554.7,2402.8,2308.0,2988.5

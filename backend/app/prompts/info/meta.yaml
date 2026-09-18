@@ -1,0 +1,32 @@
+intent: INFO
+owner: C
+slots:
+  info.extract:
+    version: "3.8.0"
+    template: extract.md
+    bundle:
+      - info/question_type_rules.md
+      - info/place_context_rules.md
+      - info/visit_time_rules.md
+      - info/pending_question_block.md
+      - _shared/rules/conversation_history.md
+    evals: evals/README.md
+  info.answer:
+    description: 검증된 place_name·specific_question·fields만 근거로 2~4문장 답변을 만든다.
+    version: "1.1.0"
+    template: answer_instruction.md
+    bundle:
+      - _shared/persona/trivi.md
+    evals: evals/README.md
+  info.review_evidence_filter:
+    description: 후기 문장 중 그 장소 이야기이면서 질문에 답이 되는 것만 번호로 고른다.
+    version: "1.1.0"
+    template: review_evidence_filter.md
+    evals: evals/README.md
+  info.review_answer:
+    description: 선별된 후기 문장만 근거로 전해 들은 말투의 4~6문장 답변을 만든다.
+    version: "1.3.0"
+    template: review_answer_instruction.md
+    bundle:
+      - _shared/persona/trivi.md
+    evals: evals/README.md

@@ -1,0 +1,2785 @@
+{
+  "요약": {
+    "채점_칸_수": 318,
+    "칸_틀림": [],
+    "개수_오류": [],
+    "호출_오류": [],
+    "T1_위반": [
+      {
+        "표": "B",
+        "조건": "C2",
+        "시도": 1,
+        "일정": "walking",
+        "추천": "transit"
+      },
+      {
+        "표": "B",
+        "조건": "C2",
+        "시도": 2,
+        "일정": "walking",
+        "추천": "transit"
+      },
+      {
+        "표": "B",
+        "조건": "C2",
+        "시도": 3,
+        "일정": "walking",
+        "추천": "transit"
+      }
+    ],
+    "T2_위반": [],
+    "T3_위반": [],
+    "흔들린_입력": {
+      "A/C2/추천": [
+        [
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ]
+      ],
+      "A/C5/추천": [
+        [
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ]
+      ],
+      "A/C6/추천": [
+        [
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ]
+      ],
+      "A/C7/추천": [
+        [
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit"
+        ]
+      ],
+      "A/C8/추천": [
+        [
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit"
+        ],
+        [
+          "walking",
+          "walking",
+          "transit",
+          "transit",
+          "transit",
+          "transit"
+        ]
+      ]
+    },
+    "반응량_표A": {
+      "A/C0/일정": [
+        0,
+        0,
+        0
+      ],
+      "A/C0/추천": [
+        0,
+        0,
+        0
+      ],
+      "A/C1/일정": [
+        0,
+        0,
+        0
+      ],
+      "A/C1/추천": [
+        0,
+        0,
+        0
+      ],
+      "A/C2/일정": [
+        2,
+        2,
+        2
+      ],
+      "A/C2/추천": [
+        1,
+        1,
+        2
+      ],
+      "A/C3/일정": [
+        1,
+        1,
+        1
+      ],
+      "A/C3/추천": [
+        0,
+        0,
+        0
+      ],
+      "A/C4/일정": [
+        1,
+        1,
+        1
+      ],
+      "A/C4/추천": [
+        1,
+        1,
+        1
+      ],
+      "A/C5/일정": [
+        2,
+        2,
+        2
+      ],
+      "A/C5/추천": [
+        2,
+        1,
+        2
+      ],
+      "A/C6/일정": [
+        1,
+        1,
+        1
+      ],
+      "A/C6/추천": [
+        1,
+        2,
+        2
+      ],
+      "A/C7/일정": [
+        1,
+        1,
+        1
+      ],
+      "A/C7/추천": [
+        1,
+        0,
+        0
+      ],
+      "A/C8/일정": [
+        1,
+        1,
+        1
+      ],
+      "A/C8/추천": [
+        1,
+        0,
+        1
+      ],
+      "A/C9/일정": [
+        1,
+        1,
+        1
+      ],
+      "A/C9/추천": [
+        1,
+        1,
+        1
+      ],
+      "A/C10/일정": [
+        2,
+        2,
+        2
+      ],
+      "A/C10/추천": [
+        2,
+        2,
+        2
+      ]
+    },
+    "호출_수": 102,
+    "폴백": 0,
+    "p50_ms": 1278,
+    "p95_ms": 1511,
+    "max_ms": 1910,
+    "10초_초과": 0,
+    "입력토큰_합": 178287,
+    "입력토큰_평균": 1748,
+    "출력토큰_합": 3924,
+    "출력토큰_평균": 38,
+    "사고토큰_합": 0,
+    "사고토큰_평균": 0,
+    "캐시토큰_합": 0,
+    "캐시토큰_평균": 0
+  },
+  "호출": [
+    {
+      "입력": "A/C0/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1331,
+      "토큰": {
+        "입력토큰": 1756,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C0/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1910,
+      "토큰": {
+        "입력토큰": 1765,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C1/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1111,
+      "토큰": {
+        "입력토큰": 1764,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C1/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1293,
+      "토큰": {
+        "입력토큰": 1773,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C2/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1217,
+      "토큰": {
+        "입력토큰": 1764,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C2/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1600,
+      "토큰": {
+        "입력토큰": 1773,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C3/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1610,
+      "토큰": {
+        "입력토큰": 1763,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C3/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1213,
+      "토큰": {
+        "입력토큰": 1772,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C4/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1220,
+      "토큰": {
+        "입력토큰": 1764,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C4/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1514,
+      "토큰": {
+        "입력토큰": 1773,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C5/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1124,
+      "토큰": {
+        "입력토큰": 1752,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C5/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1409,
+      "토큰": {
+        "입력토큰": 1761,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C6/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1277,
+      "토큰": {
+        "입력토큰": 1752,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C6/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1299,
+      "토큰": {
+        "입력토큰": 1761,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C7/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1486,
+      "토큰": {
+        "입력토큰": 1756,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C7/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1442,
+      "토큰": {
+        "입력토큰": 1765,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C8/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1439,
+      "토큰": {
+        "입력토큰": 1756,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C8/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1249,
+      "토큰": {
+        "입력토큰": 1765,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C9/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1196,
+      "토큰": {
+        "입력토큰": 1762,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C9/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1358,
+      "토큰": {
+        "입력토큰": 1771,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C10/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1291,
+      "토큰": {
+        "입력토큰": 1779,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C10/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1670,
+      "토큰": {
+        "입력토큰": 1788,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C0/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "walking",
+        "walking"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1394,
+      "토큰": {
+        "입력토큰": 1725,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C0/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "walking",
+        "walking"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1202,
+      "토큰": {
+        "입력토큰": 1734,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C2/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1115,
+      "토큰": {
+        "입력토큰": 1733,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": true
+      }
+    },
+    {
+      "입력": "B/C2/추천",
+      "시도": 1,
+      "판정": [
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1109,
+      "토큰": {
+        "입력토큰": 1742,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": true,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C8/일정",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1411,
+      "토큰": {
+        "입력토큰": 1725,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": true
+      }
+    },
+    {
+      "입력": "B/C8/추천",
+      "시도": 1,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "walking",
+        "walking"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1158,
+      "토큰": {
+        "입력토큰": 1734,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": true,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C0/일정",
+      "시도": 1,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1491,
+      "토큰": {
+        "입력토큰": 1693,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C0/추천",
+      "시도": 1,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1166,
+      "토큰": {
+        "입력토큰": 1702,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C2/일정",
+      "시도": 1,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1545,
+      "토큰": {
+        "입력토큰": 1701,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C2/추천",
+      "시도": 1,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1350,
+      "토큰": {
+        "입력토큰": 1710,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C8/일정",
+      "시도": 1,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1380,
+      "토큰": {
+        "입력토큰": 1693,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C8/추천",
+      "시도": 1,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1413,
+      "토큰": {
+        "입력토큰": 1702,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C0/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1210,
+      "토큰": {
+        "입력토큰": 1756,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C0/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1185,
+      "토큰": {
+        "입력토큰": 1765,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C1/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1046,
+      "토큰": {
+        "입력토큰": 1764,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C1/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1215,
+      "토큰": {
+        "입력토큰": 1773,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C2/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1151,
+      "토큰": {
+        "입력토큰": 1764,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C2/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1278,
+      "토큰": {
+        "입력토큰": 1773,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C3/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1426,
+      "토큰": {
+        "입력토큰": 1763,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C3/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1195,
+      "토큰": {
+        "입력토큰": 1772,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C4/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1179,
+      "토큰": {
+        "입력토큰": 1764,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C4/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1421,
+      "토큰": {
+        "입력토큰": 1773,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C5/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1226,
+      "토큰": {
+        "입력토큰": 1752,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C5/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1106,
+      "토큰": {
+        "입력토큰": 1761,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C6/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1227,
+      "토큰": {
+        "입력토큰": 1752,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C6/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1348,
+      "토큰": {
+        "입력토큰": 1761,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C7/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1462,
+      "토큰": {
+        "입력토큰": 1756,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C7/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1483,
+      "토큰": {
+        "입력토큰": 1765,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C8/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1510,
+      "토큰": {
+        "입력토큰": 1756,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C8/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1363,
+      "토큰": {
+        "입력토큰": 1765,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C9/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1072,
+      "토큰": {
+        "입력토큰": 1762,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C9/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1224,
+      "토큰": {
+        "입력토큰": 1771,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C10/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1377,
+      "토큰": {
+        "입력토큰": 1779,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C10/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1146,
+      "토큰": {
+        "입력토큰": 1788,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C0/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "walking",
+        "walking"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1181,
+      "토큰": {
+        "입력토큰": 1725,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C0/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "walking",
+        "walking"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1293,
+      "토큰": {
+        "입력토큰": 1734,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C2/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1211,
+      "토큰": {
+        "입력토큰": 1733,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": true
+      }
+    },
+    {
+      "입력": "B/C2/추천",
+      "시도": 2,
+      "판정": [
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1379,
+      "토큰": {
+        "입력토큰": 1742,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": true,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C8/일정",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1270,
+      "토큰": {
+        "입력토큰": 1725,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": true
+      }
+    },
+    {
+      "입력": "B/C8/추천",
+      "시도": 2,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "walking",
+        "walking"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1508,
+      "토큰": {
+        "입력토큰": 1734,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": true,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C0/일정",
+      "시도": 2,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1394,
+      "토큰": {
+        "입력토큰": 1693,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C0/추천",
+      "시도": 2,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1283,
+      "토큰": {
+        "입력토큰": 1702,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C2/일정",
+      "시도": 2,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1123,
+      "토큰": {
+        "입력토큰": 1701,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C2/추천",
+      "시도": 2,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1100,
+      "토큰": {
+        "입력토큰": 1710,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C8/일정",
+      "시도": 2,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1347,
+      "토큰": {
+        "입력토큰": 1693,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C8/추천",
+      "시도": 2,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1363,
+      "토큰": {
+        "입력토큰": 1702,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C0/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1110,
+      "토큰": {
+        "입력토큰": 1756,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C0/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1066,
+      "토큰": {
+        "입력토큰": 1765,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C1/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1327,
+      "토큰": {
+        "입력토큰": 1764,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C1/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1122,
+      "토큰": {
+        "입력토큰": 1773,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C2/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1370,
+      "토큰": {
+        "입력토큰": 1764,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C2/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1080,
+      "토큰": {
+        "입력토큰": 1773,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C3/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1340,
+      "토큰": {
+        "입력토큰": 1763,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C3/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1104,
+      "토큰": {
+        "입력토큰": 1772,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C4/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1311,
+      "토큰": {
+        "입력토큰": 1764,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C4/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1416,
+      "토큰": {
+        "입력토큰": 1773,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C5/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1140,
+      "토큰": {
+        "입력토큰": 1752,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C5/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1195,
+      "토큰": {
+        "입력토큰": 1761,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C6/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1127,
+      "토큰": {
+        "입력토큰": 1752,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C6/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1320,
+      "토큰": {
+        "입력토큰": 1761,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C7/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1491,
+      "토큰": {
+        "입력토큰": 1756,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C7/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1169,
+      "토큰": {
+        "입력토큰": 1765,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C8/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1423,
+      "토큰": {
+        "입력토큰": 1756,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C8/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1085,
+      "토큰": {
+        "입력토큰": 1765,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C9/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1134,
+      "토큰": {
+        "입력토큰": 1762,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C9/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1239,
+      "토큰": {
+        "입력토큰": 1771,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C10/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1420,
+      "토큰": {
+        "입력토큰": 1779,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "A/C10/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1148,
+      "토큰": {
+        "입력토큰": 1788,
+        "출력토큰": 42
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C0/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "walking",
+        "walking"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1288,
+      "토큰": {
+        "입력토큰": 1725,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C0/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "walking",
+        "walking"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1194,
+      "토큰": {
+        "입력토큰": 1734,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C2/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1205,
+      "토큰": {
+        "입력토큰": 1733,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": true
+      }
+    },
+    {
+      "입력": "B/C2/추천",
+      "시도": 3,
+      "판정": [
+        "transit",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1300,
+      "토큰": {
+        "입력토큰": 1742,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": true,
+        "T3": null
+      }
+    },
+    {
+      "입력": "B/C8/일정",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "transit",
+        "transit",
+        "transit",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1200,
+      "토큰": {
+        "입력토큰": 1725,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": true
+      }
+    },
+    {
+      "입력": "B/C8/추천",
+      "시도": 3,
+      "판정": [
+        "walking",
+        "walking",
+        "walking",
+        "walking",
+        "walking"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1099,
+      "토큰": {
+        "입력토큰": 1734,
+        "출력토큰": 37
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": true,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C0/일정",
+      "시도": 3,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1185,
+      "토큰": {
+        "입력토큰": 1693,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C0/추천",
+      "시도": 3,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1447,
+      "토큰": {
+        "입력토큰": 1702,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C2/일정",
+      "시도": 3,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1228,
+      "토큰": {
+        "입력토큰": 1701,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C2/추천",
+      "시도": 3,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1045,
+      "토큰": {
+        "입력토큰": 1710,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C8/일정",
+      "시도": 3,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1334,
+      "토큰": {
+        "입력토큰": 1693,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    },
+    {
+      "입력": "C/C8/추천",
+      "시도": 3,
+      "판정": [
+        "transit",
+        "walking",
+        "transit"
+      ],
+      "응답모델": "gemini-3.5-flash",
+      "오류": null,
+      "ms": 1511,
+      "토큰": {
+        "입력토큰": 1702,
+        "출력토큰": 27
+      },
+      "채점": {
+        "개수_오류": false,
+        "칸_틀림": [],
+        "T2": null,
+        "T3": null
+      }
+    }
+  ],
+  "실행": {
+    "모델": "gemini-3.5-flash",
+    "추론단계": "minimal",
+    "반복": 3,
+    "only": "",
+    "tag": "varC",
+    "타임아웃_s": 60.0,
+    "시각": "2026-09-15T15:43:20.742199",
+    "프롬프트": {
+      "버전": "1.0.0",
+      "지시문_sha256_앞12": "911281acd7a3",
+      "지시문_글자수": 2864
+    }
+  }
+}

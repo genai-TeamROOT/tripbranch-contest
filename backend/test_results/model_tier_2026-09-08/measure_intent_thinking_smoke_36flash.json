@@ -1,0 +1,21 @@
+{
+  "model": "gemini-3.6-flash",
+  "thinking_budget": "미설정(=호출부 값 그대로: thinking_budget 0 → 0을 못 받는 모델은 MINIMAL)",
+  "repeat": 1,
+  "correct": 1,
+  "total": 1,
+  "cases": [
+    {
+      "번호": "1",
+      "입력문장": "경복궁 근처 카페 추천해줘",
+      "그룹": "RECOMMEND",
+      "기대_intent": "RECOMMEND",
+      "예측": [
+        "RECOMMEND"
+      ],
+      "정답수": 1,
+      "평균지연ms": 2872,
+      "오류": []
+    }
+  ]
+}

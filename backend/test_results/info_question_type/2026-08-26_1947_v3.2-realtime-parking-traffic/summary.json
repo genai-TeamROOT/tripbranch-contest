@@ -1,0 +1,29 @@
+{
+  "label": "v3.2-realtime-parking-traffic",
+  "repeat": 5,
+  "cases": 23,
+  "accuracy": 0.913,
+  "stable_cases": 22,
+  "by_group": {
+    "visit_suitability": {
+      "cases": 10,
+      "accuracy": 1.0,
+      "stable_cases": 10
+    },
+    "neighbor": {
+      "cases": 9,
+      "accuracy": 1.0,
+      "stable_cases": 9
+    },
+    "realtime_parking": {
+      "cases": 2,
+      "accuracy": 1.0,
+      "stable_cases": 2
+    },
+    "realtime_traffic": {
+      "cases": 2,
+      "accuracy": 0.0,
+      "stable_cases": 1
+    }
+  }
+}

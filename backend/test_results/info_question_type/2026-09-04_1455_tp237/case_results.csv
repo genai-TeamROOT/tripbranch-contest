@@ -1,0 +1,31 @@
+case_id,user_input,expected,group,hits,repeat,stable,observed
+VS-001,보성사터에 아이들과 가기 좋아?,facility,visit_suitability,5,5,True,facilityx5
+VS-002,경복궁 애기 데리고 갈만해?,facility,visit_suitability,5,5,True,facilityx5
+VS-003,창덕궁 어르신 모시고 가기 괜찮아?,facility,visit_suitability,5,5,True,facilityx5
+VS-004,광장시장 아이랑 가기 어때?,facility,visit_suitability,5,5,True,facilityx5
+VS-005,인사동 애기랑 가도 괜찮아?,facility,visit_suitability,5,5,True,facilityx5
+VS-006,북촌한옥마을 노약자랑 가도 될까?,facility,visit_suitability,5,5,True,facilityx5
+VS-007,경복궁 유아 데리고 가도 돼?,facility,visit_suitability,5,5,True,facilityx5
+VS-008,광장시장 아기랑 갈만해?,facility,visit_suitability,5,5,True,facilityx5
+VS-009,북촌한옥마을 임산부랑 가도 될까?,facility,visit_suitability,5,5,True,facilityx5
+VS-010,창덕궁 초등학생이랑 가기 괜찮아?,facility,visit_suitability,5,5,True,facilityx5
+FA-001,경복궁 화장실 있어?,facility,neighbor,5,5,True,facilityx5
+FA-002,창덕궁 휠체어로 들어갈 수 있어?,facility,neighbor,5,5,True,facilityx5
+FA-003,광장시장 유모차 대여돼?,facility,neighbor,5,5,True,facilityx5
+GI-001,보성사터가 어떤 곳이야?,general_info,neighbor,5,5,True,general_infox5
+GI-002,익선동 한옥거리 소개해줘,general_info,neighbor,5,5,True,general_infox5
+CO-001,경복궁 주말에 사람 많아?,concentration,neighbor,5,5,True,concentrationx5
+CO-002,북촌한옥마을 붐빌까?,concentration,neighbor,5,5,True,concentrationx5
+OH-001,창덕궁 오늘 열어?,operating_hours,neighbor,5,5,True,operating_hoursx5
+PK-001,경복궁 주차 가능해?,parking,neighbor,5,5,True,parkingx5
+RP-001,경복궁 주변 주차되는 곳 있어?,realtime_parking,realtime_parking,5,5,True,realtime_parkingx5
+RP-002,지금 경복궁 주변 주차 자리 있어?,realtime_parking,realtime_parking,5,5,True,realtime_parkingx5
+RP-003,경복궁 근처 공영주차장 자리 있어?,realtime_public_parking,realtime_public_parking,5,5,True,realtime_public_parkingx5
+RP-004,종로구 시영주차장 지금 어디가 비어 있어?,realtime_public_parking,realtime_public_parking,5,5,True,realtime_public_parkingx5
+RT-001,이촌한강공원 가는길 막혀?,realtime_traffic,realtime_traffic,5,5,True,realtime_trafficx5
+RT-002,지금 도로 많이 막혀?,realtime_traffic,realtime_traffic,5,5,True,realtime_trafficx5
+RE-001,축제 추천해줘,realtime_event,realtime_event,5,5,True,realtime_eventx5
+RE-002,전시회 추천해줘,realtime_event,realtime_event,5,5,True,realtime_eventx5
+RE-003,콘서트 갈 만한 곳 알려줘,realtime_event,realtime_event,5,5,True,realtime_eventx5
+RE-004,공연 볼 만한 데 추천해줘,realtime_event,realtime_event,5,5,True,realtime_eventx5
+RE-005,강남구 축제 추천해줘,realtime_event,realtime_event,5,5,True,realtime_eventx5

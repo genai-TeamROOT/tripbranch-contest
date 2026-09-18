@@ -1,0 +1,25 @@
+{
+  "request_id": "req_context_missing_weather_001",
+  "intent": "RECOMMEND",
+  "contract_version": "draft-v0",
+  "status": "success",
+  "context": {
+    "location": {"status": "success", "data": {"requested_query": "경복궁", "resolved_name": "경복궁", "source": "query", "location": {"latitude": 37.579617, "longitude": 126.977041}, "address": "서울특별시 종로구 사직로 161"}, "error": null, "warnings": [], "provider_metadata": [{"source": "naver_geocoding", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}]},
+    "weather": null,
+    "places": {
+      "status": "success",
+      "data": [
+        {"place_id": "weather-ignored-cafe-1", "name": "날씨 무관 카페", "category": "restaurant", "lcls_systm1": "FD", "lcls_systm2": "FD05", "lcls_systm3": "FD050100", "location": {"latitude": 37.5801, "longitude": 126.9775}, "operating_hours_raw": "09:00~21:00", "rest_date_raw": "연중무휴", "operating_schedule": {"availability": "scheduled", "time_ranges": [{"open_time": "09:00", "close_time": "21:00", "crosses_midnight": false}], "closure_rules": [], "parse_status": "parsed"}},
+        {"place_id": "weather-ignored-park-1", "name": "날씨 무관 공원", "category": "attraction", "lcls_systm1": "VE", "lcls_systm2": "VE03", "lcls_systm3": "VE030100", "location": {"latitude": 37.5820, "longitude": 126.9790}, "operating_hours_raw": "상시 개방", "rest_date_raw": "연중무휴", "operating_schedule": {"availability": "all_day", "time_ranges": [], "closure_rules": [], "parse_status": "parsed"}}
+      ],
+      "error": null,
+      "warnings": [],
+      "provider_metadata": [{"source": "tour_api_place", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}]
+    },
+    "holidays": {"status": "success", "data": [{"date": "2026-08-15", "name": "광복절"}], "error": null, "warnings": [], "provider_metadata": [{"source": "kasi_holiday", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}]}
+  },
+  "clarification": null,
+  "warnings": [{"code": "weather_ignored", "message": "날씨 조건을 사용하지 않아 Weather Tool을 실행하지 않았습니다."}],
+  "error": null,
+  "metadata": {"rule_versions": {"category_mapping": "v1", "operating_hours_normalization": "operating-hours-1.0.0"}, "provider_metadata": [{"source": "naver_geocoding", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}, {"source": "tour_api_place", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}, {"source": "kasi_holiday", "status": "success", "retrieved_at": "2026-08-14T09:00:00+09:00"}]}
+}

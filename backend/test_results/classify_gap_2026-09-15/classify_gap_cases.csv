@@ -1,0 +1,6 @@
+번호,입력문장,기대_intent,has_previous_recommendation,shown_place_count,pending_clarification,last_intent,그룹,근거,기대값_변경,비고
+1,경복궁 근처 카페 추천해줘,RECOMMEND,False,0,,,RECOMMEND,TC-01,,2026-08-11 원본에서 그대로 복사
+21,다른 곳 보여줘,MODIFY,True,3,,,대조쌍,TC-07 REJECT_ALL,,2026-08-11 원본에서 그대로 복사
+41,벚꽃 언제 피어?,GENERAL,False,0,,,GENERAL,int-05 §10 season_info,,2026-08-11 원본에서 그대로 복사
+101,연희동은 어떤 동네야?,GENERAL,False,0,,,GENERAL,골드셋 DEV-053,,2026-09-15 모델 비교에서 3.5-lite만 INFO로 분류
+102,비 와서 실내로 바꿔줘,RECOMMEND,False,0,,,경계,골드셋 DEV-030 1턴,,문맥 없는 첫 턴이라 바꿔줘여도 RECOMMEND다. 3.1-lite가 MODIFY로 분류. 기존 26번(실내로 바꿔줘/문맥 있음/MODIFY)과 짝

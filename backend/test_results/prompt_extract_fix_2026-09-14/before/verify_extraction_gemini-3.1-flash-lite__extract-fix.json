@@ -1,0 +1,344 @@
+{
+  "요청_모델": "gemini-3.1-flash-lite",
+  "반복": 3,
+  "케이스_수": 12,
+  "흔들린_케이스_수": 0,
+  "행": [
+    {
+      "그룹": "골드셋",
+      "발화": "광화문 반나절 일정 짜줘",
+      "기대_center": "광화문",
+      "기대_time": 240,
+      "centers": [
+        "광화문",
+        "광화문",
+        "광화문"
+      ],
+      "times": [
+        240,
+        240,
+        240
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1649
+    },
+    {
+      "그룹": "골드셋",
+      "발화": "경복궁 근처 3시간 코스 짜줘",
+      "기대_center": "경복궁",
+      "기대_time": 180,
+      "centers": [
+        "경복궁",
+        "경복궁",
+        "경복궁"
+      ],
+      "times": [
+        180,
+        180,
+        180
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1536
+    },
+    {
+      "그룹": "시간표현",
+      "발화": "광화문 하루 종일 일정 짜줘",
+      "기대_center": "광화문",
+      "기대_time": "*",
+      "centers": [
+        "광화문",
+        "광화문",
+        "광화문"
+      ],
+      "times": [
+        480,
+        480,
+        480
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1550
+    },
+    {
+      "그룹": "시간표현",
+      "발화": "광화문 4시간 일정 짜줘",
+      "기대_center": "광화문",
+      "기대_time": 240,
+      "centers": [
+        "광화문",
+        "광화문",
+        "광화문"
+      ],
+      "times": [
+        240,
+        240,
+        240
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1553
+    },
+    {
+      "그룹": "위치표현",
+      "발화": "경복궁 코스 짜줘",
+      "기대_center": "경복궁",
+      "기대_time": "*",
+      "centers": [
+        null,
+        null,
+        null
+      ],
+      "times": [
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "페이로드없음(SCHEDULE)",
+        "페이로드없음(SCHEDULE)",
+        "페이로드없음(SCHEDULE)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 997
+    },
+    {
+      "그룹": "위치표현",
+      "발화": "경복궁 일정 짜줘",
+      "기대_center": "경복궁",
+      "기대_time": "*",
+      "centers": [
+        null,
+        null,
+        null
+      ],
+      "times": [
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "페이로드없음(SCHEDULE)",
+        "페이로드없음(SCHEDULE)",
+        "페이로드없음(SCHEDULE)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1124
+    },
+    {
+      "그룹": "위치표현",
+      "발화": "경복궁 근처 일정 짜줘",
+      "기대_center": "경복궁",
+      "기대_time": "*",
+      "centers": [
+        null,
+        null,
+        null
+      ],
+      "times": [
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "페이로드없음(SCHEDULE)",
+        "페이로드없음(SCHEDULE)",
+        "페이로드없음(SCHEDULE)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1238
+    },
+    {
+      "그룹": "위치표현",
+      "발화": "북촌 반나절 코스",
+      "기대_center": "북촌",
+      "기대_time": 240,
+      "centers": [
+        "북촌",
+        "북촌",
+        "북촌"
+      ],
+      "times": [
+        240,
+        240,
+        240
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1400
+    },
+    {
+      "그룹": "대조군",
+      "발화": "경복궁 근처 카페 추천해줘",
+      "기대_center": "경복궁",
+      "기대_time": null,
+      "centers": [
+        "경복궁",
+        "경복궁",
+        "경복궁"
+      ],
+      "times": [
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1168
+    },
+    {
+      "그룹": "대조군",
+      "발화": "종로에서 15분 이내 카페 추천해줘",
+      "기대_center": "종로",
+      "기대_time": null,
+      "centers": [
+        "종로",
+        "종로",
+        "종로"
+      ],
+      "times": [
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1467
+    },
+    {
+      "그룹": "칸없음",
+      "발화": "토요일 오후 2시부터 5시간 코스 짜줘",
+      "기대_center": null,
+      "기대_time": 300,
+      "centers": [
+        null,
+        null,
+        null
+      ],
+      "times": [
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "페이로드없음(SCHEDULE)",
+        "페이로드없음(SCHEDULE)",
+        "페이로드없음(SCHEDULE)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1097
+    },
+    {
+      "그룹": "칸없음",
+      "발화": "인사동 근처 5시간 코스",
+      "기대_center": "인사동",
+      "기대_time": 300,
+      "centers": [
+        "인사동",
+        "인사동",
+        "인사동"
+      ],
+      "times": [
+        300,
+        300,
+        300
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1463
+    }
+  ]
+}

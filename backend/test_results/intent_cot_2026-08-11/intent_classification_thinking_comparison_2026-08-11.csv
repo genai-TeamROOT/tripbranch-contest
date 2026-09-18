@@ -1,0 +1,57 @@
+지표,budget=0,budget=512,미설정
+정확도,64/68,64/68,64/68
+504 타임아웃,0건,0건,2건
+지연 중앙값,1606ms,2276ms,3905ms
+지연 p90,1797ms,3045ms,6214ms
+지연 최대,3050ms,5442ms,27175ms
+10초 초과,0건,0건,3건
+68건 총 소요,108초,162초,330초
+
+기대 intent별 정답,budget=0,budget=512,미설정
+COMPARE,4/4,3/4,4/4
+GENERAL,6/7,6/7,6/7
+INFO,10/10,10/10,10/10
+MODIFY,17/17,17/17,17/17
+OUT_OF_SCOPE,5/6,5/6,5/6
+RECOMMEND,15/17,16/17,15/17
+SCHEDULE,7/7,7/7,7/7
+
+예산에 따라 판정이 갈린 케이스 (각 1회),,,
+번호,입력문장,기대,budget=0 / budget=512 / 미설정
+36,1번이랑 3번 거리 차이?,COMPARE,COMPARE / INFO / COMPARE
+60,처음부터 다시,RECOMMEND,GENERAL / GENERAL / 504 타임아웃
+68,어디가 좋아?,RECOMMEND,COMPARE / RECOMMEND / 504 타임아웃
+
+안정성 재측정 (각 예산 5회),,,
+번호,입력문장,예산,5회 판정 (정답수)
+36,1번이랑 3번 거리 차이?,budget=0,COMPARE/COMPARE/COMPARE/COMPARE/COMPARE  (5/5)
+36,1번이랑 3번 거리 차이?,budget=512,INFO/INFO/INFO/INFO/INFO  (0/5)
+36,1번이랑 3번 거리 차이?,미설정,COMPARE/COMPARE/COMPARE/COMPARE/COMPARE  (5/5)
+68,어디가 좋아?,budget=0,COMPARE/COMPARE/COMPARE/COMPARE/COMPARE  (0/5)
+68,어디가 좋아?,budget=512,RECOMMEND/RECOMMEND/COMPARE/COMPARE/COMPARE  (2/5)
+68,어디가 좋아?,미설정,RECOMMEND/RECOMMEND/504/504/RECOMMEND  (3/5)
+
+측정 조건,
+측정일,2026-08-11
+모델,gemini-2.5-flash (폴백 미사용)
+temperature,0.0
+측정 범위,classify_intent 1단계만
+반복,"68건 전수는 각 1회, 36·68번만 예산별 5회"
+
+결론,
+1,예산 0/512/미설정 셋 다 정확도 64/68로 동일. 지연만 1606→2276→3905ms로 증가
+2,미설정에서만 504 타임아웃 2건 발생 (10초 초과 3건)
+3,budget=512는 36번을 5/5 오답으로 만든다 — 노이즈가 아닌 중간 예산 고유의 퇴행
+4,68번은 미설정 3/5·512 2/5로 불안정. 정답을 낼 수 있으나 10초 안에 못 내는 경우가 섞인다
+권고,budget=0 — 가장 빠르고 타임아웃이 없으며 512식 퇴행도 없다
+
+토큰 사용량 (세 예산 모두 성공한 66건 기준),budget=0,budget=512,미설정
+prompt 토큰,121,581,121,581,121,581
+thinking 토큰,0,18,265,18,734
+output 토큰,1,842,1,903,1,912
+합계,123,423,141,749,142,227
+budget=0 대비,1.00배,1.15배,1.15배
+thinking 비중,0.0%,12.9%,13.2%
+
+결론5,토큰 절감은 13.2%에 그친다 — prompt 토큰이 전체의 85%를 차지하고 예산과 무관하게 동일하기 때문
+결론6,미설정과 budget=512의 thinking 토큰이 2.5%만 차이나는데 지연은 1.7배 난다 — 비용이 토큰 수보다 처리 방식에서 온다

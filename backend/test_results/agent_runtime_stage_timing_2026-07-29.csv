@@ -1,0 +1,49 @@
+실행,시나리오,사용자_입력,단계,호출,소요초,비고
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,1.B:세션컨텍스트,ensure_current_context,0.00,최초 턴이라 GPS/날씨 API 호출 없이 즉시 반환
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,2.A:LLM해석,1차 classify_intent,2.53,Gemini 1차 Intent 분류
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,2.A:LLM해석,2차 extract_recommend_conditions,3.09,Gemini 2차 RECOMMEND 조건 추출(순차 호출이라 1차와 합산됨)
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,2.A:LLM해석(합계),,5.62,1차+2차 순차 합계
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,3.B:조건병합,transform+apply,0.00,로컬 연산
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,Naver geocode,0.14,위치 조회
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,기상청 get_forecast_slots,0.00,weather_intent=IGNORE로 날씨 Tool 자체가 실행되지 않음(호출 없음)
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,공휴일 get_holidays,0.37,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI search_places,0.37,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #1,0.17,이하 get_details 11건은 asyncio로 병렬 실행
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #2,2.83,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #3,3.99,이번 실행에서 가장 느린 개별 호출 -> 4번 전체 시간을 좌우
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #4,3.83,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #5,1.78,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #6,0.15,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #7,0.81,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #8,0.81,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #9,1.75,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #10,1.88,
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,4.C:Tool실행(합계),,7.16,위치/공휴일/장소검색 병렬 실행 중 가장 느린 get_details가 좌우(개별 합계 약 18.2s보다 훨씬 짧음)
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,5.D:추천Scoring,recommend,0.00,로컬 연산
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,6.B:결과기록,record_recommendation,0.00,인메모리
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,7.A:메시지조립,compose_chat_message,0.00,RECOMMEND 고정 문구라 즉시 반환
+1,RECOMMEND(날씨무시),경복궁 근처 카페 추천해줘,전체합계(Total),,12.81,recommendations=5건/unverified=0건
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,1.B:세션컨텍스트,ensure_current_context,0.00,최초 턴이라 GPS/날씨 API 호출 없이 즉시 반환
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,2.A:LLM해석,1차 classify_intent,2.79,Gemini 1차 Intent 분류
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,2.A:LLM해석,2차 extract_recommend_conditions,3.48,Gemini 2차 RECOMMEND 조건 추출(순차 호출이라 1차와 합산됨)
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,2.A:LLM해석(합계),,6.27,1차+2차 순차 합계
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,3.B:조건병합,transform+apply,0.00,로컬 연산
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,Naver geocode,0.09,위치 조회
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,기상청 get_forecast_slots,0.52,weather_intent!=IGNORE로 날씨 Tool 실제 호출됨. 호출 자체는 빠르며 병목 아님
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,공휴일 get_holidays,0.05,
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI search_places,3.59,같은 API인데 1번 실행(0.37s) 대비 크게 증가 -> 외부 API 응답 변동성
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #1,2.13,이하 get_details 11건은 asyncio로 병렬 실행
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #2,2.14,
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #3,1.83,
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #4,4.21,
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #5,1.03,
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #6,4.82,
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #7,0.16,
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #8,5.44,이번 실행에서 가장 느린 개별 호출 -> 4번 전체 시간을 좌우
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #9,4.18,
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행,TourAPI get_details #10,5.17,
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,4.C:Tool실행(합계),,15.97,위치/날씨/공휴일/장소검색 병렬 실행 중 가장 느린 get_details가 좌우
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,5.D:추천Scoring,recommend,0.00,로컬 연산
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,6.B:결과기록,record_recommendation,0.00,인메모리
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,7.A:메시지조립,compose_chat_message,0.00,RECOMMEND 고정 문구라 즉시 반환
+2,RECOMMEND(날씨언급),비 오는데 경복궁 근처 카페 추천해줘,전체합계(Total),,22.28,recommendations=5건/unverified=0건

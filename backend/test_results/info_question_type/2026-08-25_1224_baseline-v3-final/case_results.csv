@@ -1,0 +1,20 @@
+case_id,user_input,expected,group,hits,repeat,stable,observed
+VS-001,보성사터에 아이들과 가기 좋아?,facility,visit_suitability,5,10,False,facilityx5 general_infox4 concentrationx1
+VS-002,경복궁 애기 데리고 갈만해?,facility,visit_suitability,0,10,True,general_infox10
+VS-003,창덕궁 어르신 모시고 가기 괜찮아?,facility,visit_suitability,2,10,False,general_infox8 facilityx2
+VS-004,광장시장 아이랑 가기 어때?,facility,visit_suitability,0,10,False,general_infox7 concentrationx3
+VS-005,인사동 애기랑 가도 괜찮아?,facility,visit_suitability,0,10,True,concentrationx10
+VS-006,북촌한옥마을 노약자랑 가도 될까?,facility,visit_suitability,10,10,True,facilityx10
+VS-007,경복궁 유아 데리고 가도 돼?,facility,visit_suitability,10,10,True,facilityx10
+VS-008,광장시장 아기랑 갈만해?,facility,visit_suitability,7,10,False,facilityx7 general_infox3
+VS-009,북촌한옥마을 임산부랑 가도 될까?,facility,visit_suitability,10,10,True,facilityx10
+VS-010,창덕궁 초등학생이랑 가기 괜찮아?,facility,visit_suitability,0,10,False,general_infox5 concentrationx5
+FA-001,경복궁 화장실 있어?,facility,neighbor,10,10,True,facilityx10
+FA-002,창덕궁 휠체어로 들어갈 수 있어?,facility,neighbor,10,10,True,facilityx10
+FA-003,광장시장 유모차 대여돼?,facility,neighbor,10,10,True,facilityx10
+GI-001,보성사터가 어떤 곳이야?,general_info,neighbor,10,10,True,general_infox10
+GI-002,익선동 한옥거리 소개해줘,general_info,neighbor,10,10,True,general_infox10
+CO-001,경복궁 주말에 사람 많아?,concentration,neighbor,10,10,True,concentrationx10
+CO-002,북촌한옥마을 붐빌까?,concentration,neighbor,10,10,True,concentrationx10
+OH-001,창덕궁 오늘 열어?,operating_hours,neighbor,10,10,True,operating_hoursx10
+PK-001,경복궁 주차 가능해?,parking,neighbor,10,10,True,parkingx10

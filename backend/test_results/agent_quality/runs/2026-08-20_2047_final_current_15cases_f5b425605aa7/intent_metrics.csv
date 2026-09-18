@@ -1,0 +1,7 @@
+﻿intent,support,precision,recall,f1
+GENERAL,1,1.0,1.0,1.0
+INFO,2,1.0,1.0,1.0
+MODIFY,4,1.0,0.75,0.8571
+OUT_OF_SCOPE,1,1.0,1.0,1.0
+RECOMMEND,9,0.9,1.0,0.9474
+SCHEDULE,5,1.0,1.0,1.0

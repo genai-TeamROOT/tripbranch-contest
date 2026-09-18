@@ -1,0 +1,153 @@
+{
+  "model": "gemini-2.5-flash-lite",
+  "thinking_budget": "0",
+  "repeat": 5,
+  "correct": 0,
+  "total": 9,
+  "cases": [
+    {
+      "번호": "10",
+      "입력문장": "다른 곳 보여줘",
+      "그룹": "대조쌍",
+      "기대_intent": "RECOMMEND",
+      "예측": [
+        "MODIFY",
+        "MODIFY",
+        "MODIFY",
+        "MODIFY",
+        "MODIFY"
+      ],
+      "정답수": 0,
+      "평균지연ms": 895,
+      "오류": []
+    },
+    {
+      "번호": "19",
+      "입력문장": "경복궁이랑 창덕궁 중 어디가 좋아?",
+      "그룹": "GENERAL",
+      "기대_intent": "GENERAL",
+      "예측": [
+        "COMPARE",
+        "COMPARE",
+        "COMPARE",
+        "COMPARE",
+        "COMPARE"
+      ],
+      "정답수": 0,
+      "평균지연ms": 914,
+      "오류": []
+    },
+    {
+      "번호": "24",
+      "입력문장": "무료인 곳으로",
+      "그룹": "MODIFY",
+      "기대_intent": "MODIFY",
+      "예측": [
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND"
+      ],
+      "정답수": 0,
+      "평균지연ms": 996,
+      "오류": []
+    },
+    {
+      "번호": "29",
+      "입력문장": "주차 가능한 곳",
+      "그룹": "MODIFY",
+      "기대_intent": "MODIFY",
+      "예측": [
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND"
+      ],
+      "정답수": 0,
+      "평균지연ms": 896,
+      "오류": []
+    },
+    {
+      "번호": "33",
+      "입력문장": "어디가 더 가까워?",
+      "그룹": "COMPARE",
+      "기대_intent": "COMPARE",
+      "예측": [
+        "MODIFY",
+        "MODIFY",
+        "MODIFY",
+        "MODIFY",
+        "MODIFY"
+      ],
+      "정답수": 0,
+      "평균지연ms": 1120,
+      "오류": []
+    },
+    {
+      "번호": "41",
+      "입력문장": "벚꽃 언제 피어?",
+      "그룹": "GENERAL",
+      "기대_intent": "GENERAL",
+      "예측": [
+        "INFO",
+        "INFO",
+        "INFO",
+        "INFO",
+        "INFO"
+      ],
+      "정답수": 0,
+      "평균지연ms": 953,
+      "오류": []
+    },
+    {
+      "번호": "59",
+      "입력문장": "종로구",
+      "그룹": "되묻기",
+      "기대_intent": "SCHEDULE",
+      "예측": [
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND"
+      ],
+      "정답수": 0,
+      "평균지연ms": 954,
+      "오류": []
+    },
+    {
+      "번호": "60",
+      "입력문장": "처음부터 다시",
+      "그룹": "갭",
+      "기대_intent": "RECOMMEND",
+      "예측": [
+        "MODIFY",
+        "MODIFY",
+        "MODIFY",
+        "MODIFY",
+        "MODIFY"
+      ],
+      "정답수": 0,
+      "평균지연ms": 903,
+      "오류": []
+    },
+    {
+      "번호": "65",
+      "입력문장": "광화문 근처에서",
+      "그룹": "대조쌍",
+      "기대_intent": "MODIFY",
+      "예측": [
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND",
+        "RECOMMEND"
+      ],
+      "정답수": 0,
+      "평균지연ms": 988,
+      "오류": []
+    }
+  ]
+}

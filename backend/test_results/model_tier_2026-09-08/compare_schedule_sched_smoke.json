@@ -1,0 +1,98 @@
+{
+  "models": [
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite"
+  ],
+  "repeat": 1,
+  "time_available": "300",
+  "must_include": "2824891",
+  "폴백_낀_회차": [],
+  "raw": {
+    "gemini-3.5-flash": {
+      "300분": [
+        {
+          "오류": null,
+          "항목수": 3,
+          "상한": 5,
+          "총소요분": 293,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "북촌한옥마을",
+            "삼청동 한식당",
+            "창덕궁"
+          ],
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": -7,
+            "time_available_min": 300,
+            "total_duration_min": 293,
+            "item_capacity": 5,
+            "item_count": 3,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 2,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.5-flash"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 344,
+          "사고토큰": 0
+        }
+      ]
+    },
+    "gemini-3.5-flash-lite": {
+      "300분": [
+        {
+          "오류": null,
+          "항목수": 3,
+          "상한": 5,
+          "총소요분": 298,
+          "예산판정": "within",
+          "must_include_누락": [],
+          "상한초과_제외": [],
+          "warnings_건수": 0,
+          "분류": [
+            "삼청동 한식당",
+            "창덕궁",
+            "서울공예박물관"
+          ],
+          "지표": {
+            "time_budget_status": "within",
+            "time_budget_delta_min": -2,
+            "time_available_min": 300,
+            "total_duration_min": 298,
+            "item_capacity": 5,
+            "item_count": 3,
+            "saved_place_count": 1,
+            "closed_saved_count": 0,
+            "absent_saved_count": 0,
+            "over_capacity_count": 0,
+            "omitted_saved_count": 0,
+            "added_place_count": 2,
+            "walkable_cluster_size": 1,
+            "walkable_within_min": 5
+          },
+          "호출수": 1,
+          "응답모델": [
+            "gemini-3.5-flash-lite"
+          ],
+          "재시도합": 0,
+          "입력토큰": 2084,
+          "출력토큰": 308,
+          "사고토큰": 0
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "tripbranch",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TripBranch minimal team scaffold",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "lint": "npm run lint --prefix frontend && node scripts/ruff.mjs check backend/app backend/tests",
+    "test": "npm run test --prefix frontend -- --run && python -m pytest backend",
+    "build": "npm run build --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

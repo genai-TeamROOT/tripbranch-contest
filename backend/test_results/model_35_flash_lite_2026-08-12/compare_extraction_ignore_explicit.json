@@ -1,0 +1,436 @@
+{
+  "models": [
+    "gemini-2.5-flash",
+    "gemini-3.5-flash-lite"
+  ],
+  "reference_date": "2026-08-12",
+  "대상": 6,
+  "상이": 4,
+  "오류": [],
+  "diffs": [
+    {
+      "번호": "101",
+      "입력문장": "날씨 상관없이 추천해줘",
+      "기대_intent": "RECOMMEND",
+      "payload": {
+        "gemini-2.5-flash": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "place_types": [],
+              "place_tags": [],
+              "weather_intent": "IGNORE",
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "gemini-3.5-flash-lite": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "place_types": [],
+              "place_tags": [],
+              "weather_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "번호": "102",
+      "입력문장": "날씨 상관없어, 경복궁 근처 카페",
+      "기대_intent": "RECOMMEND",
+      "payload": {
+        "gemini-2.5-flash": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "search_center": "경복궁",
+              "place_types": [
+                "restaurant"
+              ],
+              "place_tags": [
+                "카페"
+              ],
+              "weather_intent": "IGNORE",
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "gemini-3.5-flash-lite": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "search_center": "경복궁",
+              "place_types": [
+                "restaurant"
+              ],
+              "place_tags": [
+                "카페"
+              ],
+              "weather_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "번호": "103",
+      "입력문장": "사람 많아도 괜찮아",
+      "기대_intent": "MODIFY",
+      "payload": {
+        "gemini-2.5-flash": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "gemini-3.5-flash-lite": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "SEEK",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        }
+      }
+    },
+    {
+      "번호": "104",
+      "입력문장": "비 와도 상관없어",
+      "기대_intent": "MODIFY",
+      "payload": {
+        "gemini-2.5-flash": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "weather": "rain",
+              "weather_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "weather",
+              "weather_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "gemini-3.5-flash-lite": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "weather_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "weather_intent"
+            ],
+            "target_indices": []
+          }
+        }
+      }
+    }
+  ],
+  "raw": {
+    "gemini-2.5-flash": {
+      "101": {
+        "payload": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "place_types": [],
+              "place_tags": [],
+              "weather_intent": "IGNORE",
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "오류": null,
+        "지연ms": 2204
+      },
+      "102": {
+        "payload": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "search_center": "경복궁",
+              "place_types": [
+                "restaurant"
+              ],
+              "place_tags": [
+                "카페"
+              ],
+              "weather_intent": "IGNORE",
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "오류": null,
+        "지연ms": 5602
+      },
+      "103": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 2977
+      },
+      "104": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "weather": "rain",
+              "weather_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "weather",
+              "weather_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 3132
+      },
+      "105": {
+        "payload": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "place_types": [],
+              "place_tags": [],
+              "weather_intent": "IGNORE",
+              "concentration_intent": "IGNORE",
+              "environment": "any",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "오류": null,
+        "지연ms": 2904
+      },
+      "106": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 2269
+      }
+    },
+    "gemini-3.5-flash-lite": {
+      "101": {
+        "payload": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "place_types": [],
+              "place_tags": [],
+              "weather_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "오류": null,
+        "지연ms": 1781
+      },
+      "102": {
+        "payload": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "search_center": "경복궁",
+              "place_types": [
+                "restaurant"
+              ],
+              "place_tags": [
+                "카페"
+              ],
+              "weather_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "오류": null,
+        "지연ms": 1354
+      },
+      "103": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "SEEK",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 1687
+      },
+      "104": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "weather_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "weather_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 1502
+      },
+      "105": {
+        "payload": {
+          "intent": "RECOMMEND",
+          "status": "complete",
+          "recommend": {
+            "conditions": {
+              "place_types": [],
+              "place_tags": [],
+              "weather_intent": "IGNORE",
+              "concentration_intent": "IGNORE",
+              "environment": "any",
+              "exclude_tags": [],
+              "special_requirements": []
+            }
+          }
+        },
+        "오류": null,
+        "지연ms": 1434
+      },
+      "106": {
+        "payload": {
+          "intent": "MODIFY",
+          "status": "complete",
+          "modify": {
+            "modify_type": "CHANGE_CONDITION",
+            "condition_changes": {
+              "place_types": [],
+              "place_tags": [],
+              "concentration_intent": "IGNORE",
+              "exclude_tags": [],
+              "special_requirements": []
+            },
+            "changed_fields": [
+              "concentration_intent"
+            ],
+            "target_indices": []
+          }
+        },
+        "오류": null,
+        "지연ms": 1584
+      }
+    }
+  }
+}

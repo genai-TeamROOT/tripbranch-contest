@@ -1,0 +1,152 @@
+{
+  "요청_모델": "gemini-3.1-flash-lite",
+  "반복": 5,
+  "케이스_수": 4,
+  "흔들린_케이스_수": 0,
+  "행": [
+    {
+      "그룹": "동음이의",
+      "발화": "유모차 끌고 갈 만한 수유 근처 카페 추천해줘",
+      "기대_center": "수유",
+      "기대_time": null,
+      "centers": [
+        "수유",
+        "수유",
+        "수유",
+        "수유",
+        "수유"
+      ],
+      "times": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1828
+    },
+    {
+      "그룹": "동음이의",
+      "발화": "수유 근처 카페 추천해줘",
+      "기대_center": "수유",
+      "기대_time": null,
+      "centers": [
+        "수유",
+        "수유",
+        "수유",
+        "수유",
+        "수유"
+      ],
+      "times": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1637
+    },
+    {
+      "그룹": "동음이의",
+      "발화": "유모차 끌고 갈 만한 성수동 근처 카페 추천해줘",
+      "기대_center": "성수동",
+      "기대_time": null,
+      "centers": [
+        "성수동",
+        "성수동",
+        "성수동",
+        "성수동",
+        "성수동"
+      ],
+      "times": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1644
+    },
+    {
+      "그룹": "동음이의",
+      "발화": "성수동 근처 카페 추천해줘",
+      "기대_center": "성수동",
+      "기대_time": null,
+      "centers": [
+        "성수동",
+        "성수동",
+        "성수동",
+        "성수동",
+        "성수동"
+      ],
+      "times": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "모양": [
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)",
+        "정상(RECOMMEND)"
+      ],
+      "models": [
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-3.1-flash-lite"
+      ],
+      "오류": [],
+      "ms_평균": 1642
+    }
+  ]
+}

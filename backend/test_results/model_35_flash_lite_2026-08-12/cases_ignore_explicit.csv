@@ -1,0 +1,7 @@
+﻿번호,입력문장,기대_intent,has_previous_recommendation,shown_place_count,pending_clarification,last_intent,그룹,근거,기대값_변경,비고
+101,날씨 상관없이 추천해줘,RECOMMEND,False,0,,,IGNORE명시,weather_intent=IGNORE 기대,,
+102,"날씨 상관없어, 경복궁 근처 카페",RECOMMEND,False,0,,,IGNORE명시,IGNORE + 다른 조건 동시,,
+103,사람 많아도 괜찮아,MODIFY,True,2,,,IGNORE명시,concentration_intent=IGNORE 기대,,
+104,비 와도 상관없어,MODIFY,True,2,,,IGNORE명시,weather_intent=IGNORE 기대,,
+105,날씨든 사람이든 다 상관없어,RECOMMEND,False,0,,,IGNORE명시,둘 다 IGNORE 기대,,
+106,혼잡도는 신경 안 써도 돼,MODIFY,True,2,,,IGNORE명시,concentration_intent=IGNORE 기대,,

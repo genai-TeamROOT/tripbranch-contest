@@ -1,0 +1,42 @@
+scope: shared
+owner: A
+slots:
+  shared.persona:
+    version: "1.0.0"
+    template: persona/trivi.md
+  shared.service_scope:
+    version: "1.0.0"
+    template: rules/service_scope.md
+    status: draft
+  shared.safety:
+    version: "1.0.0"
+    template: rules/safety.md
+    status: draft
+  shared.factuality:
+    version: "1.0.0"
+    template: rules/factuality.md
+    status: draft
+  shared.budget:
+    version: "1.0.0"
+    template: rules/budget.md
+  shared.weather_intent:
+    version: "1.0.0"
+    template: rules/weather_intent.md
+  shared.concentration_intent:
+    version: "1.0.0"
+    template: rules/concentration_intent.md
+  shared.environment:
+    version: "1.0.0"
+    template: rules/environment.md
+  shared.transport:
+    version: "1.0.0"
+    template: rules/transport.md
+  shared.conversation_history:
+    version: "1.0.0"
+    template: rules/conversation_history.md
+  shared.shown_place_list:
+    version: "1.0.0"
+    template: rules/shown_place_list.md
+  shared.validation_retry:
+    version: "1.0.0"
+    template: rules/validation_retry.md

@@ -1,0 +1,60 @@
+name: Cleanup expired sessions
+
+# **세션 정리만 자동화한다(2026-09-15 결정, C 협의).** 익명 계정(auth.users) 정리
+# (scripts/cleanup_anonymous_users.py)는 이 워크플로에 넣지 않는다 — 계정 기준
+# (생성일 30일)과 세션 기준(마지막 활동일 30일)이 갈려서, 매일 쓰는 게스트의 계정이
+# 먼저 지워지고 세션만 고아로 남는 상황이 생길 수 있다(실측: 생성 7일 뒤에도 활동한
+# 익명 계정 6건, 최대 14일 뒤에도 활동한 계정 존재). 계정 정리는 이 문제를 해결한
+# 뒤에 별도로 자동화한다.
+#
+# 실행 대상은 backend/scripts/cleanup_expired_sessions.py다. **--days를 주지
+# 않는다** — 기본값 30이 개인정보처리방침 제2조("마지막 이용일로부터 30일이
+# 지나면 지웁니다")와 같은 값이라, 여기서 다른 값을 주면 방침과 실제 동작이 갈린다.
+#
+# 실패해도 이 워크플로 자체가 재시도하지 않는다 — 다음날 다시 돌 때 그날 몫까지
+# 함께 정리되므로(누적 대상을 매번 다시 조회한다), 하루 실패가 곧바로 방침 위반이
+# 되지는 않는다. 다만 며칠 연속으로 실패하면 방침을 못 지키는 상태가 된다 — Actions
+# 탭의 실패 알림을 봐야 한다(자동 알림은 별도로 붙이지 않았다).
+on:
+  schedule:
+    - cron: "0 18 * * *" # 매일 03:00 KST(UTC+9)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "true면 삭제 없이 정리 대상만 출력한다"
+        type: boolean
+        default: false
+
+jobs:
+  cleanup:
+    name: Cleanup expired sessions
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run cleanup
+        env:
+          STATE_STORE_BACKEND: supabase
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          # workflow_dispatch가 아니면(스케줄 실행) inputs 자체가 없다 — 그때는
+          # 빈 문자열이 되어 아래 비교가 false로 떨어져야 하므로 fallback을 "false"로 둔다.
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            python -m scripts.cleanup_expired_sessions --dry-run
+          else
+            python -m scripts.cleanup_expired_sessions
+          fi

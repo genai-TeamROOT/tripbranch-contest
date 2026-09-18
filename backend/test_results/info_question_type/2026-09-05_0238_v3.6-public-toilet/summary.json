@@ -1,0 +1,44 @@
+{
+  "label": "current",
+  "repeat": 1,
+  "cases": 36,
+  "accuracy": 1.0,
+  "stable_cases": 36,
+  "by_group": {
+    "visit_suitability": {
+      "cases": 10,
+      "accuracy": 1.0,
+      "stable_cases": 10
+    },
+    "neighbor": {
+      "cases": 9,
+      "accuracy": 1.0,
+      "stable_cases": 9
+    },
+    "realtime_parking": {
+      "cases": 2,
+      "accuracy": 1.0,
+      "stable_cases": 2
+    },
+    "realtime_public_parking": {
+      "cases": 2,
+      "accuracy": 1.0,
+      "stable_cases": 2
+    },
+    "realtime_traffic": {
+      "cases": 2,
+      "accuracy": 1.0,
+      "stable_cases": 2
+    },
+    "realtime_event": {
+      "cases": 5,
+      "accuracy": 1.0,
+      "stable_cases": 5
+    },
+    "public_toilet": {
+      "cases": 6,
+      "accuracy": 1.0,
+      "stable_cases": 6
+    }
+  }
+}

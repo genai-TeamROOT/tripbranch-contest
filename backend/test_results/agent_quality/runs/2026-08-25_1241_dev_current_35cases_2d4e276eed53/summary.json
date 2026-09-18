@@ -1,0 +1,41 @@
+{
+  "turn_count": 50,
+  "intent_accuracy": 1.0,
+  "macro_precision": 1.0,
+  "macro_recall": 1.0,
+  "macro_f1": 1.0,
+  "case_count": 35,
+  "case_pass_rate": 0.8571428571428571,
+  "condition_field_accuracy": 0.9204545454545454,
+  "condition_exact_match_rate": 0.8333333333333334,
+  "multi_turn_case_pass_rate": 0.8,
+  "error_count": 0,
+  "client_latency_p50_ms": 5975.22,
+  "client_latency_p95_ms": 16095.74,
+  "condition_accuracy_by_field": {
+    "companion": 1.0,
+    "concentration_intent": 1.0,
+    "environment": 1.0,
+    "exclude_tags": 0.5,
+    "max_travel_time": 1.0,
+    "place_tags": 1.0,
+    "place_types": 1.0,
+    "search_center": 0.8846153846153846,
+    "time_available": 0.0,
+    "transport": 1.0,
+    "weather": 1.0,
+    "weather_intent": 1.0
+  },
+  "run_id": "2026-08-25_1241_dev_current_35cases_2d4e276eed53",
+  "created_at": "2026-08-25T12:46:33+09:00",
+  "split": "dev",
+  "dataset_digest": "2d4e276eed53",
+  "prompt_variant": "current",
+  "previous_run_id": "2026-08-24_1845_dev_current_35cases_2d4e276eed53",
+  "delta_from_previous": {
+    "intent_accuracy": 0.0,
+    "macro_f1": 0.0,
+    "condition_field_accuracy": -0.0227,
+    "case_pass_rate": -0.0571
+  }
+}
