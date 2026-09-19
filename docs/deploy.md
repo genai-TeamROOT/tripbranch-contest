@@ -263,6 +263,7 @@ sudo vi /opt/tripbranch/.env
 | `PLACE_MOOD_ENABLED` | `false` | 같은 이유 |
 | `PLACE_MOOD_WARMUP_ENABLED` | `false` | |
 | `PLACE_MOOD_RERANK_ENABLED` | `false` | |
+| `RATE_LIMIT_ENABLED` | `true` | `/api/chat`이 무인증이라 공개 배포에서는 켠다 |
 
 권한이 600인지 확인한다.
 
@@ -283,6 +284,15 @@ sudo tee /opt/caddy/Caddyfile >/dev/null <<'EOF'
 }
 
 api-contest.tripbranch.co.kr {
+	# 엣지에서 떨군다. FastAPI는 /docs·/redoc·/openapi.json을 기본으로 열어두는데,
+	# 공개 인터넷에 그대로 두면 API 스키마가 그대로 읽힌다. /api/chat이 무인증이라
+	# 스키마를 아는 순간 자동화된 호출로 LLM 비용을 태울 수 있다.
+	#
+	# 통계 두 개는 내부 운영 지표(피드백 분포, 단계별 지연·에러 수)를 무인증으로
+	# 내보낸다. 개발자 Ops 화면이 쓰던 것이고 공개 배포에서는 쓸 일이 없다.
+	@blocked path /docs* /redoc* /openapi.json /api/feedback/stats /api/trace/stats
+	respond @blocked 404
+
 	reverse_proxy 127.0.0.1:8000
 }
 EOF
@@ -469,6 +479,22 @@ sudo docker restart tripbranch-contest-backend
 `VITE_*`는 여기가 아니라 GitHub 저장소 변수이고, **빌드 시점에 번들에 구워진다.**
 바꿨으면 프론트를 다시 배포해야 한다.
 
+## Caddy 설정 바꾸기
+
+Caddyfile은 저장소가 아니라 서버의 `/opt/caddy/Caddyfile`에만 있다. 고친 뒤에는
+컨테이너를 재시작하지 말고 reload한다 — 재시작하면 잠깐 502가 나고, reload는
+무중단이다.
+
+```bash
+sudo cp /opt/caddy/Caddyfile /opt/caddy/Caddyfile.bak
+sudo vi /opt/caddy/Caddyfile
+sudo docker exec caddy caddy validate --config /etc/caddy/Caddyfile
+sudo docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+```
+
+`validate`를 먼저 돌린다. 문법이 틀린 채 reload하면 이전 설정이 그대로 남아,
+고친 줄 알았는데 안 바뀐 상태가 된다.
+
 ## 롤백
 
 ECR에 커밋 SHA 태그가 남아 있다. Session Manager에서 이전 태그로 되돌린다.
@@ -510,4 +536,5 @@ t3.micro가 모자라면 t3.small로 올린다. 인스턴스 중지 -> 작업 ->
 | 음성 입력이 동작 안 함 | HTTPS로 접속했는지. `getUserMedia`는 보안 컨텍스트에서만 동작한다 |
 | 프론트 새로고침하면 XML 오류 | CloudFront 오류 페이지 403/404 -> `/index.html` 200 설정 |
 | 새 배포가 브라우저에 안 보임 | CloudFront 무효화 완료 여부. `curl -I`로 `index.html`과 `sw.js`의 `Cache-Control`이 `no-cache`인지 본다. `immutable`이면 다시 올려야 한다 |
+| 채팅이 429로 거부됨 | 레이트 리밋에 걸렸다. 기본 20회/60초, IP별이다. `.env`의 `RATE_LIMIT_REQUESTS`로 조정하고 컨테이너를 재시작한다 |
 | 사이트가 통째로 죽음 | 크레딧 알람이 인스턴스를 중지시켰을 수 있다. EC2 상태 확인 |
