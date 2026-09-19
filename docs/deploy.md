@@ -35,17 +35,17 @@
 
 | 종류 | 이름 / ID | 비고 |
 | --- | --- | --- |
-| ECR | `tripbranch-contest-backend` | |
+| ECR | `tripbranch-contest-backend` | 수명주기: 최근 5개 유지 |
 | IAM 역할 | `github-actions-deploy-contest` | OIDC 공급자는 계정에 이미 있는 것을 재사용 |
-| 보안 그룹 | `tripbranch-contest-sg` | 인바운드 80/443만 |
-| EC2 | `<INSTANCE_ID>` | t3.micro, AL2023 x86_64, 30GB gp3 |
-| EIP | `<ELASTIC_IP>` | |
-| S3 | `<BUCKET>` | 퍼블릭 액세스 차단 유지 |
-| CloudFront | `<DIST_ID>` | |
-| ACM | `<CERT_ARN>` | **us-east-1** |
+| 보안 그룹 | `tripbranch-contest-sg` (`sg-0f8b29b42cac41004`) | 인바운드 80/443만 |
+| EC2 | `i-017735bd69e603ad5` | t3.micro, AL2023 x86_64, 30GB gp3 |
+| EIP | `43.203.3.121` | |
+| S3 | `tripbranch-contest-frontend` | 퍼블릭 액세스 차단 유지 |
+| CloudFront | `E1LJB7J6DXZ78S` | |
+| ACM | `arn:aws:acm:us-east-1:577101745292:certificate/c53345f4-d639-496d-b169-b0676e1d9463` | **us-east-1** |
 | EC2 인스턴스 프로파일 | `tripbranch-ec2-role` | 본 프로젝트와 공유(SSM Core + ECR ReadOnly 읽기 전용) |
 
-구축하면서 `<...>` 자리를 채운다.
+2026-09-19 구축 완료. 위 값은 실제로 만들어진 리소스다.
 
 ---
 
@@ -90,7 +90,7 @@
 
 ### 권한 정책
 
-`<INSTANCE_ID>`, `<BUCKET>`, `<DIST_ID>`를 채운 뒤 인라인 정책으로 붙인다.
+`i-017735bd69e603ad5`, `tripbranch-contest-frontend`, `E1LJB7J6DXZ78S`를 채운 뒤 인라인 정책으로 붙인다.
 리소스를 좁혀두는 이유는, 이 역할이 탈취되거나 워크플로우가 잘못 수정돼도
 **본 프로젝트 인스턴스와 ECR을 건드릴 수 없게** 하기 위해서다.
 
@@ -124,7 +124,7 @@
       "Effect": "Allow",
       "Action": "ssm:SendCommand",
       "Resource": [
-        "arn:aws:ec2:ap-northeast-2:577101745292:instance/<INSTANCE_ID>",
+        "arn:aws:ec2:ap-northeast-2:577101745292:instance/i-017735bd69e603ad5",
         "arn:aws:ssm:ap-northeast-2::document/AWS-RunShellScript"
       ]
     },
@@ -142,19 +142,19 @@
       "Sid": "S3FrontendBucket",
       "Effect": "Allow",
       "Action": ["s3:ListBucket", "s3:GetBucketLocation"],
-      "Resource": "arn:aws:s3:::<BUCKET>"
+      "Resource": "arn:aws:s3:::tripbranch-contest-frontend"
     },
     {
       "Sid": "S3FrontendObjects",
       "Effect": "Allow",
       "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
-      "Resource": "arn:aws:s3:::<BUCKET>/*"
+      "Resource": "arn:aws:s3:::tripbranch-contest-frontend/*"
     },
     {
       "Sid": "CloudFrontInvalidate",
       "Effect": "Allow",
       "Action": "cloudfront:CreateInvalidation",
-      "Resource": "arn:aws:cloudfront::577101745292:distribution/<DIST_ID>"
+      "Resource": "arn:aws:cloudfront::577101745292:distribution/E1LJB7J6DXZ78S"
     }
   ]
 }
@@ -162,6 +162,33 @@
 
 S3·CloudFront 부분은 9단계에서 리소스를 만든 뒤에 채워도 된다. 백엔드 배포만
 먼저 돌리려면 ECR·SSM 구문만 있어도 동작한다.
+
+### 신뢰 정책의 `sub`에 주의 — 실제로 여기서 막혔다
+
+위 신뢰 정책은 **이 저장소 기준**이다. 원본 저장소(`genai-TeamROOT/tripbranch`)의
+값을 그대로 가져오면 실패한다.
+
+```
+원본 저장소  : repo:genai-TeamROOT/tripbranch:*
+이 저장소    : repo:genai-TeamROOT@304239192/tripbranch-contest@1375480282:ref:refs/heads/main
+```
+
+차이는 GitHub의 **immutable subject claims**다. 켜져 있으면 `sub`의 조직·저장소
+이름 뒤에 숫자 ID가 붙는다. 저장소를 지웠다 같은 이름으로 다시 만들어도 다른
+주체로 취급하게 하는 보안 기능이라 끄지 않는다.
+
+**원본 저장소는 이 기능이 꺼져 있고 이 저장소는 켜져 있다.** 그래서 검증된 설정을
+그대로 옮겼는데도 2026-09-19 첫 배포가 `Not authorized to perform
+sts:AssumeRoleWithWebIdentity`로 실패했다. 와일드카드(`:*`)를 써도 마찬가지다 —
+`genai-TeamROOT` 다음이 `/`가 아니라 `@304239192`라서 패턴 자체가 어긋난다.
+
+자기 저장소의 실제 값은 이렇게 확인한다.
+
+```bash
+gh api /repos/genai-TeamROOT/tripbranch-contest/actions/oidc/customization/sub
+```
+
+`sub_claim_prefix`가 나오고, 거기에 `:ref:refs/heads/main`을 붙인 것이 최종 `sub`다.
 
 ## 3. 보안 그룹
 
@@ -203,7 +230,7 @@ DNS -> 레코드 -> 레코드 추가.
 
 | 형식 | 이름 | 값 | 프록시 |
 | --- | --- | --- | --- |
-| A | `api-contest` | `<ELASTIC_IP>` | **DNS only (회색 구름)** |
+| A | `api-contest` | `43.203.3.121` | **DNS only (회색 구름)** |
 
 이름 칸에는 서브도메인만 넣는다. 프록시를 켜면 (1) Let's Encrypt 발급이 막히고
 (2) SSL 모드가 Flexible이면 Caddy와 리디렉트 루프가 나고 (3) 무료 플랜의 100초
@@ -263,6 +290,7 @@ sudo vi /opt/tripbranch/.env
 | `PLACE_MOOD_ENABLED` | `false` | 같은 이유 |
 | `PLACE_MOOD_WARMUP_ENABLED` | `false` | |
 | `PLACE_MOOD_RERANK_ENABLED` | `false` | |
+| `RATE_LIMIT_ENABLED` | `true` | `/api/chat`이 무인증이라 공개 배포에서는 켠다 |
 
 권한이 600인지 확인한다.
 
@@ -283,6 +311,15 @@ sudo tee /opt/caddy/Caddyfile >/dev/null <<'EOF'
 }
 
 api-contest.tripbranch.co.kr {
+	# 엣지에서 떨군다. FastAPI는 /docs·/redoc·/openapi.json을 기본으로 열어두는데,
+	# 공개 인터넷에 그대로 두면 API 스키마가 그대로 읽힌다. /api/chat이 무인증이라
+	# 스키마를 아는 순간 자동화된 호출로 LLM 비용을 태울 수 있다.
+	#
+	# 통계 두 개는 내부 운영 지표(피드백 분포, 단계별 지연·에러 수)를 무인증으로
+	# 내보낸다. 개발자 Ops 화면이 쓰던 것이고 공개 배포에서는 쓸 일이 없다.
+	@blocked path /docs* /redoc* /openapi.json /api/feedback/stats /api/trace/stats
+	respond @blocked 404
+
 	reverse_proxy 127.0.0.1:8000
 }
 EOF
@@ -319,9 +356,9 @@ Settings -> Secrets and variables -> Actions -> **Variables** 탭에 등록한�
 
 | 이름 | 값 | 쓰는 워크플로우 |
 | --- | --- | --- |
-| `EC2_INSTANCE_ID` | `<INSTANCE_ID>` | backend |
-| `S3_BUCKET` | `<BUCKET>` | frontend |
-| `CLOUDFRONT_DISTRIBUTION_ID` | `<DIST_ID>` | frontend |
+| `EC2_INSTANCE_ID` | `i-017735bd69e603ad5` | backend |
+| `S3_BUCKET` | `tripbranch-contest-frontend` | frontend |
+| `CLOUDFRONT_DISTRIBUTION_ID` | `E1LJB7J6DXZ78S` | frontend |
 | `VITE_API_BASE_URL` | `https://api-contest.tripbranch.co.kr/api` | frontend |
 | `VITE_SUPABASE_URL` | Supabase 프로젝트 URL | frontend |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable 키 | frontend |
@@ -364,7 +401,7 @@ Cloudflare에는 **`_xxxx.contest`까지만** 넣는다. 통째로 붙여넣으�
 
 ### S3
 
-- 버킷 이름 `<BUCKET>`, 리전 `ap-northeast-2`
+- 버킷 이름 `tripbranch-contest-frontend`, 리전 `ap-northeast-2`
 - **퍼블릭 액세스 차단 유지** (CloudFront만 OAC로 읽는다)
 - 정적 웹 사이트 호스팅은 **켜지 않는다** (OAC와 같이 쓰지 않는다)
 
@@ -418,6 +455,11 @@ Actions -> Deploy frontend -> Run workflow.
 
 CloudWatch -> 경보 -> 경보 생성.
 
+**콘솔에서 만들어야 한다.** EC2 중지 작업이 붙은 경보는 서비스 연결 역할
+`AWSServiceRoleForCloudWatchEvents`를 자동 생성하는데, 여기에 `iam:CreateServiceLinkedRole`이
+필요하다. CLI로 만들려다 이 권한에서 막혔고, 콘솔은 같은 작업을 알아서 처리한다.
+SNS 주제도 같은 화면에서 만들 수 있다.
+
 | 항목 | 값 |
 | --- | --- |
 | 지표 | `EC2 -> 인스턴스별 지표 -> CPUSurplusCreditBalance` |
@@ -430,6 +472,12 @@ CloudWatch -> 경보 -> 경보 생성.
 `CPUCreditBalance`(잔고)가 아니라 `CPUSurplusCreditBalance`(초과분)를 쓴다. 잔고는
 배포 직후 같은 정상 상황에서도 0까지 떨어지고 곧 상환되는데, 그때마다 서버가
 내려가면 곤란하다. 초과분은 실제로 빌려 쓰기 시작해야 올라간다.
+
+**SNS 이메일 구독은 확인 링크를 눌러야 살아난다.** 주제를 만들면 등록한 주소로
+`AWS Notification - Subscription Confirmation` 메일이 가고, 본문의 Confirm subscription을
+눌러야 상태가 `확인됨`이 된다. 안 누르면 경보가 울려도 메일이 오지 않고 서버만 조용히
+꺼진다. Gmail이 스팸으로 분류하는 경우가 잦으니 스팸함도 본다. 상태는
+SNS -> 주제 -> 구독 탭에서 확인한다.
 
 **중지되면 자동으로 복구되지 않는다.** SNS 이메일을 꼭 같이 걸고, 받으면 콘솔에서
 인스턴스를 다시 시작한다. 컨테이너는 `--restart unless-stopped`, Caddy도 같은
@@ -469,6 +517,22 @@ sudo docker restart tripbranch-contest-backend
 `VITE_*`는 여기가 아니라 GitHub 저장소 변수이고, **빌드 시점에 번들에 구워진다.**
 바꿨으면 프론트를 다시 배포해야 한다.
 
+## Caddy 설정 바꾸기
+
+Caddyfile은 저장소가 아니라 서버의 `/opt/caddy/Caddyfile`에만 있다. 고친 뒤에는
+컨테이너를 재시작하지 말고 reload한다 — 재시작하면 잠깐 502가 나고, reload는
+무중단이다.
+
+```bash
+sudo cp /opt/caddy/Caddyfile /opt/caddy/Caddyfile.bak
+sudo vi /opt/caddy/Caddyfile
+sudo docker exec caddy caddy validate --config /etc/caddy/Caddyfile
+sudo docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+```
+
+`validate`를 먼저 돌린다. 문법이 틀린 채 reload하면 이전 설정이 그대로 남아,
+고친 줄 알았는데 안 바뀐 상태가 된다.
+
 ## 롤백
 
 ECR에 커밋 SHA 태그가 남아 있다. Session Manager에서 이전 태그로 되돌린다.
@@ -496,6 +560,28 @@ t3.micro가 모자라면 t3.small로 올린다. 인스턴스 중지 -> 작업 ->
 
 ---
 
+# 실측값 (2026-09-19 첫 배포)
+
+추정이 아니라 배포 후 실제로 잰 값이다. 나중에 무언가 무거워졌는지 판단하는 기준선이다.
+
+| 항목 | 값 |
+| --- | --- |
+| 백엔드 이미지 | 277,250,342 B (277MB). 원본 프로젝트의 모델 포함 이미지는 2,292,408,202 B (2.29GB)였다 — 8.3배 차이 |
+| ECR 저장 크기(압축) | 90,205,369 B (90MB) |
+| 앱 컨테이너 메모리 | 120.4MiB / 913MiB |
+| Caddy 컨테이너 메모리 | 24MiB |
+| 호스트 메모리 | 372MB 사용, 스왑 3MB |
+| 디스크 | 3.6GB / 30GB |
+| 평시 CPU | 0.35~0.54% (t3.micro 기준 성능 10%) |
+| 배포 순간 CPU 최대 | 12.6% |
+| 크레딧 잔고 | 시간당 12개씩 축적 중, 초과 크레딧 0 |
+| 헬스체크 통과 | 배포 후 2회 시도(약 10초) |
+| API 응답 | `/api/health` 0.05~0.18초 |
+| 프론트 응답 | 0.10~0.19초 |
+
+t3.micro로 충분하다는 판단이 이 값들로 확인됐다. 메모리는 40% 남고, CPU는 기준 성능의
+1/20만 쓴다.
+
 # 트러블슈팅
 
 | 증상 | 확인할 것 |
@@ -510,4 +596,5 @@ t3.micro가 모자라면 t3.small로 올린다. 인스턴스 중지 -> 작업 ->
 | 음성 입력이 동작 안 함 | HTTPS로 접속했는지. `getUserMedia`는 보안 컨텍스트에서만 동작한다 |
 | 프론트 새로고침하면 XML 오류 | CloudFront 오류 페이지 403/404 -> `/index.html` 200 설정 |
 | 새 배포가 브라우저에 안 보임 | CloudFront 무효화 완료 여부. `curl -I`로 `index.html`과 `sw.js`의 `Cache-Control`이 `no-cache`인지 본다. `immutable`이면 다시 올려야 한다 |
+| 채팅이 429로 거부됨 | 레이트 리밋에 걸렸다. 기본 20회/60초, IP별이다. `.env`의 `RATE_LIMIT_REQUESTS`로 조정하고 컨테이너를 재시작한다 |
 | 사이트가 통째로 죽음 | 크레딧 알람이 인스턴스를 중지시켰을 수 있다. EC2 상태 확인 |

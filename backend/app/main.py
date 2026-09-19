@@ -33,6 +33,7 @@ from app.observability.langfuse_tracing import (
 from app.providers.factory import validate_provider_config
 from app.providers.place_evidence_encoder import get_shared_encoder
 from app.providers.tour_category_registry import get_tour_category_registry
+from app.rate_limit import RateLimiter, client_key, path_is_limited
 from app.routes.account import router as account_router
 from app.routes.agent import router as agent_router
 from app.routes.chat import router as chat_router
@@ -184,6 +185,44 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    if settings.rate_limit_enabled:
+        limiter = RateLimiter(
+            max_requests=settings.rate_limit_requests,
+            window_seconds=float(settings.rate_limit_window_seconds),
+        )
+        limited_prefixes = settings.resolved_rate_limit_path_prefixes
+
+        @app.middleware("http")
+        async def limit_request_rate(request: Request, call_next: Any) -> Any:
+            """돈이 나가는 경로를 IP별로 제한한다(`app.rate_limit` 참고).
+
+            **꺼져 있으면 미들웨어를 아예 등록하지 않는다.** 등록해두고 안에서
+            분기하면 모든 요청이 쓸데없이 한 겹을 더 지난다. 설정은 기동 시점에
+            정해지고 런타임에 바뀌지 않으므로 여기서 갈라도 된다.
+            """
+            if path_is_limited(request.url.path, limited_prefixes):
+                client = client_key(
+                    request.headers.get("x-forwarded-for"),
+                    request.client.host if request.client else None,
+                )
+                allowed, retry_after = limiter.check(client)
+                if not allowed:
+                    logger.warning(
+                        "rate limited: client=%s path=%s retry_after=%s",
+                        client,
+                        request.url.path,
+                        retry_after,
+                    )
+                    response = _error_response(
+                        "rate_limited",
+                        "요청이 너무 잦아요. 잠시 후 다시 시도해주세요.",
+                        429,
+                        retryable=True,
+                    )
+                    response.headers["Retry-After"] = str(retry_after)
+                    return response
+            return await call_next(request)
 
     @app.middleware("http")
     async def join_incoming_trace(request: Request, call_next: Any) -> Any:
