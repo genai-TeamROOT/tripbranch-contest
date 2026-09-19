@@ -1713,6 +1713,22 @@ def test_summary_instruction_omits_the_conditions_block_when_nothing_was_stated(
         assert "사용자가 말한 조건: " not in instruction
 
 
+def test_summary_instruction_carries_the_search_center() -> None:
+    """검색 지역이 말풍선 프롬프트에 실린다.
+
+    카드 설명은 이동 출발점(현재 위치)을 이름으로 부른다. 이 줄에 지역이 없으면
+    말풍선이 그 출발점을 지역으로 착각한다 — "강남역 근처 맛집"에 "사당역
+    근처에서 골라보았어요"라고 답했다(2026-09-20 실사용).
+    """
+
+    instruction = gemini_prompts.build_recommendation_summary_instruction(
+        Intent.MODIFY,
+        conditions=UserConditions(search_center="강남역"),
+    )
+
+    assert "사용자가 말한 조건: 강남역 근처" in instruction
+
+
 def test_summary_instruction_carries_the_stated_companion() -> None:
     """동행을 말했으면 그 값이 사람이 읽는 라벨로 프롬프트에 실린다."""
 
