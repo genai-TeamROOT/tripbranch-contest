@@ -43,7 +43,11 @@
 | S3 | `tripbranch-contest-frontend` | 퍼블릭 액세스 차단 유지 |
 | CloudFront | `E1LJB7J6DXZ78S` | |
 | ACM | `arn:aws:acm:us-east-1:577101745292:certificate/c53345f4-d639-496d-b169-b0676e1d9463` | **us-east-1** |
-| EC2 인스턴스 프로파일 | `tripbranch-ec2-role` | 본 프로젝트와 공유(SSM Core + ECR ReadOnly 읽기 전용) |
+| EC2 인스턴스 프로파일 | `tripbranch-ec2-role` | 원본 프로젝트와 공유(SSM Core + ECR ReadOnly 읽기 전용) |
+| CloudWatch 경보 | `tripbranch-contest-surplus-credits` | 초과 크레딧 > 5 -> 인스턴스 중지 |
+| CloudWatch 경보 | `tripbranch-contest-instance-status` | 상태 검사 2분 실패 -> 재부팅 |
+| SNS 주제 | `tripbranch-contest-alerts` | 두 경보의 이메일 알림 |
+| EBS 스냅샷 | `snap-096939c6b5ad7d7e7` | 2026-09-19 복구 지점 |
 
 2026-09-19 구축 완료. 위 값은 실제로 만들어진 리소스다.
 
@@ -451,7 +455,9 @@ CloudFront 쪽에 캐시 정책을 따로 만들 필요는 없다. 기본 정책
 
 Actions -> Deploy frontend -> Run workflow.
 
-## 13. 크레딧 알람
+## 13. 경보 두 개
+
+### 13-1. 크레딧 경보 (`tripbranch-contest-surplus-credits`)
 
 CloudWatch -> 경보 -> 경보 생성.
 
@@ -485,6 +491,41 @@ SNS -> 주제 -> 구독 탭에서 확인한다.
 
 별도로 AWS Budgets에 월 예산 알람을 하나 걸어두면 EBS·데이터 전송·ECR까지
 한꺼번에 감시된다.
+
+### 13-2. 인스턴스 상태 경보 (`tripbranch-contest-instance-status`)
+
+OS 안에서 나는 문제(커널 패닉, 메모리 고갈, 파일시스템 손상)를 재부팅으로 푼다.
+
+| 항목 | 값 |
+| --- | --- |
+| 지표 | `StatusCheckFailed_Instance` |
+| 통계 / 기간 | 최대 / 1분 |
+| 조건 | `> 0`, 2회 연속 |
+| 누락된 데이터 처리 | 양호(정상)로 처리 |
+| 작업 | EC2 작업 -> 이 인스턴스 재부팅 + SNS 알림 |
+| OK 작업 | SNS 알림 — 복구됐다는 것도 알려준다 |
+
+**시스템 장애는 이 경보가 다루지 않는다.** 호스트 하드웨어 문제는 EC2의 기본
+자동 복구(`MaintenanceOptions.AutoRecovery=default`)가 이미 처리해서 다른 호스트로
+옮겨준다. 따로 설정할 것이 없고, 그래서 이 경보는 인스턴스 레벨만 본다.
+
+이 경보는 CLI로 만들 수 있었다. 13-1을 콘솔에서 만들 때 서비스 연결 역할이
+생겼기 때문이다 — 순서가 반대였으면 이것도 막혔다.
+
+```bash
+aws cloudwatch put-metric-alarm --region ap-northeast-2 \
+  --alarm-name tripbranch-contest-instance-status \
+  --namespace AWS/EC2 --metric-name StatusCheckFailed_Instance \
+  --dimensions Name=InstanceId,Value=i-017735bd69e603ad5 \
+  --statistic Maximum --period 60 --evaluation-periods 2 \
+  --threshold 0 --comparison-operator GreaterThanThreshold \
+  --treat-missing-data notBreaching \
+  --alarm-actions arn:aws:automate:ap-northeast-2:ec2:reboot \
+                  arn:aws:sns:ap-northeast-2:577101745292:tripbranch-contest-alerts \
+  --ok-actions arn:aws:sns:ap-northeast-2:577101745292:tripbranch-contest-alerts
+```
+
+경보 2개는 프리티어(10개) 안이라 요금이 없다.
 
 ---
 
@@ -532,6 +573,42 @@ sudo docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 
 `validate`를 먼저 돌린다. 문법이 틀린 채 reload하면 이전 설정이 그대로 남아,
 고친 줄 알았는데 안 바뀐 상태가 된다.
+
+## 복구 지점 (EBS 스냅샷)
+
+인스턴스가 복구 불가능하게 망가지면 볼륨과 함께 사라지는 것이 둘이다 —
+`/opt/tripbranch/.env`와 Caddy가 발급받은 인증서(`caddy_data` 볼륨)다. 코드는
+저장소에, 이미지는 ECR에 있으므로 이 둘만 스냅샷으로 받아둔다.
+
+| 스냅샷 | 시점 |
+| --- | --- |
+| `snap-096939c6b5ad7d7e7` | 2026-09-19, 배포 직후 안정 상태 |
+
+실행 중인 볼륨을 뜬 것이라 크래시 일관성 수준이다. 데이터베이스가 아니라 설정
+파일과 인증서라 그 수준으로 충분하다.
+
+### 새로 뜨는 법
+
+```bash
+# 1) 스냅샷에서 볼륨 생성 (인스턴스와 같은 AZ)
+aws ec2 create-volume --region ap-northeast-2 \
+  --snapshot-id snap-096939c6b5ad7d7e7 \
+  --availability-zone ap-northeast-2a --volume-type gp3
+
+# 2) 새 인스턴스를 만들고 그 볼륨을 루트로 붙이거나,
+#    보조 볼륨으로 붙여 /opt/tripbranch/.env 만 꺼내온다
+```
+
+`.env`만 필요하면 스냅샷을 쓰는 것보다 **로컬 `backend/.env`에서 다시 올리는 편이
+빠르다**(7-3 참고). 스냅샷은 그마저 없을 때를 위한 보험이다.
+
+### 새로 뜰 때 잊기 쉬운 것
+
+인스턴스를 새로 만들면 ID가 바뀐다. 다음 세 곳을 함께 고쳐야 배포가 다시 돈다.
+
+1. 저장소 변수 `EC2_INSTANCE_ID`
+2. IAM 정책 `contest-deploy`의 `SsmSendCommand` 리소스
+3. 두 CloudWatch 경보의 `InstanceId` 차원
 
 ## 롤백
 
