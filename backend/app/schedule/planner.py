@@ -384,9 +384,21 @@ def _compose_items(
     # 호출부가 그 항목에 채워 보낸 사진을 쓴다 — 운영시간과 달리 사진은 편성 판단에
     # 쓰이지 않고 화면에만 실리므로, 유지한 자리라고 비워 보내면 사진이 빠진
     # 카드만 남는다. 같은 장소가 양쪽에 있으면 이번 턴 후보 값을 쓴다.
+    # 출처도 사진과 함께 옮긴다. Google 사진은 출처를 못 그리면 표시 자체가
+    # 정책 위반이라, 사진만 옮기고 출처를 흘리는 경로를 만들지 않는다.
     image_by_place = {
-        **{item.place_id: (item.image_url, item.image_url_fallback) for item in pinned_items},
-        **{c.place_id: (c.image_url, c.image_url_fallback) for c in candidates},
+        **{
+            item.place_id: (
+                item.image_url,
+                item.image_url_fallback,
+                item.image_attribution,
+            )
+            for item in pinned_items
+        },
+        **{
+            c.place_id: (c.image_url, c.image_url_fallback, c.image_attribution)
+            for c in candidates
+        },
     }
     edge_by_pair = {(edge.from_place_id, edge.to_place_id): edge for edge in travel_edges}
     items: list[ScheduleItem] = []
@@ -399,7 +411,9 @@ def _compose_items(
             if next_draft is None
             else edge_by_pair.get((draft.place_id, next_draft.place_id))
         )
-        image_url, image_url_fallback = image_by_place.get(draft.place_id, (None, None))
+        image_url, image_url_fallback, image_attribution = image_by_place.get(
+            draft.place_id, (None, None, None)
+        )
         items.append(
             ScheduleItem(
                 order=draft.order,
@@ -412,6 +426,7 @@ def _compose_items(
                 warnings=[warning] if warning is not None else [],
                 image_url=image_url,
                 image_url_fallback=image_url_fallback,
+                image_attribution=image_attribution,
                 travel_to_next_mode=None if edge is None else edge.mode,
                 travel_to_next_measured=edge is not None and is_measured(edge),
                 cluster_id=clusters[index],

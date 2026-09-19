@@ -36,6 +36,7 @@
 import { useState, type CSSProperties } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { PlaceThumbnail } from "../PlaceThumbnail";
+import { PhotoAttributionBadge } from "../PhotoAttributionBadge";
 import { RecommendationDetailPreviewModal } from "../chat/RecommendationDetailPreviewModal";
 import {
   isSameCluster,
@@ -196,6 +197,13 @@ export function ScheduleRoute({ items, isEn, visited, onToggleVisited }: Schedul
                     src={item.image_url}
                     fallbackSrc={item.image_url_fallback}
                     className="h-24 w-24 rounded-xl"
+                  />
+                  {/* Google 사진은 출처를 함께 그려야 쓸 수 있다(정책). 썸네일이
+                      좁아 compact로 줄이되 작성자 이름은 남긴다. */}
+                  <PhotoAttributionBadge
+                    attribution={item.image_attribution}
+                    compact
+                    className="rounded-b-xl"
                   />
                   {/* 체크 전에도 체크 아이콘을 그린다(회색) — 아이콘이 체크된 뒤에만
                       나오면 처음 보는 사람은 누를 수 있는 곳인지 모른다. */}

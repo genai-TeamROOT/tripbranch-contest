@@ -22,6 +22,9 @@ from app.providers.google_place_photos import (
 
 _PHOTO_NAME = "places/ChIJtest/photos/AelY_photo_reference"
 _PHOTO_URI = "https://lh3.googleusercontent.com/places/test-photo.jpg"
+_AUTHOR_NAME = "북극돼지"
+_AUTHOR_URI = "https://maps.google.com/maps/contrib/108869150188944140663"
+_SOURCE_URI = "https://www.google.com/maps/place//data=!3m4!1e2"
 
 
 @pytest.fixture(autouse=True)
@@ -30,9 +33,23 @@ def _isolate_module_state() -> None:
     reset_google_photo_state()
 
 
-def _search_payload(*, photos: list[dict[str, str]] | None = None) -> dict[str, object]:
+def _photo(
+    *,
+    name: str = _PHOTO_NAME,
+    author: str | None = _AUTHOR_NAME,
+) -> dict[str, object]:
+    """실제 응답의 사진 1장 모양. 필드명은 실측 응답 그대로다(2026-09-20)."""
+    photo: dict[str, object] = {"name": name, "googleMapsUri": _SOURCE_URI}
+    if author is not None:
+        photo["authorAttributions"] = [
+            {"displayName": author, "uri": _AUTHOR_URI, "photoUri": "https://example.test/a.jpg"}
+        ]
+    return photo
+
+
+def _search_payload(*, photos: list[dict[str, object]] | None = None) -> dict[str, object]:
     if photos is None:
-        photos = [{"name": _PHOTO_NAME}]
+        photos = [_photo()]
     return {"places": [{"photos": photos}]}
 
 
@@ -81,7 +98,12 @@ async def test_이름과_주소로_검색하고_사진_주소를_돌려준다() 
             longitude=126.9860,
         )
 
-    assert result == _PHOTO_URI
+    assert result is not None
+    assert result.url == _PHOTO_URI
+    # 정책이 요구하는 출처가 사진과 함께 온다.
+    assert result.author_name == _AUTHOR_NAME
+    assert result.author_uri == _AUTHOR_URI
+    assert result.google_maps_uri == _SOURCE_URI
     assert len(seen) == 2
 
     search = seen[0]
@@ -91,7 +113,11 @@ async def test_이름과_주소로_검색하고_사진_주소를_돌려준다() 
     assert search.headers["X-Goog-Api-Key"] == "test-key"
     assert "test-key" not in str(search.url)
     # FieldMask가 없으면 Google이 400으로 거절한다. 넓게 잡으면 비싼 SKU가 된다.
-    assert search.headers["X-Goog-FieldMask"] == "places.photos.name"
+    # 출처를 못 받으면 사진을 쓸 수 없으므로 FieldMask에 반드시 들어가야 한다.
+    field_mask = search.headers["X-Goog-FieldMask"]
+    assert "places.photos.name" in field_mask
+    assert "places.photos.authorAttributions" in field_mask
+    assert "places.photos.googleMapsUri" in field_mask
 
     body = search.read().decode()
     assert "안국역 카페 서울특별시 종로구 율곡로 1" in body
@@ -168,7 +194,8 @@ async def test_같은_장소를_두_번_물으면_호출은_한_번이다() -> N
         first = await provider.find_cover_photo(name="안국역 카페", latitude=37.5, longitude=127.0)
         second = await provider.find_cover_photo(name="안국역 카페", latitude=37.5, longitude=127.0)
 
-    assert first == second == _PHOTO_URI
+    assert first is not None and second is not None
+    assert first.url == second.url == _PHOTO_URI
     assert len(seen) == 2  # 첫 요청의 검색 1 + 사진 1뿐이다.
 
 
@@ -247,3 +274,42 @@ async def test_Fake는_사진_없는_경우도_재현한다() -> None:
     assert await provider.find_cover_photo(name="보통 장소") is not None
     assert await provider.find_cover_photo(name="사진없음 카페") is None
     assert await provider.find_cover_photo(name="") is None
+
+
+@pytest.mark.asyncio
+async def test_출처가_없는_사진은_건너뛰고_다음_사진을_쓴다() -> None:
+    """작성자를 못 밝히는 사진은 화면에 걸 수 없어 없는 것과 같다.
+
+    한 장소의 사진 여러 장 중 일부만 작성자가 비어 있을 수 있어, 첫 장에서
+    포기하지 않고 다음 장을 본다.
+    """
+    seen: list[httpx.Request] = []
+    payload = _search_payload(
+        photos=[_photo(name="places/x/photos/no-author", author=None), _photo()]
+    )
+    provider, client = _provider(
+        _handler(search=httpx.Response(200, json=payload), seen=seen)
+    )
+
+    async with client:
+        result = await provider.find_cover_photo(name="일부만 출처 있는 곳")
+
+    assert result is not None
+    assert result.author_name == _AUTHOR_NAME
+    # 출처 있는 두 번째 사진의 이름으로 주소를 받았다.
+    assert seen[1].url.path.endswith("/photos/AelY_photo_reference/media")
+
+
+@pytest.mark.asyncio
+async def test_모든_사진에_출처가_없으면_사진을_쓰지_않는다() -> None:
+    seen: list[httpx.Request] = []
+    payload = _search_payload(photos=[_photo(author=None)])
+    provider, client = _provider(
+        _handler(search=httpx.Response(200, json=payload), seen=seen)
+    )
+
+    async with client:
+        assert await provider.find_cover_photo(name="출처 없는 곳") is None
+
+    # 쓸 수 없는 사진의 주소를 받아 올 이유가 없다.
+    assert len(seen) == 1

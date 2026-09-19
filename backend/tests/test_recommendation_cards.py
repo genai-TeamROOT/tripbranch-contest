@@ -10,6 +10,7 @@ import pytest
 
 from app.domain.models import StoredPlaceDetail
 from app.domain.parking import ParkingAvailability
+from app.providers.google_place_photos import GooglePlaceCoverPhoto
 from app.repositories.fake_places import FakePlaceDetailsRepository
 from app.repositories.supabase_places import SupabaseRepositoryError
 from app.tools.contracts import ToolStatus
@@ -326,6 +327,14 @@ async def test_fake_repository_exercises_parking_and_category_paths() -> None:
     assert cafe.thumbnail_url is None
 
 
+_GOOGLE_PHOTO = GooglePlaceCoverPhoto(
+    url="https://example.test/google.jpg",
+    author_name="북극돼지",
+    author_uri="https://maps.google.com/maps/contrib/1",
+    google_maps_uri="https://www.google.com/maps/place/x",
+)
+
+
 class SpyGooglePhotoProvider:
     """호출 인자를 기록하는 가짜 Google 사진 Provider.
 
@@ -335,11 +344,11 @@ class SpyGooglePhotoProvider:
 
     def __init__(
         self,
-        photo_url: str | None = "https://example.test/google.jpg",
+        photo: GooglePlaceCoverPhoto | None = _GOOGLE_PHOTO,
         *,
         error: Exception | None = None,
     ) -> None:
-        self.photo_url = photo_url
+        self.photo = photo
         self.error = error
         self.calls: list[dict[str, object]] = []
 
@@ -350,7 +359,7 @@ class SpyGooglePhotoProvider:
         address: str | None = None,
         latitude: float | None = None,
         longitude: float | None = None,
-    ) -> str | None:
+    ) -> GooglePlaceCoverPhoto | None:
         self.calls.append(
             {
                 "name": name,
@@ -361,7 +370,7 @@ class SpyGooglePhotoProvider:
         )
         if self.error is not None:
             raise self.error
-        return self.photo_url
+        return self.photo
 
 
 @pytest.mark.asyncio
@@ -392,7 +401,7 @@ async def test_이미지가_없는_장소만_google로_채운다() -> None:
 async def test_google이_사진을_못_찾으면_자리표시로_남는다() -> None:
     rows = {"1": _row("1", first_image_url=None, thumbnail_url=None)}
     tool = RecommendationCardTool(
-        FakeRepository(rows), google_photo_provider=SpyGooglePhotoProvider(None)
+        FakeRepository(rows), google_photo_provider=SpyGooglePhotoProvider(photo=None)
     )
 
     result = await tool.get_cards(["1"])

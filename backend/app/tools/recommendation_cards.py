@@ -27,6 +27,7 @@ from app.domain.models import StoredPlaceDetail
 from app.domain.operating_hours import OperatingSchedule, resolve_operating_schedule
 from app.domain.parking import ParkingAvailability, normalize_parking
 from app.errors import AppError
+from app.providers.google_place_photos import GooglePlaceCoverPhoto
 from app.providers.protocols import GooglePlacePhotoProviderProtocol
 from app.providers.tour_category_registry import (
     TourCategoryRegistry,
@@ -36,6 +37,20 @@ from app.repositories.protocols import PlaceDetailsReadRepository
 from app.tools.contracts import ToolError, ToolStatus
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class PhotoAttribution:
+    """사진을 표시할 때 함께 내보내야 하는 출처.
+
+    Google Maps Platform 정책은 사진에 작성자를 밝히고, 사용자가 원본 사진을
+    Google 지도에서 볼 수 있게 하라고 요구한다. 그래서 이름만이 아니라 프로필
+    링크와 원본 링크까지 화면까지 들고 간다.
+    """
+
+    author_name: str
+    author_uri: str | None = None
+    source_uri: str | None = None
 
 
 @dataclass(frozen=True)
@@ -72,6 +87,12 @@ class RecommendationCard:
     # 요청마다 외부 확인이 5~10건 붙고 그만큼 응답이 늦어진다 — 2%를 잡자고 100%를
     # 느리게 만드는 거래다. 두 주소를 다 넘기고 실패한 카드에서만 프론트가 갈아탄다.
     fallback_thumbnail_url: str | None = None
+    # 썸네일이 Google Places에서 온 경우에만 채워진다. 관광공사 이미지에는 없다.
+    #
+    # **이 값이 있으면 화면에 반드시 표시해야 한다.** Google 정책이 사진을 보여줄
+    # 때 작성자 표기를 요구한다. 표시할 수 없으면 사진도 쓰면 안 되므로, Provider가
+    # 출처 없는 사진을 애초에 주지 않는다.
+    photo_attribution: PhotoAttribution | None = None
 
 
 @dataclass(frozen=True)
@@ -186,7 +207,7 @@ class RecommendationCardTool:
         if not targets:
             return cards
 
-        async def fetch(card: RecommendationCard) -> str | None:
+        async def fetch(card: RecommendationCard) -> GooglePlaceCoverPhoto | None:
             row = rows.get(card.content_id)
             return await provider.find_cover_photo(
                 name=card.name or "",
@@ -195,28 +216,37 @@ class RecommendationCardTool:
                 longitude=card.longitude,
             )
 
-        photo_urls = await asyncio.gather(
+        photos = await asyncio.gather(
             *(fetch(cards[index]) for index in targets),
             return_exceptions=True,
         )
 
         filled = list(cards)
         succeeded = 0
-        for index, photo_url in zip(targets, photo_urls, strict=True):
-            if isinstance(photo_url, BaseException):
+        for index, photo in zip(targets, photos, strict=True):
+            if isinstance(photo, BaseException):
                 # Provider는 None으로 답하기로 했으므로 여기 들어오면 계약이
                 # 깨진 것이다. 추천은 그대로 내보내되 원인을 남긴다.
                 logger.warning(
                     "Google 사진 보강이 예외로 끝났습니다: place_id=%s error=%s",
                     cards[index].content_id,
-                    photo_url,
+                    photo,
                 )
                 continue
-            if not photo_url:
+            if photo is None:
                 continue
             # 대안 주소는 두지 않는다. Google이 준 주소는 한 개뿐이고, 원래
             # 비어 있던 관광공사 주소를 대안으로 넣으면 죽은 주소를 다시 부른다.
-            filled[index] = replace(cards[index], thumbnail_url=photo_url)
+            # 출처는 사진과 한 몸이다 — 둘 중 하나만 실리는 경로를 만들지 않는다.
+            filled[index] = replace(
+                cards[index],
+                thumbnail_url=photo.url,
+                photo_attribution=PhotoAttribution(
+                    author_name=photo.author_name,
+                    author_uri=photo.author_uri,
+                    source_uri=photo.google_maps_uri,
+                ),
+            )
             succeeded += 1
 
         if targets:
@@ -289,6 +319,7 @@ def _status(*, requested: int, found: int) -> ToolStatus:
 
 
 __all__ = [
+    "PhotoAttribution",
     "RecommendationCard",
     "RecommendationCardResult",
     "RecommendationCardTool",
