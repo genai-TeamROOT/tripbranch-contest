@@ -1,0 +1,118 @@
+name: Deploy backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+# 배포가 겹치면 EC2에서 컨테이너를 서로 내리고 올려 상태를 알 수 없게 된다.
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: tripbranch-contest-backend
+  CONTAINER_NAME: tripbranch-contest-backend
+  # 인스턴스 ID는 저장소 변수(Settings -> Secrets and variables -> Actions -> Variables)에
+  # 둔다. 본 저장소는 워크플로우에 직접 적었지만, 여기서는 인스턴스를 다시 만들 때
+  # (유형 변경 실패, 복구 등) 코드를 고치지 않아도 되게 밖으로 뺐다.
+  INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
+
+jobs:
+  deploy:
+    name: Build image and deploy to EC2
+    runs-on: ubuntu-latest
+    # OIDC로 AWS 역할을 맡는다. 공개 저장소라 만료되지 않는 액세스 키를
+    # Secrets에 두지 않는다 — 실행할 때마다 짧게 사는 토큰을 받아쓴다.
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required variables
+        run: |
+          # 변수를 안 채운 채 돌리면 SSM 단계까지 가서야 알기 어려운 오류로 죽는다.
+          if [ -z "$INSTANCE_ID" ]; then
+            echo "저장소 변수 EC2_INSTANCE_ID가 비어 있습니다. docs/deploy.md를 참고하세요."
+            exit 1
+          fi
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::577101745292:role/github-actions-deploy-contest
+          aws-region: ${{ env.AWS_REGION }}
+
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE="$REGISTRY/$ECR_REPOSITORY"
+          docker build -f backend/Dockerfile -t "$IMAGE:$IMAGE_TAG" -t "$IMAGE:latest" backend
+          docker push "$IMAGE:$IMAGE_TAG"
+          docker push "$IMAGE:latest"
+
+          # 경량 이미지가 실제로 몇 MB인지 배포 로그에 남긴다. extras를 되살리면
+          # 여기가 바로 튀어서, 되돌려야 할 변경을 로그만 보고 알아챌 수 있다.
+          docker image inspect "$IMAGE:$IMAGE_TAG" --format 'image size: {{.Size}} bytes'
+
+      - name: Deploy on EC2 via SSM
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE="$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+          # 스크립트를 base64로 싸서 보낸다. 셸 문법을 그대로 SSM 파라미터에 넣으면
+          # YAML -> bash -> JSON -> 원격 셸까지 네 단계를 거치며 이스케이프가 깨진다
+          # ($(...), 리다이렉션, 중괄호가 특히). base64는 그 단계들에 안전한 문자만 쓴다.
+          SCRIPT=$(cat <<SCRIPT_END
+          set -euo pipefail
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REGISTRY
+          docker pull $IMAGE
+          docker rm -f $CONTAINER_NAME 2>/dev/null || true
+          docker run -d --name $CONTAINER_NAME --restart unless-stopped \
+            -p 127.0.0.1:8000:8000 --env-file /opt/tripbranch/.env $IMAGE
+          for i in \$(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/api/health >/dev/null 2>&1; then
+              echo "health ok after \${i} tries"
+              docker image prune -af --filter until=72h >/dev/null
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "health check failed"
+          docker logs --tail 50 $CONTAINER_NAME
+          exit 1
+          SCRIPT_END
+          )
+          ENCODED=$(printf '%s' "$SCRIPT" | base64 | tr -d '\n')
+
+          # base64의 '=' 패딩이 --parameters 축약 문법(key=value)을 깨뜨리므로 JSON 파일로 넘긴다.
+          printf '{"commands":["echo %s | base64 -d | bash"]}' "$ENCODED" > /tmp/ssm-params.json
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --comment "deploy $IMAGE_TAG" \
+            --parameters file:///tmp/ssm-params.json \
+            --query Command.CommandId --output text)
+
+          echo "SSM command: $COMMAND_ID"
+          aws ssm wait command-executed --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" || true
+
+          STATUS=$(aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --query Status --output text)
+          aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --query StandardOutputContent --output text
+          if [ "$STATUS" != "Success" ]; then
+            aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" --query StandardErrorContent --output text
+            echo "deploy failed: $STATUS"
+            exit 1
+          fi
