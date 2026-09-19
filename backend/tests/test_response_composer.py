@@ -457,7 +457,7 @@ class TestComposeChatMessageRecommendAndModify:
             tool_clarification=clarification,
             llm=_StubLLM(),
         )
-        assert message == "어디 근처에서 찾아드릴까요? 현재 위치나 원하시는 지역을 알려주세요."
+        assert message == "어디 근처에서 찾아드릴까요? 원하시는 지역을 알려주세요."
 
     @pytest.mark.asyncio
     async def test_tool_stage_needs_clarification_missing_clarification_falls_back(self) -> None:

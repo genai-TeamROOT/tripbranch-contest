@@ -46,7 +46,6 @@ interface ConditionDebugMessageProps {
   userInput: string;
   conditions: InterpretedConditions;
   mergedConditions: UserConditions | null;
-  deviceLocation: string | null;
   intent: Intent | null;
   status: "pending" | "confirmed";
 }
@@ -65,7 +64,6 @@ export function ConditionDebugMessage({
   userInput,
   conditions,
   mergedConditions,
-  deviceLocation,
   intent,
   status,
 }: ConditionDebugMessageProps) {
@@ -90,12 +88,6 @@ export function ConditionDebugMessage({
         <div>
           <dt className="font-medium">사용자 원문</dt>
           <dd>{userInput}</dd>
-        </div>
-        <div>
-          <dt className="font-medium">기기 GPS (위도,경도)</dt>
-          <dd>
-            {deviceLocation ? `${deviceLocation} · 장소 검색 기준으로 사용` : "미사용"}
-          </dd>
         </div>
         {effective ? (
           CONDITION_LABELS.map(([key, label]) => (

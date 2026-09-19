@@ -3,7 +3,7 @@
  * 입력: 컴포저의 user_input 문자열과 상황 버튼 선택.
  * 출력: TripContext 메시지/조건 저장, /chat 이동, 로딩/오류 상태.
  * 호출 시점: 사용자가 루트 화면에서 여행 상황을 제출할 때 호출된다.
- * TODO: 위치 권한과 추천 예시를 실제 서비스 데이터에 맞게 보강한다.
+ * TODO: 추천 예시를 실제 서비스 데이터에 맞게 보강한다.
  * 근거: package_D/DESIGN_SYSTEM.md §10.1·§10.5.
  *
  * ChatPage와 같은 ChatComposer를 쓴다 — Figma가 홈도 채팅형 하단 고정 바를 쓰기
@@ -28,7 +28,6 @@ import { useLocationSettings } from "../hooks/useLocationSettings";
 import { useTripDispatch, useTripState } from "../state/TripContext";
 import { buildAgentStageTimings } from "../utils/agentTiming";
 import { buildLocationChipModel, readSubstitutedOrigin } from "../utils/locationChip";
-import { getBrowserDeviceLocation } from "../utils/geolocation";
 
 const HOME_TEXT = {
   ko: {
@@ -42,11 +41,6 @@ const HOME_TEXT = {
       lead: "지금 ",
       accent: "상황",
       tail: "을 말해주시면 바로 대체 장소를 찾아볼게요.",
-    },
-    /* 두 문장이라 좁은 화면에서는 문장마다 한 줄씩 간다 — 렌더 쪽 주석 참고. */
-    locationNotice: {
-      first: "추천 시작 시 브라우저가 위치 권한을 요청합니다.",
-      second: "허용한 위치는 현재 채팅 세션의 장소 탐색 기준으로 사용됩니다.",
     },
     prompts: [
       "비를 피할 실내 장소가 필요해",
@@ -64,10 +58,6 @@ const HOME_TEXT = {
       lead: "Tell us your ",
       accent: "situation",
       tail: ", and we’ll find a place to visit in Seoul.",
-    },
-    locationNotice: {
-      first: "Your browser will ask for location permission before starting.",
-      second: "We use it as the search point for this chat session.",
     },
     prompts: [
       "I need an indoor place to avoid the rain",
@@ -119,42 +109,19 @@ export function HomePage() {
     setErrorMessage(null);
 
     /*
-     * **출발지를 정해 뒀으면 GPS를 부르지 않는다.** 예전에는 무조건 물어보고 실패하면
-     * 대화 자체를 막았다. 그런데 위치 설정에서 안국역을 골라 둔 사용자에게 기기 좌표는
-     * 필요 없다 — 서버가 이동시간을 재는 출발점은 그 이름이고(D-067), 이름을 좌표로
-     * 바꾸는 일은 백엔드가 한다. 필요도 없는 권한 팝업을 띄우고, 거절하면 아무것도 못
-     * 하게 만들던 자리였다.
-     *
-     * **GPS 실패가 곧 중단이 되지 않게 한다.** 좌표 없이 보내면 백엔드가 어디서
-     * 찾을지 되묻는다(location_required). 예전에는 여기서 막혀 사용자가 할 수 있는
-     * 일이 없었다 — 거절했으면 되묻기에 답해서 계속 갈 수 있어야 한다.
+     * **브라우저 위치를 묻지 않는다.** 이 버전은 GPS를 쓰지 않고 위치를 이름으로만
+     * 받는다(위치 설정 화면, 또는 발화 속 장소). 아무 위치도 없으면 그대로 보낸다 —
+     * 백엔드가 어디서 찾을지 되묻고(location_required) 빠른 선택 버튼을 붙여 주므로,
+     * 여기서 막거나 위치 설정으로 돌려보낼 이유가 없다.
      */
     const settings = loadLocationSettings();
-    let deviceLocation: string | null = state.device_location;
-    let capturedAt: number | null = null;
-    if (!settings.origin && !deviceLocation) {
-      try {
-        // 사용자 동작 직후 호출해야 브라우저가 위치 권한 팝업을 정상적으로 표시한다.
-        deviceLocation = await getBrowserDeviceLocation();
-        capturedAt = Date.now();
-      } catch {
-        /* 좌표 없이 보낸다. 화면에 오류를 띄우지 않는 이유는 답변이 곧 되묻기로
-           이어져, 오류 문구와 되묻기가 겹쳐 뜨면 무엇을 하라는 건지 흐려지기
-           때문이다. */
-        deviceLocation = null;
-      }
-    }
 
-    // 위치 확보 직후 채팅 화면으로 이동한다. 응답을 기다리는 동안 A→B→C→D 처리
+    // 곧바로 채팅 화면으로 이동한다. 응답을 기다리는 동안 A→B→C→D 처리
     // 단계를 동적으로 보여주고, /api/chat 완료 시 실제 결과로 교체한다.
     dispatch({ type: "RESET" });
     dispatch({
       type: "START_CHAT_TURN",
-      payload: {
-        userInput: trimmed,
-        deviceLocation: deviceLocation ?? undefined,
-        deviceLocationCapturedAt: capturedAt ?? undefined,
-      },
+      payload: { userInput: trimmed },
     });
     navigate(targetPath);
 
@@ -174,7 +141,6 @@ export function HomePage() {
           user_input: trimmed,
           language: state.language,
           session_id: null,
-          device_location: deviceLocation,
           selected_search_center: settings.center,
           selected_current_location: settings.origin,
         },
@@ -307,11 +273,10 @@ export function HomePage() {
      있으면 서버가 그 위치를 들고 있어서 다음 발화도 거기서 찾는다.
 
      예전 기본값이던 "종로구"는 뺐다. 지원 지역이 종로구뿐이던 시절의 값이라
-     지금은 사실이 아니고, 아무것도 모를 때 실제로 쓰이는 것은 기기 좌표다. */
+     지금은 사실이 아니다. 아무것도 모르면 칩은 "위치 미설정"이다. */
   const locationChip = buildLocationChipModel(
     locationSettings,
     state.interpreted_conditions?.location_query ?? null,
-    Boolean(state.device_location),
     /* 직전 턴이 사용자 위치를 몰라 검색지에서 거리를 쟀으면 칩도 그렇게 말한다
        (utils/locationChip.ts). 그런 턴이 아니거나 아직 한 턴도 없으면 null이라
        지금까지와 같은 모양이다. */
@@ -441,40 +406,6 @@ export function HomePage() {
           <div className="min-h-3 flex-1" />
 
           {errorMessage && <ErrorBanner message={errorMessage} />}
-
-          {/*
-           * 위치 권한 고지. 채팅 바 바로 위다(2026-09-07) — 권한을 실제로 묻는 것은
-           * 여기서 보내는 순간이라, 누르기 직전에 읽히는 자리가 맞다.
-           *
-           * 예전에는 통짜 파란 패널이라 제목 다음으로 큰 색 덩어리였다. 고지는 먼저
-           * 읽히는 글이 아니라 필요할 때 찾는 글이라 잔글씨로 내렸다.
-           *
-           * **text-muted(대비 4.76:1)보다 옅은 text-gray-400(2026-09-07)** — 실제
-           * 대비는 2.56:1로 WCAG AA(4.5:1)에 못 미친다. 11px 잔글씨라 원래도 본문
-           * 기준을 넘기지 못했었지만, 이 값은 명백히 더 내려간다. 필수로 읽어야
-           * 하는 안내가 아니라(안 읽어도 기능은 그대로 동작한다) 이 화면에서 가장
-           * 낮은 우선순위로 두기로 한 사용자 결정을 존중해 그대로 적용한다 —
-           * 다른 잔글씨(RecommendationDetailPreviewModal의 11px 캡션)에도 이미
-           * 쓰이는 값이라 새 색을 들이는 것도 아니다.
-           *
-           * **break-keep 이 있어야 낱말이 안 쪼개진다.** 한글은 기본값에서 아무
-           * 글자에서나 줄이 갈려 "채팅 세 / 션의" 처럼 끊겼다(360px 실측). keep-all
-           * 은 띄어쓰기에서만 끊는다.
-           *
-           * text-balance 는 뺐다 — 문장마다 block 이 되면 각 문장 안에서만 균형을
-           * 맞추므로 두 번째 문장이 두 줄로 쪼개질 여지만 생긴다.
-           */}
-          <p className="mt-3 break-keep text-center text-[11px] leading-relaxed text-gray-400">
-            {/*
-             * 문장마다 한 줄이다. 좁은 화면에서는 block, sm 이상에서는 inline —
-             * 넓으면 두 문장이 한 줄에 다 들어간다.
-             *
-             * 그냥 흘려보내면 두 번째 문장 첫머리("허용한")가 첫 줄 끝에 붙어
-             * 문장이 어디서 갈리는지 안 보였다(2026-09-07).
-             */}
-            <span className="block sm:inline">{text.locationNotice.first}</span>{" "}
-            <span className="block sm:inline">{text.locationNotice.second}</span>
-          </p>
         </div>
       </div>
 

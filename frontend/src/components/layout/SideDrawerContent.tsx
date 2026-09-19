@@ -19,6 +19,7 @@ import { Home, MapPin, MoreHorizontal, Route, Sparkles } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import { detachChatRequest } from "../../state/chatAbortController";
 import { useTripDispatch, useTripState } from "../../state/TripContext";
+import { useTasteEnabled } from "../../state/FeatureFlagsContext";
 import type { Language } from "../../types";
 import {
   deleteChatSession,
@@ -206,6 +207,7 @@ export function SideDrawerContent({ onNavigate }: SideDrawerContentProps) {
      서버도 빈 제목을 거부하므로 보내봐야 400이다. */
 
   const pathname = location.pathname;
+  const tasteEnabled = useTasteEnabled();
   const navItems: Array<{
     key: string;
     label: string;
@@ -220,13 +222,19 @@ export function SideDrawerContent({ onNavigate }: SideDrawerContentProps) {
       active: pathname === "/" && !hasConversation,
       onClick: goHome,
     },
-    {
-      key: "preferences",
-      label: state.language === "en" ? "Preferences" : "취향 설정",
-      icon: Sparkles,
-      active: pathname === "/preferences",
-      onClick: () => go("/preferences"),
-    },
+    /* 취향이 꺼진 서버에서는 메뉴를 뺀다(GET /api/features, FeatureFlagsContext).
+       라우트도 막혀 있어(AppRoutes) 눌러도 홈으로 돌아올 뿐이다. */
+    ...(tasteEnabled
+      ? [
+          {
+            key: "preferences",
+            label: state.language === "en" ? "Preferences" : "취향 설정",
+            icon: Sparkles,
+            active: pathname === "/preferences",
+            onClick: () => go("/preferences"),
+          },
+        ]
+      : []),
     {
       key: "location",
       label: state.language === "en" ? "Location" : "위치 설정",

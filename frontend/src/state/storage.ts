@@ -12,7 +12,8 @@ import type { ChatMessage, ChatPhase } from "../types";
 const STORAGE_KEY = "tripbranch_state";
 // 5: 개발자용 발화별 감사 기록(auditTurns)을 함께 저장.
 // 6: 위치 재확인 스누즈 마감 시각(device_location_snoozed_until) 추가.
-const STORAGE_VERSION = 6;
+// 7: GPS 제거 — device_location 관련 필드 삭제. 옛 좌표가 남은 저장본은 버린다.
+const STORAGE_VERSION = 7;
 
 interface StoredState {
   version: number;
@@ -35,13 +36,6 @@ function isTripState(value: unknown): value is TripState {
     (state.recent_follow_ups === undefined || Array.isArray(state.recent_follow_ups)) &&
     state.messages.every(isChatMessage) &&
     isChatPhase(state.phase) &&
-    (state.device_location === null || typeof state.device_location === "string") &&
-    (state.device_location_captured_at === undefined ||
-      state.device_location_captured_at === null ||
-      typeof state.device_location_captured_at === "number") &&
-    (state.device_location_snoozed_until === undefined ||
-      state.device_location_snoozed_until === null ||
-      typeof state.device_location_snoozed_until === "number") &&
     (state.error === null || typeof state.error === "string") &&
     (state.language === undefined || state.language === "ko" || state.language === "en")
   );
@@ -188,12 +182,6 @@ export function loadState(): TripState | null {
     // 된다. 이전 버전 저장본에 이 필드가 없던 경우까지 함께 null로 정규화한다.
     return {
       ...parsed.state,
-      // 기존 저장본(v5)은 위치를 받은 시각이 없다. 정확한 시각을 알 수 없는 좌표는
-      // 다음 후속 요청에서 갱신 여부를 사용자에게 묻는다.
-      device_location_captured_at: parsed.state.device_location_captured_at ?? null,
-      // 기존 저장본(v5 이하)은 스누즈 마감이 없다. null이면 정상적으로 재확인
-      // 여부를 다시 판단한다.
-      device_location_snoozed_until: parsed.state.device_location_snoozed_until ?? null,
       // 기존 저장본에는 언어가 없으므로 한국어로 자연스럽게 이어간다.
       language: parsed.state.language ?? "ko",
       agentProgress: null,

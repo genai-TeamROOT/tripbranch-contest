@@ -940,9 +940,17 @@ function TasteEvidencePanel({ item }: { item: RecommendationItem }) {
               </li>
             ))}
           </ul>
-        ) : (
+        ) : typeof embeddingScore === "number" ? (
           <p className="mt-2 text-xs text-rose-700 dark:text-rose-300">
             임베딩 검색은 실행됐지만 표시 기준을 넘는 근거 문장을 찾지 못했습니다.
+          </p>
+        ) : (
+          /* 임베딩 점수가 없으면 검색 자체가 돌지 않은 것이다(scoring.py가 임베딩을
+             안 쓴 요청에 null을 싣는다). 취향 점수는 태그 경로만으로도 생기므로
+             ("혼자"처럼 사전 코드만 있고 취향 발화가 없을 때, 임베딩 Provider가
+             없을 때) "실행됐지만"이라고 쓰면 틀린다. */
+          <p className="mt-2 text-xs text-rose-700 dark:text-rose-300">
+            이번 요청에서는 임베딩 검색이 실행되지 않아 태그 점수만 반영됐습니다.
           </p>
         )}
       </div>
@@ -1378,7 +1386,6 @@ export function DeveloperAuditPanel({
                   />
                   <DetailRow label="Session ID" value={selectedTurn.sessionId} />
                   <DetailRow label="Run ID" value={selectedTurn.runId} />
-                  <DetailRow label="기기 GPS" value={selectedTurn.deviceLocation} />
                   <DetailRow
                     label="클라이언트 소요"
                     value={formatDuration(selectedTurn.elapsedMsClient)}
@@ -1495,7 +1502,6 @@ export function DeveloperAuditPanel({
                       label="검색 중심"
                       value={selectedTurn.afterConditions?.search_center}
                     />
-                    <DetailRow label="기기 GPS" value={selectedTurn.deviceLocation} />
                     <DetailRow
                       label="API 날씨 캐시"
                       value={selectedTurn.response.state.api_context?.api_weather}

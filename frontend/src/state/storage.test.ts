@@ -47,9 +47,6 @@ const state: TripState = {
   phase: "waiting_for_debug_confirmation",
   session_id: "sess_test",
   last_turn_at: null,
-  device_location: "37.5788,126.9770",
-  device_location_captured_at: 1_785_000_000_000,
-  device_location_snoozed_until: null,
   awaiting_clarification: false,
   agentProgress: null,
   streamingIntent: null,
@@ -70,6 +67,33 @@ test("ignores invalid storage", () => {
   sessionStorage.setItem("tripbranch_state", "not json");
 
   expect(loadState()).toBeNull();
+});
+
+/* GPS를 뺀 v7부터 옛 저장본(v6)은 기기 좌표 필드를 들고 있다. 이어 쓰지 않고 버린다 —
+   남겨 두면 아무도 안 읽는 좌표가 상태에 섞여 다시 저장된다. */
+test("discards a v6 saved state that still carries device_location fields", () => {
+  sessionStorage.setItem(
+    "tripbranch_state",
+    JSON.stringify({
+      version: 6,
+      state: {
+        ...state,
+        device_location: "37.5788,126.9770",
+        device_location_captured_at: 1_785_000_000_000,
+        device_location_snoozed_until: null,
+      },
+    }),
+  );
+
+  expect(loadState()).toBeNull();
+});
+
+test("does not write device_location fields", () => {
+  saveState(state);
+
+  const raw = sessionStorage.getItem("tripbranch_state") ?? "";
+  expect(JSON.parse(raw).version).toBe(7);
+  expect(raw).not.toContain("device_location");
 });
 
 test("restores a session that contains a photo_similar_result message", () => {
@@ -280,14 +304,14 @@ test("restores a session that contains a turn_error message", () => {
   expect(restored?.messages.at(-1)).toMatchObject({ type: "turn_error" });
 });
 
-/* retryInput은 위치 갱신 실패처럼 다시 보낼 발화가 없는 경우에 안 실린다.
+/* retryInput은 사진 검색 실패처럼 다시 보낼 발화가 없는 경우에 안 실린다.
    선택 필드를 필수로 검사하면 그 대화가 통째로 버려진다. */
 test("restores a turn_error message that has no retryInput", () => {
   const stateWithTurnError: TripState = {
     ...state,
     messages: [
       ...state.messages,
-      { id: "message-turn-error", type: "turn_error", text: "현재 위치를 가져오지 못했어요." },
+      { id: "message-turn-error", type: "turn_error", text: "사진으로 장소를 찾지 못했어요." },
     ],
   };
 

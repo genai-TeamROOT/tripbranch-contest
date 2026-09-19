@@ -233,11 +233,9 @@ const TOILET_OPEN_CHIP_STYLE: Record<string, string> = {
  * 주소로 지도 검색을 폴백하고, 그것도 없으면 정보만 보여준다. */
 function PublicToiletSummary({
   item,
-  deviceLocation,
   isEn,
 }: {
   item: RealtimeInfoDetailItem;
-  deviceLocation: string | null;
   isEn: boolean;
 }) {
   const openLabel = item.details["개방 여부"] ?? "";
@@ -247,9 +245,9 @@ function PublicToiletSummary({
   const accessible = item.details["장애인화장실"];
 
   const hasCoordinates = item.latitude != null && item.longitude != null;
-  /* 출발점은 훅이 정한다(위치 설정의 출발지 → 기기 좌표). 주소만 있는 항목은 길찾기
+  /* 출발점은 훅이 정한다(위치 설정의 출발지). 주소만 있는 항목은 길찾기
      대신 장소 검색으로 여는 기존 경로가 그대로 남는다. */
-  const directions = useNaverDirections(deviceLocation);
+  const directions = useNaverDirections();
   const canRoute = (hasCoordinates && directions.canRoute) || Boolean(address);
 
   const openDirections = () => {
@@ -335,22 +333,15 @@ function PublicToiletSummary({
 
 function PublicToiletList({
   items,
-  deviceLocation,
   isEn,
 }: {
   items: RealtimeInfoDetailItem[];
-  deviceLocation: string | null;
   isEn: boolean;
 }) {
   return (
     <section className="grid gap-2 px-4 py-3">
       {items.map((item) => (
-        <PublicToiletSummary
-          key={item.title}
-          item={item}
-          deviceLocation={deviceLocation}
-          isEn={isEn}
-        />
+        <PublicToiletSummary key={item.title} item={item} isEn={isEn} />
       ))}
     </section>
   );
@@ -689,7 +680,7 @@ function ReviewSourceList({
 
 export function PlaceInfoCard({ card }: PlaceInfoCardProps) {
   const [showDetail, setShowDetail] = useState(false);
-  const { language, device_location } = useTripState();
+  const { language } = useTripState();
   const isEn = language === "en";
   const answers = Object.entries(card.answer_fields);
 
@@ -729,7 +720,6 @@ export function PlaceInfoCard({ card }: PlaceInfoCardProps) {
       {isPublicToiletCard(card) && (card.realtime_detail_items?.length ?? 0) > 0 ? (
         <PublicToiletList
           items={card.realtime_detail_items ?? []}
-          deviceLocation={device_location}
           isEn={isEn}
         />
       ) : isRealtimeParkingCard(card) && answers.length > 0 ? (

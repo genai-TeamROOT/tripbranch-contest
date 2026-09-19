@@ -1,0 +1,127 @@
+name: Deploy frontend
+
+on:
+  push:
+    # 작업 브랜치 -> develop -> 검수 -> main 순으로 올린다.
+    # main은 승격된 것만 들어오는 브랜치이므로 승격 = 배포로 둔다.
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-northeast-2
+  # 버킷 이름과 배포 ID는 저장소 변수에 둔다(Settings -> Secrets and variables ->
+  # Actions -> Variables). docs/deploy.md에 채울 목록이 있다.
+  S3_BUCKET: ${{ vars.S3_BUCKET }}
+  CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+
+jobs:
+  deploy:
+    name: Build and deploy to S3 + CloudFront
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required variables
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          # 변수를 안 채운 채 돌리면 빈 버킷 이름으로 sync를 시도해 알기 어려운
+          # 오류가 난다. 여기서 이름을 찍어 멈춘다.
+          #
+          # Supabase 두 개도 여기서 막는다. 빠져도 빌드는 성공하는데,
+          # `getSupabaseClient()`가 첫 호출에서 SupabaseConfigError를 던져
+          # (frontend/src/auth/supabaseClient.ts) 로그인 경로가 통째로 죽는다.
+          # 배포는 초록불인데 심사위원이 로그인을 못 하는 상황이 된다.
+          missing=""
+          if [ -z "$S3_BUCKET" ]; then missing="$missing S3_BUCKET"; fi
+          if [ -z "$CLOUDFRONT_DISTRIBUTION_ID" ]; then missing="$missing CLOUDFRONT_DISTRIBUTION_ID"; fi
+          if [ -z "$VITE_API_BASE_URL" ]; then missing="$missing VITE_API_BASE_URL"; fi
+          if [ -z "$VITE_SUPABASE_URL" ]; then missing="$missing VITE_SUPABASE_URL"; fi
+          if [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then missing="$missing VITE_SUPABASE_PUBLISHABLE_KEY"; fi
+          if [ -n "$missing" ]; then
+            echo "저장소 변수가 비어 있습니다:$missing — docs/deploy.md를 참고하세요."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Build
+        # VITE_* 는 빌드 시점에 번들에 구워진다. 런타임에 바꿀 수 없으므로
+        # 값이 바뀌면 프론트를 다시 배포해야 한다.
+        #
+        # 전부 Variables(Secrets 아님)에 둔다. 셋 다 브라우저로 내려가는 값이라
+        # 애초에 비밀이 아니고, Secrets에 넣으면 빌드 산출물에서 마스킹돼 디버깅만
+        # 어려워진다. 서버 전용 키(SUPABASE_SECRET_KEY 등)는 여기 오지 않는다 —
+        # 그것들은 EC2의 /opt/tripbranch/.env에만 있다.
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: npm run build
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::577101745292:role/github-actions-deploy-contest
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        run: |
+          # 캐시 수명을 파일명 기준으로 가른다.
+          #
+          # `assets/`만 Vite가 내용 해시를 붙인다. 내용이 바뀌면 파일명이 바뀌므로
+          # 영구 캐시해도 낡은 것을 잡고 있을 수 없다.
+          #
+          # **최상위 파일은 전부 이름이 고정이라 영구 캐시하면 안 된다.**
+          # index.html뿐 아니라 sw.js, registerSW.js, manifest.webmanifest,
+          # 아이콘들이 여기 있다. 특히 서비스 워커를 1년 캐시에 넣으면 새 배포가
+          # 브라우저에 영영 닿지 않는다 — vite.config.ts가 registerType을
+          # autoUpdate로 둔 이유("서비스워커가 낡은 화면을 붙잡고 있는 사고가
+          # 훨씬 비싸다")를 CDN 층에서 되살리는 셈이 된다.
+          #
+          # 순서가 중요하다. 자산을 먼저 올려야 새 index.html이 가리키는 파일이
+          # 이미 버킷에 있다. 반대로 하면 그 사이에 접속한 사람이 404를 본다.
+          aws s3 sync dist "s3://$S3_BUCKET" \
+            --delete \
+            --exclude "*" --include "assets/*" \
+            --cache-control "public, max-age=31536000, immutable"
+
+          aws s3 sync dist "s3://$S3_BUCKET" \
+            --delete \
+            --exclude "assets/*" \
+            --cache-control "no-cache, must-revalidate"
+
+      - name: Invalidate CloudFront
+        run: |
+          # `/*` 하나로 전부 지운다. 무효화 요금은 경로 단위로 세는데 와일드카드는
+          # 1경로로 치므로(월 1,000경로 무료) 비용은 그대로 0이다.
+          #
+          # 최상위에 이름이 고정인 파일이 여럿이라(index.html, sw.js, registerSW.js,
+          # manifest.webmanifest, 아이콘) 목록으로 적으면 나중에 파일이 하나 늘 때
+          # 조용히 빠진다. 해시 붙은 assets까지 같이 지워지지만, 어차피 새 이름으로
+          # 한 번 더 받아갈 뿐이라 손해가 없다.
+          ID=$(aws cloudfront create-invalidation \
+            --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
+            --paths "/*" \
+            --query Invalidation.Id --output text)
+          echo "invalidation: $ID"

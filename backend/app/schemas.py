@@ -22,6 +22,17 @@ class HealthResponse(BaseModel):
     status: str
 
 
+class FeaturesResponse(BaseModel):
+    """화면이 켜고 끌 기능 목록(GET /api/features).
+
+    **설정값을 그대로 노출하지 않고 화면에 필요한 판정만 싣는다.** 지금은 후기·블로그
+    데이터를 쓰는 기능 묶음 하나다(`settings.taste_evidence_enabled`). 꺼져 있으면
+    화면이 "취향 설정" 메뉴와 /preferences를 숨긴다.
+    """
+
+    taste_enabled: bool
+
+
 class ErrorBody(BaseModel):
     code: str
     message: str

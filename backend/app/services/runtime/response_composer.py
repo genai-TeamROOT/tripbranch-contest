@@ -170,7 +170,7 @@ _NO_DATA_MESSAGE = (
 # C 단계 needs_clarification의 code별 템플릿. A 초안 — 팀 공유 후 피드백으로 보완 예정
 # (docs/design/agent-response-generation.md §5 결정사항 3).
 _CLARIFICATION_TEMPLATES: dict[str, str] = {
-    "location_required": "어디 근처에서 찾아드릴까요? 현재 위치나 원하시는 지역을 알려주세요.",
+    "location_required": "어디 근처에서 찾아드릴까요? 원하시는 지역을 알려주세요.",
     "location_ambiguous": (
         "말씀하신 장소가 여러 곳으로 해석돼요. 아래 말씀하신 장소가 있으면 선택해주세요. "
         "원하시는 장소가 없다면 더 구체적으로 말씀해주셔야 트리비가 이해할 수 있어요!"

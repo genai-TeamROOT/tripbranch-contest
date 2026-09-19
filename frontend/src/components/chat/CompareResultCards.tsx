@@ -1,8 +1,8 @@
 /*
  * 역할: COMPARE(TRAVEL_TIME) 응답의 장소별 실측 거리·수단별 소요시간을 카드로 보여준다.
- * 입력: ComparisonResult(비교 기준 + 장소별 비교 사실), 길찾기 출발점으로 쓸 deviceLocation.
+ * 입력: ComparisonResult(비교 기준 + 장소별 비교 사실).
  * 출력: 비교 대상 장소마다 거리·도보/자동차/대중교통 소요시간을 한눈에 보는 카드 목록.
- *       카드를 누르면 RECOMMEND 상세 카드와 같은 방식(TP-120)으로 "현재 위치 → 그 장소"
+ *       카드를 누르면 RECOMMEND 상세 카드와 같은 방식(TP-120)으로 "출발지 → 그 장소"
  *       네이버지도 대중교통 길찾기 딥링크가 열린다.
  * 호출 시점: ChatMessageList가 compare_result 메시지를 렌더링할 때 호출된다.
  *
@@ -17,8 +17,6 @@ import { useNaverDirections } from "../../hooks/useNaverDirections";
 
 interface CompareResultCardsProps {
   comparison: ComparisonResult;
-  /** 길찾기 출발점("위도,경도"). RECOMMEND 상세 카드와 같은 소스(디바이스 GPS)를 쓴다. */
-  deviceLocation?: string | null;
 }
 
 const TRAVEL_MODES: {
@@ -40,23 +38,15 @@ function fastestMinutes(item: ComparisonItem): number | null {
   return values.length > 0 ? Math.min(...values) : null;
 }
 
-function CompareTravelCard({
-  item,
-  isFastest,
-  deviceLocation,
-}: {
-  item: ComparisonItem;
-  isFastest: boolean;
-  deviceLocation?: string | null;
-}) {
+function CompareTravelCard({ item, isFastest }: { item: ComparisonItem; isFastest: boolean }) {
   const modeEntries = TRAVEL_MODES.map(({ label, field }) => ({
     label,
     minutes: item[field],
   })).filter((entry): entry is { label: string; minutes: number } => entry.minutes !== null);
 
-  /* 출발점은 훅이 정한다(위치 설정의 출발지 → 기기 좌표). 여기서는 이 카드가 목적지
+  /* 출발점은 훅이 정한다(위치 설정의 출발지). 여기서는 이 카드가 목적지
      좌표를 갖고 있는지만 본다 — 그건 카드마다 다른 사실이다. */
-  const directions = useNaverDirections(deviceLocation);
+  const directions = useNaverDirections();
   const canRoute = item.latitude != null && item.longitude != null && directions.canRoute;
 
   const openDirections = () => {
@@ -128,7 +118,7 @@ function CompareTravelCard({
   );
 }
 
-export function CompareResultCards({ comparison, deviceLocation }: CompareResultCardsProps) {
+export function CompareResultCards({ comparison }: CompareResultCardsProps) {
   if (comparison.criteria !== "travel_time") return null;
 
   const fastest = Math.min(
@@ -142,7 +132,6 @@ export function CompareResultCards({ comparison, deviceLocation }: CompareResult
           key={item.place_id}
           item={item}
           isFastest={Number.isFinite(fastest) && fastestMinutes(item) === fastest}
-          deviceLocation={deviceLocation}
         />
       ))}
     </ul>

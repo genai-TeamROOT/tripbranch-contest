@@ -10,6 +10,7 @@ from __future__ import annotations
 import pytest
 
 from app.auth.principal import Principal
+from app.config import settings
 from app.schemas import Companion, ConcentrationIntent, Environment, UserConditions
 from app.services.runtime.agent_runtime import _saved_taste_query
 from app.state import preferences as state_preferences
@@ -17,6 +18,17 @@ from app.state.schema import UserPreference
 from app.state.store import InMemoryStateStore
 
 _USER = "user-1"
+
+
+@pytest.fixture(autouse=True)
+def _taste_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    """이 파일은 취향 스위치가 켜진 배선을 본다. conftest는 끈다.
+
+    꺼져 있으면 `_saved_taste_query()`가 저장소를 읽기 전에 None을 돌려주므로,
+    켜지 않으면 "저장값 없음"을 기대하는 테스트가 엉뚱한 이유로 통과한다.
+    꺼진 경우는 맨 아래 테스트가 따로 본다.
+    """
+    monkeypatch.setattr(settings, "taste_evidence_enabled", True)
 
 
 def _principal() -> Principal:
@@ -185,3 +197,13 @@ def test_공백만_있는_발화는_말하지_않은_것으로_본다(spoken: st
     result = _saved_taste_query(UserConditions(taste_query=spoken), _principal(), store)
 
     assert result == "아늑한 공간"
+
+
+def test_취향_스위치가_꺼지면_저장값을_읽지_않는다(monkeypatch: pytest.MonkeyPatch) -> None:
+    """꺼진 동안 저장값은 채점에 실리지 않는다. 저장소 내용은 그대로다."""
+    store = _store_with(_chip("아늑한 공간", "preference", "cozy"))
+    monkeypatch.setattr(settings, "taste_evidence_enabled", False)
+
+    assert _saved_taste_query(UserConditions(), _principal(), store) is None
+    # 지우거나 고치지 않는다 — 다시 켜면 그대로 쓰인다.
+    assert [item.label for item in state_preferences.get_items(store, _USER)] == ["아늑한 공간"]

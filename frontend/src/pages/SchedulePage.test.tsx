@@ -66,7 +66,7 @@ function seedScheduleState() {
   sessionStorage.setItem(
     "tripbranch_state",
     JSON.stringify({
-      version: 6,
+      version: 7,
       state: {
         language: "ko",
         user_input: "",
@@ -113,9 +113,6 @@ function seedScheduleState() {
         phase: "ready",
         error: null,
         session_id: null,
-        device_location: null,
-        device_location_captured_at: null,
-        device_location_snoozed_until: null,
         awaiting_clarification: false,
         saved_places: [],
         agentProgress: null,

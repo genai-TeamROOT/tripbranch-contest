@@ -15,6 +15,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import { RequireUser } from "./auth/RequireUser";
 import { TripProvider } from "./state/TripContext";
+import { FeatureFlagsProvider } from "./state/FeatureFlagsContext";
 import { AppShell } from "./components/layout/AppShell";
 import { PageTransition } from "./components/layout/PageTransition";
 import { RouteErrorBoundary } from "./components/RouteErrorBoundary";
@@ -60,58 +61,61 @@ function RouteFallback() {
 function App() {
   return (
     <AuthProvider>
-      <TripProvider>
-        <BrowserRouter>
-          {/* 청크를 못 받으면 흰 화면 대신 안내가 뜬다 — Suspense 바깥이어야 잡는다. */}
-          <RouteErrorBoundary>
-            <Suspense fallback={<RouteFallback />}>
-              <Routes>
-                {/*
-                 * 인증 화면들은 서로 오가는 흐름이라(로그인 -> 회원가입 ->
-                 * 되돌아오기) 전환이 특히 눈에 띈다. pathKey를 경로 문자열로
-                 * 직접 주는 이유는, 같은 PageTransition 자리에 다른 화면이
-                 * 들어오면 React가 래퍼를 재사용해 애니메이션이 다시 재생되지
-                 * 않기 때문이다.
-                 *
-                 * 셸 밖이라 fullHeight는 켜지 않는다 — 각 화면이 min-h-dvh로
-                 * 스스로 높이를 잡는다.
-                 */}
-                <Route
-                  path="/login"
-                  element={
-                    <PageTransition pathKey="/login">
-                      <LoginPage />
-                    </PageTransition>
-                  }
-                />
-                {/* 회원가입·아이디찾기·비밀번호찾기는 아직 백엔드가 없는 UI 목업이다(D-062 Phase 5). */}
-                <Route
-                  path="/signup"
-                  element={
-                    <PageTransition pathKey="/signup">
-                      <SignupPage />
-                    </PageTransition>
-                  }
-                />
-                <Route
-                  path="/reset-password"
-                  element={
-                    <PageTransition pathKey="/reset-password">
-                      <ResetPasswordPage />
-                    </PageTransition>
-                  }
-                />
-                {/* 재설정 메일의 링크가 돌아오는 자리. Supabase 대시보드의
+      {/* 기능 스위치는 로그인과 무관한 서버 설정이라 관문(RequireUser)보다 바깥에서
+          한 번만 받는다. 라우트 표(/preferences)와 사이드바가 함께 읽는다. */}
+      <FeatureFlagsProvider>
+        <TripProvider>
+          <BrowserRouter>
+            {/* 청크를 못 받으면 흰 화면 대신 안내가 뜬다 — Suspense 바깥이어야 잡는다. */}
+            <RouteErrorBoundary>
+              <Suspense fallback={<RouteFallback />}>
+                <Routes>
+                  {/*
+                   * 인증 화면들은 서로 오가는 흐름이라(로그인 -> 회원가입 ->
+                   * 되돌아오기) 전환이 특히 눈에 띈다. pathKey를 경로 문자열로
+                   * 직접 주는 이유는, 같은 PageTransition 자리에 다른 화면이
+                   * 들어오면 React가 래퍼를 재사용해 애니메이션이 다시 재생되지
+                   * 않기 때문이다.
+                   *
+                   * 셸 밖이라 fullHeight는 켜지 않는다 — 각 화면이 min-h-dvh로
+                   * 스스로 높이를 잡는다.
+                   */}
+                  <Route
+                    path="/login"
+                    element={
+                      <PageTransition pathKey="/login">
+                        <LoginPage />
+                      </PageTransition>
+                    }
+                  />
+                  {/* 회원가입·아이디찾기·비밀번호찾기는 아직 백엔드가 없는 UI 목업이다(D-062 Phase 5). */}
+                  <Route
+                    path="/signup"
+                    element={
+                      <PageTransition pathKey="/signup">
+                        <SignupPage />
+                      </PageTransition>
+                    }
+                  />
+                  <Route
+                    path="/reset-password"
+                    element={
+                      <PageTransition pathKey="/reset-password">
+                        <ResetPasswordPage />
+                      </PageTransition>
+                    }
+                  />
+                  {/* 재설정 메일의 링크가 돌아오는 자리. Supabase 대시보드의
                     Redirect URLs에 이 주소가 있어야 실제로 여기로 온다. */}
-                <Route
-                  path="/reset-password/new"
-                  element={
-                    <PageTransition pathKey="/reset-password/new">
-                      <NewPasswordPage />
-                    </PageTransition>
-                  }
-                />
-                {/* 로컬 개발 서버에서만 이 라우트를 등록한다. RequireUser는 로그인
+                  <Route
+                    path="/reset-password/new"
+                    element={
+                      <PageTransition pathKey="/reset-password/new">
+                        <NewPasswordPage />
+                      </PageTransition>
+                    }
+                  />
+                  {/* 로컬 개발 서버에서만 이 라우트를 등록한다. RequireUser는 로그인
                     여부만 보지 신원 종류는 안 보므로, 로그인한 사용자라면 누구나
                     URL을 직접 쳐서 들어올 수 있었다 — 홈 화면의 진입 칩만 숨기는
                     것으로는 막히지 않는다. 백엔드도 이 화면이 쓰는 감사 API
@@ -119,38 +123,39 @@ function App() {
                     등록해 배포 환경에서 404를 돌려주고 있어 같은 원칙이다.
                     Routes의 자식은 React가 순회하므로 조건부 렌더링이 그대로
                     동작한다(react-router v6 공식 패턴). */}
-                {import.meta.env.DEV && (
+                  {import.meta.env.DEV && (
+                    <Route
+                      path="/dev-chat"
+                      element={
+                        <RequireUser>
+                          <DeveloperChatPage />
+                        </RequireUser>
+                      }
+                    />
+                  )}
+                  {/* 운영 점검 화면은 사용자 신원과 무관한 내부 도구라 관문 밖에 둔다. */}
+                  <Route path="/dev-ops" element={<DeveloperOpsPage />} />
+                  <Route path="/confirm" element={<Navigate to="/chat" replace />} />
+                  <Route path="/results" element={<Navigate to="/chat" replace />} />
+                  {/*
+                   * 신원이 필요한 화면 전부(/, /chat, /preferences, /location, /schedule,
+                   * 그리고 알 수 없는 경로)를 여기서 한 번에 받는다. AppShell 안의 AppRoutes가
+                   * 실제 화면을 고른다 — RequireUser를 화면마다 반복하지 않기 위해서다.
+                   */}
                   <Route
-                    path="/dev-chat"
+                    path="*"
                     element={
                       <RequireUser>
-                        <DeveloperChatPage />
+                        <AppShell />
                       </RequireUser>
                     }
                   />
-                )}
-                {/* 운영 점검 화면은 사용자 신원과 무관한 내부 도구라 관문 밖에 둔다. */}
-                <Route path="/dev-ops" element={<DeveloperOpsPage />} />
-                <Route path="/confirm" element={<Navigate to="/chat" replace />} />
-                <Route path="/results" element={<Navigate to="/chat" replace />} />
-                {/*
-                 * 신원이 필요한 화면 전부(/, /chat, /preferences, /location, /schedule,
-                 * 그리고 알 수 없는 경로)를 여기서 한 번에 받는다. AppShell 안의 AppRoutes가
-                 * 실제 화면을 고른다 — RequireUser를 화면마다 반복하지 않기 위해서다.
-                 */}
-                <Route
-                  path="*"
-                  element={
-                    <RequireUser>
-                      <AppShell />
-                    </RequireUser>
-                  }
-                />
-              </Routes>
-            </Suspense>
-          </RouteErrorBoundary>
-        </BrowserRouter>
-      </TripProvider>
+                </Routes>
+              </Suspense>
+            </RouteErrorBoundary>
+          </BrowserRouter>
+        </TripProvider>
+      </FeatureFlagsProvider>
       {/*
        * 라우터 **밖·뒤**에 둔다. 밖인 이유는 특정 화면의 것이 아니라 앱이 뜨는
        * 순간을 덮는 층이기 때문이고, 뒤인 이유는 DOM 순서만으로도 위에 오게

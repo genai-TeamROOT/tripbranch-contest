@@ -3,7 +3,10 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    # develop도 넣는다. 작업 브랜치 -> develop -> main 흐름에서 검수는 develop에서
+    # 하는데, PR 없이 develop에 직접 푸시하면 검사가 한 번도 안 돌고 main 승격
+    # 후보가 된다. main은 승격 = 배포라 그때 처음 깨지는 것을 보면 늦다.
+    branches: [main, develop]
 
 jobs:
   backend:

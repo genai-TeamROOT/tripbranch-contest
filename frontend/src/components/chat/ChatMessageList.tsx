@@ -17,7 +17,6 @@ import type { AgentProgressEvent, ChatMessage, Language, TravelOriginToggle } fr
 import { AgentProgressMessage } from "./AgentProgressMessage";
 import { ClarificationMessage } from "./ClarificationMessage";
 import { CompareResultCards } from "./CompareResultCards";
-import { LocationRefreshMessage } from "./LocationRefreshMessage";
 import { ConditionDebugMessage } from "./ConditionDebugMessage";
 import { FeedbackButtons } from "./FeedbackButtons";
 import { PlaceInfoCard } from "./PlaceInfoCard";
@@ -247,7 +246,6 @@ interface ChatMessageListProps {
   messages: ChatMessage[];
   showDebug: boolean;
   isLoading: boolean;
-  deviceLocation: string | null;
   isDeveloperView?: boolean;
   onRequestMore: () => void;
   onRelaxRadius: () => void;
@@ -258,11 +256,6 @@ interface ChatMessageListProps {
   /** 사진 검색이 위치를 몰라 멈췄을 때의 "위치 정하기". 안 넘기면 안 그린다. */
   onSetLocation?: () => void;
   onToggleTravelOrigin?: (toggle: TravelOriginToggle) => void;
-  locationRefresh: {
-    ageMinutes: number | null;
-    onUsePrevious: () => void;
-    onRefreshLocation: () => void;
-  } | null;
   progress: AgentProgressEvent | null;
   language?: Language;
 }
@@ -271,7 +264,6 @@ export function ChatMessageList({
   messages,
   showDebug,
   isLoading,
-  deviceLocation,
   isDeveloperView = false,
   onRequestMore,
   onRelaxRadius,
@@ -280,7 +272,6 @@ export function ChatMessageList({
   onRetryTurn,
   onSetLocation,
   onToggleTravelOrigin,
-  locationRefresh,
   progress,
   language = "ko",
 }: ChatMessageListProps) {
@@ -383,7 +374,6 @@ export function ChatMessageList({
                 userInput={message.userInput}
                 conditions={message.conditions}
                 mergedConditions={message.mergedConditions}
-                deviceLocation={deviceLocation}
                 intent={message.intent ?? null}
                 status={message.status}
               />
@@ -432,11 +422,7 @@ export function ChatMessageList({
 
           if (message.type === "compare_result") {
             return (
-              <CompareResultCards
-                key={message.id}
-                comparison={message.comparison}
-                deviceLocation={deviceLocation}
-              />
+              <CompareResultCards key={message.id} comparison={message.comparison} />
             );
           }
 
@@ -551,14 +537,6 @@ export function ChatMessageList({
             />
           );
         })}
-      {locationRefresh && (
-        <LocationRefreshMessage
-          ageMinutes={locationRefresh.ageMinutes}
-          isLoading={isLoading}
-          onUsePrevious={locationRefresh.onUsePrevious}
-          onRefreshLocation={locationRefresh.onRefreshLocation}
-        />
-      )}
       {isLoading && (
         <AgentProgressMessage
           schedulePlanning={progress?.stage === "scheduling"}

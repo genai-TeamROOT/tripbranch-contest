@@ -8,7 +8,14 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
-import { fetchPlaceAiReason, fetchRecommendationPlaceDetails } from "../../api/trip";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { fetchPlaceAiReason, fetchRecommendationPlaceDetails, searchPlaces } from "../../api/trip";
+import { clearDirectionsOriginCache } from "../../hooks/useNaverDirections";
+import {
+  clearLocationSettings,
+  setLocationCenter,
+  setLocationOrigin,
+} from "../../state/locationSettings";
 import { openNaverDirections } from "../../utils/naverDirections";
 import { TripProvider } from "../../state/TripContext";
 import type {
@@ -21,11 +28,22 @@ import { RecommendationDetailPreviewModal } from "./RecommendationDetailPreviewM
 vi.mock("../../api/trip", () => ({
   fetchRecommendationPlaceDetails: vi.fn(),
   fetchPlaceAiReason: vi.fn(),
+  // 길찾기 훅이 위치 설정의 출발지 이름을 좌표로 풀 때 부른다.
+  searchPlaces: vi.fn(),
 }));
 
-/* 링크를 여는 두 함수만 가로채고 나머지는 진짜를 쓴다. deviceLocationToOrigin은
-   훅이 "출발점을 정할 수 있는가"를 판단할 때 부르므로, 통째로 가짜를 씌우면 길찾기
-   버튼이 항상 잠긴 채로 테스트된다. */
+/*
+ * 기능 스위치(GET /api/features)는 기본 "켜짐"으로 둔다. Provider 없이 렌더하면
+ * 꺼짐이라(FeatureFlagsContext), 그대로 두면 AI 추천 이유 절이 통째로 사라져
+ * "문장을 접는다" 같은 테스트가 엉뚱한 이유로 통과한다. 꺼진 경우는 맨 아래
+ * 테스트가 따로 본다.
+ */
+const featureFlags = vi.hoisted(() => ({ tasteEnabled: true }));
+vi.mock("../../state/FeatureFlagsContext", () => ({
+  useTasteEnabled: () => featureFlags.tasteEnabled,
+}));
+
+/* 링크를 여는 두 함수만 가로채고 나머지는 진짜를 쓴다. */
 vi.mock("../../utils/naverDirections", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../utils/naverDirections")>()),
   openNaverMapSearch: vi.fn(),
@@ -36,35 +54,23 @@ const mockedFetch = vi.mocked(fetchRecommendationPlaceDetails);
 const mockedReason = vi.mocked(fetchPlaceAiReason);
 const mockedDirections = vi.mocked(openNaverDirections);
 
-/* 길찾기 버튼은 현재 위치가 있어야 나온다. TripProvider가 sessionStorage에서
-   복원하므로 저장 형식을 직접 심는다(SchedulePage.test.tsx와 같은 방식). */
-function seedDeviceLocation() {
-  sessionStorage.setItem(
-    "tripbranch_state",
-    JSON.stringify({
-      version: 6,
-      state: {
-        language: "ko",
-        user_input: "",
-        interpreted_conditions: null,
-        recommendations: [],
-        unverified_recommendations: [],
-        shown_place_ids: [],
-        messages: [],
-        auditTurns: [],
-        phase: "ready",
-        error: null,
-        session_id: null,
-        device_location: "37.5665,126.9780",
-        device_location_captured_at: Date.now(),
-        device_location_snoozed_until: null,
-        awaiting_clarification: false,
-        saved_places: [],
-        agentProgress: null,
-        streamingIntent: null,
+/* 길찾기 버튼은 출발지가 있어야 나온다. 위치 설정에 출발지 이름을 넣고, 그 이름이
+   풀릴 좌표를 장소 검색 mock에 심는다. */
+function seedOrigin() {
+  setLocationOrigin("시청역");
+  vi.mocked(searchPlaces).mockResolvedValue({
+    places: [
+      {
+        name: "시청역",
+        address: null,
+        road_address: null,
+        category: null,
+        latitude: 37.5665,
+        longitude: 126.978,
       },
-    }),
-  );
+    ],
+    outside_service_area_count: 0,
+  });
 }
 
 function card(overrides: Partial<InfoPlaceCard> = {}): InfoPlaceCard {
@@ -125,6 +131,7 @@ function recommendationItem(overrides: Partial<RecommendationItem> = {}): Recomm
 }
 
 beforeEach(() => {
+  featureFlags.tasteEnabled = true;
   mockedFetch.mockReset();
   // 문장 호출은 대부분의 테스트에서 관심 밖이다. 기본은 "문장 없음"으로 두고,
   // 문장을 보는 테스트만 각자 덮어쓴다.
@@ -132,6 +139,8 @@ beforeEach(() => {
   mockedReason.mockResolvedValue({ ai_reason: null });
   mockedDirections.mockReset();
   sessionStorage.clear();
+  clearLocationSettings();
+  clearDirectionsOriginCache();
 });
 
 /*
@@ -923,7 +932,7 @@ it("상세가 도착하면 스켈레톤이 사라지고 실제 표가 남는다"
  * 높이가 줄며 읽던 자리가 밀린다 — 자리는 먼저 잡되 누르지는 못하게 한다.
  */
 it("상세를 기다리는 동안 길찾기 버튼 자리를 잡되 누를 수 없다", async () => {
-  seedDeviceLocation();
+  seedOrigin();
   mockedFetch.mockReturnValue(new Promise(() => {}));
   const user = userEvent.setup();
   render(
@@ -940,7 +949,7 @@ it("상세를 기다리는 동안 길찾기 버튼 자리를 잡되 누를 수 �
 });
 
 it("상세가 도착하면 길찾기 버튼이 활성화된다", async () => {
-  seedDeviceLocation();
+  seedOrigin();
   let resolveDetail!: (value: RecommendationPlaceDetailResponse) => void;
   mockedFetch.mockReturnValue(
     new Promise((resolve) => {
@@ -963,61 +972,81 @@ it("상세가 도착하면 길찾기 버튼이 활성화된다", async () => {
   const button = await screen.findByRole("button", { name: /네이버 지도로 길찾기/ });
   await waitFor(() => expect(button).toBeEnabled());
   await user.click(button);
-  expect(mockedDirections).toHaveBeenCalledWith(
-    expect.objectContaining({ destLat: 37.5796, destLng: 126.977 }),
+  await waitFor(() =>
+    expect(mockedDirections).toHaveBeenCalledWith(
+      expect.objectContaining({
+        origin: { lat: 37.5665, lng: 126.978, name: "시청역" },
+        destLat: 37.5796,
+        destLng: 126.977,
+      }),
+    ),
   );
 });
 
 /*
- * 현재 위치가 없으면 길찾기 대신 위치를 받는 자리로 쓴다.
+ * 출발지가 없으면 길찾기 대신 출발지를 정하러 가는 자리로 쓴다.
  *
- * 예전에는 자리째 숨겼는데, 그러면 사용자는 버튼이 왜 없는지 알 수 없었다 — 위치
- * 칩에는 출발지가 떠 있으니 위치를 아는 줄 안다. 실제로 겪는 상태다: 새 대화(RESET)는
- * 좌표를 지우지만 출발지·검색지는 sessionStorage에 남는다.
+ * 자리째 숨기면 사용자는 버튼이 왜 없는지 알 수 없다. 기기 위치는 받지 않으므로
+ * "현재 위치 사용" 대신 위치 설정 화면으로 보낸다.
  */
-it("현재 위치가 없으면 길찾기 대신 위치 사용을 보여준다", async () => {
+function renderModalInRouter(onClose: () => void = () => {}) {
   mockedFetch.mockResolvedValue({
     status: "success",
     requested_place_id: "126508",
     place_card: card({ latitude: 37.5796, longitude: 126.977 }),
   });
-  render(
-    <RecommendationDetailPreviewModal placeId="126508" placeName="경복궁" onClose={() => {}} />,
+  return render(
+    <MemoryRouter initialEntries={["/chat"]}>
+      <Routes>
+        <Route
+          path="/chat"
+          element={
+            <RecommendationDetailPreviewModal placeId="126508" placeName="경복궁" onClose={onClose} />
+          }
+        />
+        <Route path="/location" element={<div>위치 설정 화면</div>} />
+      </Routes>
+    </MemoryRouter>,
     { wrapper: TripProvider },
   );
+}
 
-  expect(await screen.findByRole("button", { name: "현재 위치 사용" })).toBeInTheDocument();
-  expect(screen.getByText("지금 계신 곳을 알아야 길을 안내할 수 있어요.")).toBeInTheDocument();
-  /* 좌표가 없으면 길찾기는 열 수 없으므로 그 버튼은 없다. */
+it("출발지도 검색 위치도 없으면 길찾기 대신 출발지 정하기를 보여준다", async () => {
+  const getCurrentPosition = vi.fn();
+  vi.stubGlobal("navigator", { geolocation: { getCurrentPosition } });
+  renderModalInRouter();
+
+  expect(await screen.findByRole("button", { name: "출발지 정하기" })).toBeInTheDocument();
+  expect(screen.getByText("출발지를 정하면 길을 안내해 드릴 수 있어요")).toBeInTheDocument();
+  /* 출발지가 없으면 길찾기는 열 수 없으므로 그 버튼은 없다. */
   expect(screen.queryByRole("button", { name: /네이버 지도로 길찾기/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /현재 위치 사용/ })).not.toBeInTheDocument();
+  /* 기기 위치는 어떤 경로로도 묻지 않는다. */
+  expect(getCurrentPosition).not.toHaveBeenCalled();
+  vi.unstubAllGlobals();
 });
 
-it("현재 위치 사용을 누르면 좌표를 받아 길찾기 버튼으로 바뀐다", async () => {
-  vi.stubGlobal("navigator", {
-    geolocation: {
-      getCurrentPosition: vi.fn((success: PositionCallback) =>
-        success({
-          coords: { latitude: 37.5665, longitude: 126.978 },
-          timestamp: Date.now(),
-        } as GeolocationPosition),
-      ),
-    },
-  });
-  mockedFetch.mockResolvedValue({
-    status: "success",
-    requested_place_id: "126508",
-    place_card: card({ latitude: 37.5796, longitude: 126.977 }),
-  });
+it("출발지 정하기를 누르면 모달을 닫고 위치 설정(/location)으로 간다", async () => {
+  const onClose = vi.fn();
   const user = userEvent.setup();
-  render(
-    <RecommendationDetailPreviewModal placeId="126508" placeName="경복궁" onClose={() => {}} />,
-    { wrapper: TripProvider },
-  );
+  renderModalInRouter(onClose);
 
-  await user.click(await screen.findByRole("button", { name: "현재 위치 사용" }));
+  await user.click(await screen.findByRole("button", { name: "출발지 정하기" }));
 
-  const button = await screen.findByRole("button", { name: /네이버 지도로 길찾기/ });
-  await waitFor(() => expect(button).toBeEnabled());
+  expect(onClose).toHaveBeenCalledOnce();
+  expect(await screen.findByText("위치 설정 화면")).toBeInTheDocument();
+});
+
+it("출발지 없이 검색 위치만 있으면 출발지 정하기 대신 길찾기를 보여준다", async () => {
+  /* 추천을 받은 뒤의 흔한 상태다 — 대화에서 말한 장소가 검색 위치로 저장된다. 이때
+     거리는 검색 위치에서 재므로 길찾기도 거기서 출발한다(useNaverDirections). */
+  setLocationCenter("인사동");
+  renderModalInRouter();
+
+  expect(
+    await screen.findByRole("button", { name: /네이버 지도로 길찾기/ }),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "출발지 정하기" })).not.toBeInTheDocument();
 });
 
 /*
@@ -1056,11 +1085,10 @@ it("스켈레톤 행과 실제 행이 같은 뼈대를 쓴다", async () => {
  * 실시간 도시데이터 INFO는 지역 단위 데이터라 카드에 목적지 좌표가 없다. 관광 상세로
  * 보강하지도 않는다 — needsDetailEnrichment가 지도·목록이 있으면 막는다.
  *
- * 그런 카드에서 하단 바를 띄우면, 위치를 줘도 갈 곳이 없어 바가 그냥 사라진다.
- * 사용자에게는 "위치를 받았더니 길찾기가 없어진" 것으로 보인다.
+ * 그런 카드에서 하단 바를 띄우면, 출발지를 정해도 갈 곳이 없어 길찾기가 끝내 안 나온다.
  */
 it("목적지가 없는 실시간 카드에는 길찾기 바를 띄우지 않는다", async () => {
-  seedDeviceLocation();
+  seedOrigin();
   const districtCard = card({
     question_type: "concentration",
     place_name: "종로구",
@@ -1086,7 +1114,7 @@ it("목적지가 없는 실시간 카드에는 길찾기 바를 띄우지 않는
   expect(screen.queryByRole("button", { name: /네이버 지도로 길찾기/ })).not.toBeInTheDocument();
 });
 
-it("현재 위치가 없어도 목적지가 없으면 위치 사용을 권하지 않는다", async () => {
+it("출발지가 없어도 목적지가 없으면 출발지 정하기를 권하지 않는다", async () => {
   const districtCard = card({
     question_type: "concentration",
     place_name: "종로구",
@@ -1109,8 +1137,8 @@ it("현재 위치가 없어도 목적지가 없으면 위치 사용을 권하지
   );
 
   expect(await screen.findByText("보통 4곳")).toBeInTheDocument();
-  expect(screen.queryByText(/지금 계신 곳을 알아야/)).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: /현재 위치 사용/ })).not.toBeInTheDocument();
+  expect(screen.queryByText(/출발지를 정하면/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "출발지 정하기" })).not.toBeInTheDocument();
 });
 
 // --- "AI가 추천하는 이유" 두 번째 줄 (recommend.place_reason) ------------------
@@ -1292,6 +1320,37 @@ it("문장 생성이 실패해도 그 줄만 접고 카드는 그대로 둔다",
   await waitFor(() => {
     expect(screen.queryAllByTestId("ai-reason-placeholder")).toHaveLength(0);
   });
+});
+
+it("취향이 꺼진 서버에서는 문장을 요청하지 않고 자리표시자도 그리지 않는다", async () => {
+  /* 서버는 그때 근거를 읽지 않아 ai_reason이 늘 null이다. 모른 채 부르면 응답이
+     올 때까지 자리표시자가 떴다가 접힌다. 문장 호출을 끝나지 않게 둬서, 켜진
+     경우(바로 아래 테스트)라면 자리표시자가 남아 있을 조건을 만든다. */
+  featureFlags.tasteEnabled = false;
+  mockedFetch.mockResolvedValue({
+    status: "success",
+    requested_place_id: "126508",
+    place_card: card({
+      place_id: "126508",
+      place_name: "경복궁",
+      answer_fields: { address: "서울 종로구 사직로 161" },
+    }),
+  });
+  mockedReason.mockReturnValue(new Promise(() => {}));
+
+  render(
+    <RecommendationDetailPreviewModal
+      item={recommendationItem({ recommendation_reason: "거리 조건을 종합한 1순위 추천이에요." })}
+      onClose={() => {}}
+    />,
+    { wrapper: TripProvider },
+  );
+
+  // 상세가 도착한 뒤에도(문장을 부를 시점을 지나서도) 절이 없다.
+  expect(await screen.findByText("서울 종로구 사직로 161")).toBeInTheDocument();
+  expect(screen.queryAllByTestId("ai-reason-placeholder")).toHaveLength(0);
+  expect(screen.queryByText("AI가 추천하는 이유")).not.toBeInTheDocument();
+  expect(mockedReason).not.toHaveBeenCalled();
 });
 
 it("문장이 도착하기 전에는 같은 높이의 자리를 잡아 둔다", async () => {

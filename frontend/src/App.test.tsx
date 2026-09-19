@@ -183,6 +183,12 @@ function mockFetch() {
     if (url.endsWith("/schedules")) {
       return Response.json({ items: [] });
     }
+    /* 기능 스위치(GET /api/features)도 앱이 뜨면 한 번 나간다. 이 파일의 흐름은
+       취향이 켜진 서버 기준이다 — 404로 두면 꺼짐으로 보고 취향 메뉴·캡션이 바뀐다.
+       꺼진 경우는 SideDrawerContent.test.tsx와 RecommendationResultMessage.test.tsx가 본다. */
+    if (url.endsWith("/features")) {
+      return Response.json({ taste_enabled: true });
+    }
     return Response.json({ error: { message: "not found" } }, { status: 404 });
   });
 }
@@ -193,18 +199,9 @@ beforeEach(() => {
   resetChatSessionsCache();
   resetSavedSchedulesCache();
   window.history.pushState({}, "", "/");
-  // 로컬 .env의 Codex 테스트 좌표가 브라우저 권한 회귀 테스트에 영향을 주지 않게 한다.
-  vi.stubEnv("VITE_TEST_DEVICE_LOCATION", "");
-  vi.stubGlobal("navigator", {
-    geolocation: {
-      getCurrentPosition: vi.fn((success: PositionCallback) =>
-        success({
-          coords: { latitude: 37.5788, longitude: 126.977 },
-          timestamp: Date.now(),
-        } as GeolocationPosition),
-      ),
-    },
-  });
+  /* 이 버전은 브라우저 위치를 어떤 경로로도 묻지 않는다. 감시만 하는 가짜를 심어
+     두고, 불리면 테스트가 잡도록 응답은 주지 않는다. */
+  vi.stubGlobal("navigator", { geolocation: { getCurrentPosition: vi.fn() } });
   vi.stubGlobal("fetch", mockFetch());
 });
 
@@ -334,20 +331,21 @@ test("user chat needs only one chat call", async () => {
   await waitFor(() => expect(chatCalls()).toHaveLength(1));
   expect(String(chatCalls()[0][0])).toContain("/chat");
   const requestBody = JSON.parse(String(chatCalls()[0][1]?.body));
-  expect(requestBody.device_location).toBe("37.5788,126.977");
+  /* 기기 좌표는 받지도 보내지도 않는다. */
+  expect(requestBody).not.toHaveProperty("device_location");
 });
 
-test("falls back to the current location instead of the old 종로구 default", async () => {
-  /* 위치를 정하지도 않았고 대화도 없다. 그대로 발화하면 기기 좌표를 기준으로
-     찾으므로 "종로구"라고 말하면 사실과 다르다 - 지원 지역이 종로구뿐이던 시절의
-     기본값이다. */
+test("says the location is not set instead of the old 종로구 or 현재 위치 default", async () => {
+  /* 위치를 정하지도 않았고 대화도 없다. "종로구"는 지원 지역이 종로구뿐이던 시절의
+     기본값이고, "현재 위치"는 기기 GPS를 쓰던 시절의 말이다 — 둘 다 지금은 사실과
+     다르다. */
   await renderApp();
 
-  expect(
-    screen.getByRole("button", {
-      name: "위치 설정으로 이동 (현재 위치에서 출발, 현재 위치 주변에서 검색)",
-    }),
-  ).toBeInTheDocument();
+  const pill = screen.getByRole("button", {
+    name: "위치 설정으로 이동 (위치를 아직 정하지 않았어요)",
+  });
+  expect(pill).toHaveTextContent("위치 미설정");
+  expect(pill).not.toHaveTextContent("현재 위치");
 });
 
 test("shows the picked origin in the header pill when no center is set", async () => {
@@ -369,9 +367,10 @@ test("shows the picked search center in the header location pill", async () => {
   setLocationCenter("안국역");
   await renderApp();
 
+  /* 출발지를 정하지 않았으면 서버는 검색 기준에서 거리를 재므로 한 칸으로 접힌다. */
   expect(
     screen.getByRole("button", {
-      name: "위치 설정으로 이동 (현재 위치에서 출발, 안국역 주변에서 검색)",
+      name: "위치 설정으로 이동 (안국역에서 출발, 안국역 주변에서 검색)",
     }),
   ).toBeInTheDocument();
 });
@@ -586,12 +585,16 @@ test("keeps the picked location when the server reports no location at all", asy
   expect(await screen.findByText("테스트 박물관")).toBeInTheDocument();
   expect(
     screen.getByRole("button", {
-      name: "위치 설정으로 이동 (현재 위치에서 출발, 서대문역 주변에서 검색)",
+      name: "위치 설정으로 이동 (서대문역에서 출발, 서대문역 주변에서 검색)",
     }),
   ).toBeInTheDocument();
 });
 
-test("asks whether to refresh a location older than 30 minutes before a follow-up", async () => {
+/*
+ * 예전에는 기기 위치를 받은 지 30분이 지나면 후속 발화를 붙잡고 "이전 위치로 계속 /
+ * 현재 위치 다시 가져오기"를 물었다. 기기 위치를 받지 않으니 붙잡을 이유도 없다.
+ */
+test("sends a follow-up right away no matter how long ago the chat started", async () => {
   const now = vi.spyOn(Date, "now");
   now.mockReturnValue(1_000);
   await renderApp();
@@ -600,90 +603,17 @@ test("asks whether to refresh a location older than 30 minutes before a follow-u
   await userEvent.click(screen.getByRole("button", { name: "추천 시작하기" }));
   await screen.findByText("테스트 박물관");
 
-  now.mockReturnValue(30 * 60 * 1000 + 1_001);
+  now.mockReturnValue(60 * 60 * 1000 + 1_001);
   await userEvent.type(screen.getByPlaceholderText("트리비에게 물어보세요"), "다른 곳 보여줘");
   await userEvent.click(screen.getByRole("button", { name: "보내기" }));
 
-  expect(
-    await screen.findByText(
-      "현재 위치를 확인한 지 30분이 지났어요. 이번 추천에 사용할 위치를 선택해주세요.",
-    ),
-  ).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "30분 전 위치로 계속" })).toBeInTheDocument();
-  expect(chatCalls()).toHaveLength(1);
-
-  await userEvent.click(screen.getByRole("button", { name: "30분 전 위치로 계속" }));
   await waitFor(() => expect(chatCalls()).toHaveLength(2));
+  expect(screen.queryByText(/지났어요/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /위치로 계속|다시 가져오기/ })).not.toBeInTheDocument();
   const requestBody = JSON.parse(String(chatCalls()[1][1]?.body));
   expect(requestBody.user_input).toBe("다른 곳 보여줘");
-  expect(requestBody.device_location).toBe("37.5788,126.977");
-  now.mockRestore();
-});
-
-test("does not ask again within 30 minutes after continuing with the previous location", async () => {
-  // "N분 전 위치로 계속"을 누른 뒤 실제 GPS를 다시 받은 게 아닌데도 재확인
-  // 질문이 다음 턴마다 반복되던 버그(D 재확인 필요)의 회귀 테스트.
-  const now = vi.spyOn(Date, "now");
-  now.mockReturnValue(1_000);
-  await renderApp();
-
-  await userEvent.click(screen.getByText("비를 피할 실내 장소가 필요해"));
-  await userEvent.click(screen.getByRole("button", { name: "추천 시작하기" }));
-  await screen.findByText("테스트 박물관");
-
-  now.mockReturnValue(30 * 60 * 1000 + 1_001);
-  await userEvent.type(screen.getByPlaceholderText("트리비에게 물어보세요"), "다른 곳 보여줘");
-  await userEvent.click(screen.getByRole("button", { name: "보내기" }));
-  await screen.findByText(
-    "현재 위치를 확인한 지 30분이 지났어요. 이번 추천에 사용할 위치를 선택해주세요.",
-  );
-  await userEvent.click(screen.getByRole("button", { name: "30분 전 위치로 계속" }));
-  await waitFor(() => expect(chatCalls()).toHaveLength(2));
-
-  // 스누즈 구간(30분) 안의 다음 턴 — 재확인 질문 없이 바로 보내져야 한다.
-  now.mockReturnValue(30 * 60 * 1000 + 5 * 60 * 1000 + 1_001);
-  await userEvent.type(screen.getByPlaceholderText("트리비에게 물어보세요"), "카페도 보여줘");
-  await userEvent.click(screen.getByRole("button", { name: "보내기" }));
-  await waitFor(() => expect(chatCalls()).toHaveLength(3));
-  expect(screen.queryByText(/현재 위치를 확인한 지 .*지났어요/)).not.toBeInTheDocument();
-  const secondFollowUpBody = JSON.parse(String(chatCalls()[2][1]?.body));
-  expect(secondFollowUpBody.user_input).toBe("카페도 보여줘");
-  expect(secondFollowUpBody.device_location).toBe("37.5788,126.977");
-
-  // 스누즈가 끝난 뒤엔 다시 물어야 하고, 실제 GPS 나이(60분)를 그대로 보여줘야
-  // 한다 — "이전 위치로 계속"이 나이를 30분으로 리셋해버리면 안 된다.
-  now.mockReturnValue(60 * 60 * 1000 + 1_002);
-  await userEvent.type(screen.getByPlaceholderText("트리비에게 물어보세요"), "한 곳 더 보여줘");
-  await userEvent.click(screen.getByRole("button", { name: "보내기" }));
-  expect(
-    await screen.findByText(
-      "현재 위치를 확인한 지 60분이 지났어요. 이번 추천에 사용할 위치를 선택해주세요.",
-    ),
-  ).toBeInTheDocument();
-  now.mockRestore();
-});
-
-test("refreshing a location after 30 minutes requests browser GPS again", async () => {
-  const now = vi.spyOn(Date, "now");
-  now.mockReturnValue(1_000);
-  await renderApp();
-
-  await userEvent.click(screen.getByText("비를 피할 실내 장소가 필요해"));
-  await userEvent.click(screen.getByRole("button", { name: "추천 시작하기" }));
-  await screen.findByText("테스트 박물관");
-
-  now.mockReturnValue(30 * 60 * 1000 + 1_001);
-  await userEvent.type(screen.getByPlaceholderText("트리비에게 물어보세요"), "카페 추천해줘");
-  await userEvent.click(screen.getByRole("button", { name: "보내기" }));
-  await screen.findByRole("button", { name: "현재 위치 다시 가져오기" });
-
-  await userEvent.click(screen.getByRole("button", { name: "현재 위치 다시 가져오기" }));
-
-  await waitFor(() => expect(chatCalls()).toHaveLength(2));
-  expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalledTimes(2);
-  expect(vi.mocked(navigator.geolocation.getCurrentPosition).mock.calls[1][2]).toMatchObject({
-    maximumAge: 0,
-  });
+  expect(requestBody).not.toHaveProperty("device_location");
+  expect(navigator.geolocation.getCurrentPosition).not.toHaveBeenCalled();
   now.mockRestore();
 });
 
@@ -716,7 +646,7 @@ test("falls back to the existing chat endpoint when the SSE route is unavailable
   expect(chatCalls()).toHaveLength(2);
 });
 
-test("main recommendation requests location permission before opening chat", async () => {
+test("starting a chat from home never asks for browser location", async () => {
   vi.stubEnv("VITE_SHOW_INTERPRETATION_DEBUG", "false");
   let resolveFetch: ((response: Response) => void) | undefined;
   vi.stubGlobal(
@@ -733,7 +663,9 @@ test("main recommendation requests location permission before opening chat", asy
   await userEvent.click(screen.getByText("비를 피할 실내 장소가 필요해"));
   await userEvent.click(screen.getByRole("button", { name: "추천 시작하기" }));
 
-  expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalledTimes(1);
+  /* 위치 설정도 대화도 없는 상태에서 시작해도 권한 팝업을 띄우지 않는다. 위치가
+     필요하면 서버가 되묻는다(location_required). */
+  expect(navigator.geolocation.getCurrentPosition).not.toHaveBeenCalled();
   // 응답을 기다리는 동안엔 안내 문구 한 줄만 뜬다(AgentProgressMessage).
   expect(await screen.findByRole("status")).toHaveTextContent(/중…$/);
 
@@ -804,37 +736,26 @@ test("developer audit turn cards remain selectable after multiple turns", async 
   expect(firstTurnCard.className).toContain("border-emerald-500");
 });
 
-test("위치 권한을 거부해도 대화는 좌표 없이 시작된다", async () => {
-  /* 예전에는 홈에 머무르며 "위치 권한이 필요해요"만 띄우고 요청을 아예 안 보냈다.
-     거절한 사용자는 거기서 할 수 있는 게 없었다 — 좌표를 안 보내면 백엔드가 어디서
-     찾을지 되묻고(location_required), 사용자는 그 되묻기에 답해서 계속 갈 수 있다. */
-  vi.stubGlobal("navigator", {
-    geolocation: {
-      getCurrentPosition: vi.fn((_success: PositionCallback, error: PositionErrorCallback) =>
-        error({
-          code: 1,
-          message: "User denied Geolocation",
-          PERMISSION_DENIED: 1,
-          POSITION_UNAVAILABLE: 2,
-          TIMEOUT: 3,
-        }),
-      ),
-    },
-  });
+test("위치를 하나도 정하지 않아도 대화는 좌표 없이 시작된다", async () => {
+  /* 예전에는 여기서 기기 위치를 물었고, 그보다 전에는 거절하면 요청을 아예 안
+     보냈다. 지금은 묻지도 막지도 않는다 — 위치 없이 보내면 백엔드가 어디서 찾을지
+     되묻고(location_required), 사용자는 그 되묻기에 답해서 계속 갈 수 있다. */
   await renderApp();
 
   await userEvent.click(screen.getByText("비를 피할 실내 장소가 필요해"));
   await userEvent.click(screen.getByRole("button", { name: "추천 시작하기" }));
 
   await waitFor(() => expect(chatCalls().length).toBeGreaterThan(0));
+  expect(navigator.geolocation.getCurrentPosition).not.toHaveBeenCalled();
   const requestBody = JSON.parse(String(chatCalls()[0]?.[1]?.body));
-  expect(requestBody.device_location).toBeNull();
+  expect(requestBody).not.toHaveProperty("device_location");
+  expect(requestBody.selected_current_location).toBeNull();
+  expect(requestBody.selected_search_center).toBeNull();
 });
 
-test("출발지를 정해 뒀으면 위치 권한을 묻지 않는다", async () => {
+test("출발지를 정해 뒀으면 그 이름을 싣고 위치 권한은 묻지 않는다", async () => {
   /* 서버가 이동시간을 재는 출발점은 그 이름이고(D-067) 이름을 좌표로 바꾸는 일은
-     백엔드가 한다. 그러니 기기 좌표는 필요 없다 — 필요도 없는 권한 팝업을 띄우고,
-     거절하면 아무것도 못 하게 만들던 자리였다(TP-256). */
+     백엔드가 한다(TP-256). */
   const getCurrentPosition = vi.fn();
   vi.stubGlobal("navigator", { geolocation: { getCurrentPosition } });
   setLocationOrigin("안국역");
@@ -955,7 +876,7 @@ test("clarification turn hints a fuller phrasing in the composer placeholder", a
         llm_output: { ...interpretResponse, recommend: null },
         state: { session_id: "sess_test", run_id: "run_test" },
         recommendations: null,
-        message: "어디 근처에서 찾아드릴까요? 현재 위치나 원하시는 지역을 알려주세요.",
+        message: "어디 근처에서 찾아드릴까요? 원하시는 지역을 알려주세요.",
       }),
     ),
   );
@@ -1077,9 +998,9 @@ test("사이드바에서 위치 설정을 열면 전체 페이지로 뜨고, 브
   const sidebar = within(screen.getByRole("complementary"));
   await userEvent.click(sidebar.getByRole("button", { name: "위치 설정" }));
 
-  // LocationPage에는 별도 제목이 없다 — 항상 있는 "현재 위치 사용" 버튼으로
-  // 화면이 열렸는지 확인한다.
-  expect(await screen.findByRole("button", { name: "현재 위치 사용" })).toBeInTheDocument();
+  // LocationPage에는 별도 제목이 없다 — 항상 있는 장소 검색 입력으로 화면이
+  // 열렸는지 확인한다.
+  expect(await screen.findByLabelText("장소 검색")).toBeInTheDocument();
   // 새 페이지로 갈아치운 것이라 밑에 깔린 홈이 DOM에서 빠진다(시트였다면 남아
   // 있었을 것이다).
   expect(screen.queryByRole("button", { name: "추천 시작하기" })).not.toBeInTheDocument();
@@ -1091,7 +1012,7 @@ test("사이드바에서 위치 설정을 열면 전체 페이지로 뜨고, 브
   window.history.back();
 
   await waitFor(() =>
-    expect(screen.queryByRole("button", { name: "현재 위치 사용" })).not.toBeInTheDocument(),
+    expect(screen.queryByLabelText("장소 검색")).not.toBeInTheDocument(),
   );
   expect(screen.getByRole("button", { name: "추천 시작하기" })).toBeInTheDocument();
 });
@@ -1113,7 +1034,7 @@ test("사이드바 상시 패널이 보이는 폭(데스크톱)에서도 위치 
   const sidebar = within(screen.getByRole("complementary"));
   await userEvent.click(sidebar.getByRole("button", { name: "위치 설정" }));
 
-  expect(await screen.findByRole("button", { name: "현재 위치 사용" })).toBeInTheDocument();
+  expect(await screen.findByLabelText("장소 검색")).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "닫기" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "추천 시작하기" })).not.toBeInTheDocument();
   // 뒤로가기 화살표가 없다(2026-09-07) — 폭에 상관없이 헤더가 화살표를 그리지
@@ -1253,6 +1174,8 @@ test("텍스트가 이미 온 상태에서 중단하면 거기까지만 남기�
 // --- 홈 화면의 사진 추가 버튼 --------------------------------------------------
 
 test("홈 화면에서도 사진을 올릴 수 있고, 고르면 /chat으로 넘어가 결과를 보여준다", async () => {
+  /* 사진 검색은 위치가 있어야 요청이 나간다. 기기 위치는 받지 않으므로 이름으로 정해 둔다. */
+  setLocationCenter("성수동");
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL) => {
@@ -1300,6 +1223,8 @@ test("홈 화면에서도 사진을 올릴 수 있고, 고르면 /chat으로 넘
 });
 
 test("사진으로 시작한 대화에 이어 말하면 같은 세션으로 붙는다", async () => {
+  /* 사진 검색은 위치가 있어야 요청이 나간다. 기기 위치는 받지 않으므로 이름으로 정해 둔다. */
+  setLocationCenter("성수동");
   /*
    * 서버가 발급한 session_id를 화면이 저장하지 않으면 이어지는 발화가 또 새
    * 대화를 시작해, 방금 한 사진 검색이 혼자 남는다.
@@ -1421,6 +1346,8 @@ test("실패한 턴의 다시 시도를 누르면 같은 발화를 다시 보낸
 });
 
 test("사진 검색이 실패해도 올린 사진은 대화에 남는다", async () => {
+  /* 사진 검색은 위치가 있어야 요청이 나간다. 기기 위치는 받지 않으므로 이름으로 정해 둔다. */
+  setLocationCenter("성수동");
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL) => {
@@ -1448,37 +1375,28 @@ test("사진 검색이 실패해도 올린 사진은 대화에 남는다", async
 });
 
 /*
- * 위치 칩의 점이 좌표 유무를 따라간다.
- *
- * 이름("현재 위치")과 좌표는 따로 논다 — 좌표는 발화를 보낼 때만 받는다. 그래서
- * 칩을 만드는 곳(HomePage·ChatPage)이 좌표를 넘기지 않으면 좌표 없이도 초록이
- * 깜빡인다. buildLocationChipModel의 인자에 기본값이 있어 안 넘겨도 컴파일되므로,
- * **호출부가 실제로 넘기는지를 여기서 잡는다.**
+ * 위치 칩에는 GPS 점(깜빡이는 초록·회색)이 없다. 예전에는 기기 좌표를 받으면 칩이
+ * 깜빡였는데, 이 버전은 좌표를 받지 않는다 — 발화 전후 어느 쪽에서도 붙으면 안 된다.
  */
-test("위치 칩의 점은 좌표를 받기 전과 후가 다르다", async () => {
+test("위치 칩에는 발화 전에도 후에도 GPS 점이 없다", async () => {
   vi.stubEnv("VITE_SHOW_INTERPRETATION_DEBUG", "false");
   const { container } = render(<App />);
   await screen.findByRole("button", { name: "추천 시작하기" });
 
-  /* 아직 발화를 안 보냈으니 좌표가 없다 — 깜빡이면 안 된다. */
   expect(container.querySelector(".animate-ping")).toBeNull();
 
   await userEvent.click(screen.getByText("비를 피할 실내 장소가 필요해"));
   await userEvent.click(screen.getByRole("button", { name: "추천 시작하기" }));
   await screen.findByText("테스트 박물관");
 
-  /* 발화를 보내며 좌표를 받았다. */
-  await waitFor(() => expect(container.querySelector(".animate-ping")).not.toBeNull());
+  expect(container.querySelector(".animate-ping")).toBeNull();
 });
 
 /*
- * 홈 화면의 칩도 같은 규칙을 따른다.
- *
- * 위 테스트는 채팅 화면만 잡는다 — 발화 전에는 좌표가 없어서, 홈이 인자를
- * 빠뜨려도 결과가 같기 때문이다. 좌표가 **있는** 채로 홈을 그려야 갈린다.
- * 실제로 생기는 상태다: 좌표를 받은 세션을 새로고침하면 홈이 그 좌표를 들고 뜬다.
+ * 좌표를 들고 있던 옛 저장본(v6)으로 새로고침해도 그 좌표를 되살리지 않는다 —
+ * 저장 버전을 7로 올려 통째로 버린다(state/storage.ts).
  */
-test("좌표가 있으면 홈 화면 칩도 깜빡인다", async () => {
+test("기기 좌표가 남은 옛 저장본은 버리고 위치 미설정으로 뜬다", async () => {
   vi.stubEnv("VITE_SHOW_INTERPRETATION_DEBUG", "false");
   sessionStorage.setItem(
     "tripbranch_state",
@@ -1510,14 +1428,17 @@ test("좌표가 있으면 홈 화면 칩도 깜빡인다", async () => {
   const { container } = render(<App />);
   await screen.findByRole("button", { name: "추천 시작하기" });
 
-  await waitFor(() => expect(container.querySelector(".animate-ping")).not.toBeNull());
+  expect(
+    screen.getByRole("button", { name: "위치 설정으로 이동 (위치를 아직 정하지 않았어요)" }),
+  ).toBeInTheDocument();
+  expect(container.querySelector(".animate-ping")).toBeNull();
 });
 
 // --- 사진 검색의 위치 정하기 -------------------------------------------------
 
 /*
  * 위치를 정하는 규칙은 일반 채팅과 같다. 다른 것은 텍스트냐 사진이냐뿐이다 —
- * 위치 설정의 검색 기준 → 출발지 → 기기 GPS 순으로 쓴다.
+ * 위치 설정의 검색 기준 → 출발지 순으로 쓰고, 둘 다 없으면 요청하지 않는다.
  */
 
 function photoFetch(onPhotoRequest?: (form: FormData) => void) {
@@ -1583,48 +1504,23 @@ test("검색 기준이 없으면 출발지를 쓴다", async () => {
   expect(sentForm?.get("location_query")).toBe("안국역");
 });
 
-test("지명을 정해 뒀으면 사진을 올려도 위치 권한을 묻지 않는다", async () => {
-  /* 채팅과 같은 판단이다(TP-256) — 필요도 없는 권한 팝업을 띄우지 않는다. */
-  const getCurrentPosition = vi.fn();
-  vi.stubGlobal("navigator", { geolocation: { getCurrentPosition } });
-  vi.stubGlobal("fetch", photoFetch());
+test("사진 검색은 기기 위치를 묻지 않고 좌표도 싣지 않는다", async () => {
+  let sentForm: FormData | undefined;
+  vi.stubGlobal("fetch", photoFetch((form) => (sentForm = form)));
   setLocationCenter("성수동");
   await renderApp();
 
   await uploadPhoto();
   await screen.findByText("감성 카페");
 
-  expect(getCurrentPosition).not.toHaveBeenCalled();
-});
-
-test("지명이 없으면 사진을 올릴 때 기기 위치를 물어본다", async () => {
-  let sentForm: FormData | undefined;
-  vi.stubGlobal("fetch", photoFetch((form) => (sentForm = form)));
-  await renderApp();
-
-  await uploadPhoto();
-  await screen.findByText("감성 카페");
-
-  expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
-  expect(sentForm?.get("latitude")).toBe("37.5788");
+  expect(navigator.geolocation.getCurrentPosition).not.toHaveBeenCalled();
+  expect(sentForm?.get("latitude")).toBeNull();
+  expect(sentForm?.get("longitude")).toBeNull();
 });
 
 test("위치가 하나도 없으면 요청하지 않고 위치를 정하도록 안내한다", async () => {
   /* 보내봐야 서버가 location_required로 되돌려줄 뿐이고, 그것은 오류 배너로 나와서
      사용자가 할 수 있는 일이 없었다. */
-  vi.stubGlobal("navigator", {
-    geolocation: {
-      getCurrentPosition: vi.fn((_success: PositionCallback, error: PositionErrorCallback) =>
-        error({
-          code: 1,
-          message: "User denied Geolocation",
-          PERMISSION_DENIED: 1,
-          POSITION_UNAVAILABLE: 2,
-          TIMEOUT: 3,
-        }),
-      ),
-    },
-  });
   let photoRequests = 0;
   vi.stubGlobal("fetch", photoFetch(() => (photoRequests += 1)));
   await renderApp();
@@ -1633,24 +1529,13 @@ test("위치가 하나도 없으면 요청하지 않고 위치를 정하도록 �
 
   expect(await screen.findByText(/위치를 정하고 사진을 다시 올려/)).toBeInTheDocument();
   expect(photoRequests).toBe(0);
+  /* 기기 위치로 메우지도 않는다. */
+  expect(navigator.geolocation.getCurrentPosition).not.toHaveBeenCalled();
   /* 오류 배너로 띄우지 않는다 — 실패가 아니라 아직 답하지 않은 물음이다. */
   expect(screen.queryByRole("alert")).toBeNull();
 });
 
 test("안내의 위치 정하기를 누르면 위치 설정 화면으로 간다", async () => {
-  vi.stubGlobal("navigator", {
-    geolocation: {
-      getCurrentPosition: vi.fn((_success: PositionCallback, error: PositionErrorCallback) =>
-        error({
-          code: 1,
-          message: "User denied Geolocation",
-          PERMISSION_DENIED: 1,
-          POSITION_UNAVAILABLE: 2,
-          TIMEOUT: 3,
-        }),
-      ),
-    },
-  });
   vi.stubGlobal("fetch", photoFetch());
   await renderApp();
 
@@ -1662,6 +1547,8 @@ test("안내의 위치 정하기를 누르면 위치 설정 화면으로 간다"
 });
 
 test("사진으로 시작한 대화가 바로 채팅 히스토리에 올라간다", async () => {
+  /* 사진 검색은 위치가 있어야 요청이 나간다. 기기 위치는 받지 않으므로 이름으로 정해 둔다. */
+  setLocationCenter("성수동");
   /*
    * 예전에는 사진 검색이 phase를 안 건드려 초기값 idle에 머물렀다. 사이드바가
    * 목록을 다시 받는 조건이 "phase가 ready이고 session_id가 있을 때"라

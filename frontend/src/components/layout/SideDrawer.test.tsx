@@ -15,7 +15,7 @@
 
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import App from "../../App";
 /* 맨 아래 규칙 가드가 쓴다. tsx 는 Vite 의 ?raw 로 받지만 **css 는 안 된다** —
    Vitest 가 CSS 임포트를 빈 문자열로 처리해서 ?raw 도 ''가 온다. 그래서 css 만
@@ -25,6 +25,13 @@ import { resolve } from "node:path";
 import drawerSource from "./SideDrawer.tsx?raw";
 
 const cssSource = readFileSync(resolve(process.cwd(), "src/index.css"), "utf-8");
+
+/* 메뉴 이동 테스트가 "취향 설정"을 누른다. 그 메뉴는 서버가 취향을 켰다고 알려야
+   나온다(GET /api/features) — 이 파일은 fetch를 심지 않으므로 켜짐으로 고정한다.
+   꺼진 경우는 SideDrawerContent.test.tsx가 본다. */
+vi.mock("../../api/features", () => ({
+  fetchFeatures: async () => ({ taste_enabled: true }),
+}));
 
 beforeEach(() => {
   sessionStorage.clear();
@@ -124,8 +131,8 @@ test("드로어 안에서 메뉴를 누르면 이동하면서 닫힌다", async 
   await user.click(screen.getByRole("button", { name: "메뉴 열기" }));
 
   const root = drawerRoot();
-  const { getByRole } = within(root);
-  await user.click(getByRole("button", { name: "취향 설정" }));
+  const { findByRole } = within(root);
+  await user.click(await findByRole("button", { name: "취향 설정" }));
 
   expect(screen.getByText(/끌리시나요/)).toBeInTheDocument();
   expect(drawerRoot()).toHaveAttribute("aria-hidden", "true");

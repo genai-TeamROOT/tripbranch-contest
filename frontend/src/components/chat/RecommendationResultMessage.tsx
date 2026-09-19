@@ -22,6 +22,7 @@
 import { useState } from "react";
 import type { Language, RecommendationItem } from "../../types";
 import { useSavedPlaces } from "../../hooks/useSavedPlaces";
+import { useTasteEnabled } from "../../state/FeatureFlagsContext";
 import { PlaceCard } from "../PlaceCard";
 import { PlaceCardRow } from "./PlaceCardRow";
 import { RecommendationDetailPreviewModal } from "./RecommendationDetailPreviewModal";
@@ -51,17 +52,24 @@ export function RecommendationResultMessage({
   showElapsedTime = false,
   language = "ko",
 }: RecommendationResultMessageProps) {
+  /* 취향이 꺼진 서버에서는 순위에 취향 축이 아예 없다(taste_evidence_enabled).
+     그때 "취향을 고려했다"고 쓰면 사실과 다르다. */
+  const tasteEnabled = useTasteEnabled();
   const text =
     language === "en"
       ? {
           noResults: "We couldn’t find a place that matches those conditions.",
           recommendations: "Recommended places",
-          recommendationsNote: "Ranked by distance, weather, your preferences, and more",
+          recommendationsNote: tasteEnabled
+            ? "Ranked by distance, weather, your preferences, and more"
+            : "Ranked by distance, weather, and more",
         }
       : {
           noResults: "조건에 맞는 장소를 찾지 못했어요.",
           recommendations: "추천 장소",
-          recommendationsNote: "거리·날씨·취향 등을 고려했어요",
+          recommendationsNote: tasteEnabled
+            ? "거리·날씨·취향 등을 고려했어요"
+            : "거리·날씨 등을 고려했어요",
         };
   const [selectedRecommendation, setSelectedRecommendation] = useState<RecommendationItem | null>(
     null,

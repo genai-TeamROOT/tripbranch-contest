@@ -895,11 +895,11 @@ export interface AgentDebugRequest {
   user_input: string;
   language?: Language;
   session_id?: string | null;
-  device_location?: string | null;
   /*
-   * 위치 설정 화면에서 고른 검색 위치의 이름(예: "안국역"). device_location이
-   * "사용자가 지금 있는 곳"이라면 이쪽은 "어디를 기준으로 찾을지"다. 이번 턴
-   * 발화가 위치를 말하지 않았을 때에만 검색 위치로 쓰인다 - 발화가 이긴다.
+   * 위치 설정 화면에서 고른 검색 위치의 이름(예: "안국역"). "어디를 기준으로
+   * 찾을지"다. 이번 턴 발화가 위치를 말하지 않았을 때에만 검색 위치로 쓰인다 -
+   * 발화가 이긴다. 기기 GPS 좌표(device_location)는 보내지 않는다 — 이 버전은
+   * 위치를 이름으로만 받는다.
    */
   selected_search_center?: string | null;
   /*
@@ -1504,7 +1504,6 @@ export interface DeveloperAuditTurn {
   message: string;
   sessionId: string | null;
   runId: string | null;
-  deviceLocation: string | null;
   elapsedMsClient: number;
   serverElapsedMs: number | null;
   stageTimings: AgentStageTiming[];

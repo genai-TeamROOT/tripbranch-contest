@@ -152,13 +152,30 @@ class Settings(BaseSettings):
     # 의존성(`pip install -e ".[embeddings]"`)이고 서버 프로세스에 상주하기
     # 때문이다 — 실측 RSS 537MB, 적재 9.4초(2026-08-19). 모델을 올릴 수 없는
     # 배포에서도 서버는 떠야 하므로 켜는 쪽을 명시적 선택으로 둔다.
+    #
+    # **후기·블로그에서 뽑은 데이터를 쓰는 기능 전체의 스위치다**(2026-09-19).
+    # 처음에는 임베딩 검색만 막았는데, 같은 출처의 기능이 따로 살아 있어 끈
+    # 배포에서도 후기 기반 결과가 사용자에게 나갔다. 끄면 아래가 모두 멈춘다.
+    # - 추천 순위의 취향 축: 임베딩 검색(`get_place_evidence_provider`)과 취향 태그
+    #   채점(`RealRecommendationProvider._taste_tag_matches_for`). taste 키가 가중치에
+    #   아예 없어 순위가 "취향 없음"과 같다. 계정에 저장한 취향도 읽지 않는다
+    #   (저장값은 지우지 않는다).
+    # - 추천 카드의 `preference_tags`(화면의 "장소별 방문자 취향 태그" 표).
+    # - 상세 카드의 `preference_insights`("방문자 후기에 나타난 특징")와
+    #   `ai_reason`("AI가 추천하는 이유", POST /chat/place-details/reason) — DB도
+    #   LLM도 부르지 않는다.
+    # - 후기로 답하는 INFO 질의(아래 `review_answer_enabled`) — 개요 답변으로 바뀐다.
+    # - 프론트의 "취향 설정" 메뉴와 /preferences 화면(GET /api/features로 알려준다).
     taste_evidence_enabled: bool = False
 
     # 후기로 답하는 INFO 질의(question_type=review_opinion)의 스위치.
     # `taste_evidence_enabled`와 따로 두는 이유는 두 기능이 같은 검색을 쓰지만
     # 실패했을 때 사용자가 보는 것이 다르기 때문이다 — 추천은 취향 축이 빠진
     # 순위가 나가고, 이쪽은 답변 자체가 "후기에서 확인하지 못했다"가 된다.
-    # 끄면 그 질문도 기존 상세 조회(관광 API 소개글)로 답한다.
+    # 끄면 그 질문도 기존 상세 조회(관광 API 소개글)로 답한다 — 개요 질문
+    # (general_info)으로 바꿔 답하므로 "후기에서 확인하지 못했다"고 말하지 않는다.
+    # 검색 Provider가 `taste_evidence_enabled`에도 묶여 있어, 그쪽을 끄면 이 값과
+    # 무관하게 같은 경로로 간다.
     review_answer_enabled: bool = True
 
     # 장소 사진 분위기 기능의 스위치. 축 점수 조회(발화 경로)와 사진 최근접

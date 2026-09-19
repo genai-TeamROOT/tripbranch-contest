@@ -1,26 +1,25 @@
 /*
  * 역할: 위치 설정 화면. Figma "Location (Sheet)"(29:2) 화면 그대로 옮긴 것이다.
- * 입력: TripContext의 device_location, localStorage의 즐겨찾기, 검색어.
+ * 입력: TripContext의 언어, localStorage의 즐겨찾기, 검색어.
  * 출력: 장소 검색 결과 목록(GET /api/places/search — 서버가 서울 안으로 좁혀
  *   준다)과 그중 고른 장소의 쓰임새(모달로 출발지·검색 기준을 갈라 물어
  *   locationSettings에 저장 → 다음 요청부터 AgentRequest.selected_current_location·
- *   selected_search_center로 실려 간다), "현재 위치 사용"(실제
- *   브라우저 GPS 재조회 — SET_DEVICE_LOCATION 디스패치), 즐겨찾기와 최근 고른
- *   장소 목록(눌러서 검색 위치로 잡는다).
+ *   selected_search_center로 실려 간다), 즐겨찾기와 최근 고른 장소 목록(눌러서
+ *   검색 위치로 잡는다).
  *
  * 즐겨찾기는 사이드바와 저장소를 공유한다 — 여기서 담은 장소가 사이드바 목록에도
  * 함께 보인다.
  *
- * 검색 위치와 현재 위치는 다른 값이다. 검색 위치는 "어디를 기준으로 찾을지"이고
- * 현재 위치는 "사용자가 지금 있는 곳"이라, 이동시간 출발점과 위치 재확인은
- * 현재 위치만 본다. 그래서 고른 장소를 device_location에 넣지 않는다.
+ * 이 버전은 브라우저 GPS를 쓰지 않는다 — 위치는 여기서 이름으로만 정한다(또는
+ * 채팅에서 장소를 말한다). 그래서 기기 위치를 받는 버튼이 없다. 출발지("사용자가
+ * 지금 있는 곳", 이동시간의 출발점)와 검색 기준("어디를 기준으로 찾을지")은 다른
+ * 질문의 답이라 따로 저장한다(D-067).
  * 호출 시점: 사이드바 "위치 설정"에서 바텀시트로 열린다(DESIGN_SYSTEM.md §5).
  */
 
 import {
   ArrowRight,
   Check,
-  Crosshair,
   Info,
   MapPin,
   MapPinCheck,
@@ -35,10 +34,8 @@ import {
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AppHeader } from "../components/layout/AppHeader";
 import { FavoritesLimitModal } from "../components/layout/FavoritesLimitModal";
-import { useTripDispatch, useTripState } from "../state/TripContext";
+import { useTripState } from "../state/TripContext";
 import { createId, type FavoritePlace } from "../state/sidebarStorage";
-import { getLocationAgeMinutes } from "../utils/locationRefresh";
-import { getBrowserDeviceLocation } from "../utils/geolocation";
 import { setLocationCenter, setLocationOrigin } from "../state/locationSettings";
 import {
   LocationPurposeModal,
@@ -68,10 +65,7 @@ const ROW_ACTION_CLASS =
 
 export function LocationPage() {
   const state = useTripState();
-  const dispatch = useTripDispatch();
   const isEn = state.language === "en";
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [favorites, setFavorites] = useFavorites();
   const [showFavoritesLimit, setShowFavoritesLimit] = useState(false);
   const [query, setQuery] = useState("");
@@ -94,8 +88,6 @@ export function LocationPage() {
   const searchBoxRef = useRef<HTMLDivElement>(null);
 
 
-  const ageMinutes = getLocationAgeMinutes(state.device_location_captured_at);
-
   /* 결과 패널은 화면 위에 떠 있어서 스스로 닫히지 않는다. 바깥을 누르거나 Esc를
      누르면 닫는다 — 열어둔 채로 아래 즐겨찾기를 누르려다 가려지는 일이 없게. */
   useEffect(() => {
@@ -115,28 +107,6 @@ export function LocationPage() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [searchResults]);
-
-  async function handleUseCurrentLocation() {
-    if (isRefreshing) return;
-    setIsRefreshing(true);
-    setErrorMessage(null);
-    try {
-      const deviceLocation = await getBrowserDeviceLocation({ forceFresh: true, language: state.language });
-      dispatch({
-        type: "SET_DEVICE_LOCATION",
-        payload: { deviceLocation, capturedAt: Date.now() },
-      });
-      /* 이 버튼의 뜻은 하나다 — "내 위치는 기기 좌표다". 그래서 쓰임새를 되묻지
-         않고 출발지만 되돌린다. 검색 기준까지 비우려면 칩의 ✕로 따로 푼다. */
-      setLocationOrigin(null);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : isEn ? "Couldn't get your location." : "위치를 가져오지 못했어요.",
-      );
-    } finally {
-      setIsRefreshing(false);
-    }
-  }
 
   /* 입력할 때마다 부르지 않고 제출할 때만 부른다. Naver 지역 검색은 호출 한도가
      있는 유료 API라 글자마다 부르면 한 번 검색에 열 번 넘게 나간다. */
@@ -367,26 +337,6 @@ export function LocationPage() {
           </p>
         )}
 
-        <button
-          type="button"
-          disabled={isRefreshing}
-          onClick={() => void handleUseCurrentLocation()}
-          className="flex items-center gap-2.5 rounded-xl bg-white px-3.5 py-3 text-left shadow-resting transition-opacity disabled:opacity-50"
-        >
-          <Crosshair
-            size={17}
-            className={`shrink-0 text-brand ${isRefreshing ? "animate-pulse" : ""}`}
-          />
-          <span className="text-sm font-bold text-brand">
-            {isEn
-              ? isRefreshing
-                ? "Getting your location…"
-                : "Use current location"
-              : isRefreshing
-                ? "위치를 가져오는 중이에요…"
-                : "현재 위치 사용"}
-          </span>
-        </button>
         {/* 서울 안내를 칩 위로 올렸다(2026-09-08). 이건 한 번 읽고 마는 고정
             안내인데 위쪽에서 그 자리를 차지하고 있으면, 정작 지금 무엇이 잡혀
             있는지를 말하는 칩이 밀려 내려간다. 칩은 바로 아래 즐겨찾기·최근
@@ -395,8 +345,7 @@ export function LocationPage() {
             **박스를 걷고 회색 글자로 바꾼다**(2026-09-08). 전에는 `bg-sky-light`
             박스에 `text-brand-deep`이었는데, 그 대비가 "지금 눌러야 할 것"처럼
             읽혔다 — 실제로는 바뀌지 않는 고정 안내다. 이 화면이 이미 쓰는 평문
-            한 줄 형식(`px-1 text-xs text-muted`, 아래 "현재 위치 · N분 전")을
-            그대로 따른다. **`Info` 아이콘은 남긴다** — 걷어낸 것은 박스와 강한
+            한 줄 형식(`px-1 text-xs text-muted`)을 그대로 따른다. **`Info` 아이콘은 남긴다** — 걷어낸 것은 박스와 강한
             대비지, 이 줄이 안내라는 표시까지는 아니다.
 
             정렬은 `items-center`다. `items-start`+`mt-0.5`로는 아이콘 중심이 글자
@@ -415,30 +364,12 @@ export function LocationPage() {
           </span>
         </p>
 
-        {state.device_location && (
-          /* 좌표를 그대로 보여주면 사용자에게는 숫자 두 개일 뿐이다. 주소로 바꾸는
-             역지오코딩은 아직 없으므로 "현재 위치"라고만 말한다. */
-          <p className="px-1 text-xs text-muted">
-            {isEn ? "Current location" : "현재 위치"}
-            {ageMinutes === null
-              ? ""
-              : isEn
-                ? ` · checked ${ageMinutes} min ago`
-                : ` · ${ageMinutes}분 전에 확인했어요`}
-          </p>
-        )}
-        {errorMessage && (
-          <p role="alert" className="px-1 text-xs text-rust">
-            {errorMessage}
-          </p>
-        )}
-
         {/* 지금 정해져 있는 두 값. 서로 다른 질문의 답이라 칩을 따로 두되, 사이에
             화살표를 넣어 "여기서 출발해 저기 주변을 찾는다"는 관계를 보인다.
 
             줄바꿈하지 않는다 — 칩이 아래로 내려가면 화살표만 줄 끝에 남는다. 대신
             칩은 제 내용만큼만 차지하고, 한 줄에 정말 안 들어갈 때만 이름을 자른다.
-            반씩 나눠 가지면 "현재 위치에서 출발"처럼 짧은 쪽이 남는 자리를 붙들고
+            반씩 나눠 가지면 "출발지 미설정"처럼 짧은 쪽이 남는 자리를 붙들고
             있어서, 긴 이름 쪽이 자리가 있는데도 먼저 잘린다.
 
             **눈에 띄게 하는 일을 크기·채움이 아니라 테두리에 맡긴다**(2026-09-08).
@@ -465,9 +396,8 @@ export function LocationPage() {
             위 안내 문구와의 간격은 컨테이너 `gap-3`(12px)에 `mt-4`를 더해 **28px**이다 —
             안내는 한 번 읽고 마는 글이고 칩은 지금 값이라, 12px로 붙어 있으면 안내가
             칩의 설명처럼 한 덩어리로 읽혔다. 20px(`mt-2`)과 28px을 렌더해 보고
-            골랐다. **부작용이 하나 있다** — 안내가 위쪽 "현재 위치 사용" 버튼과는
-            12px, 아래 칩과는 28px이 되어 위로 붙어 읽힌다. 안내를 양쪽 다 띄우려면
-            안내에도 위 여백을 줘야 하는데, 이번 요청은 아래 간격이라 손대지 않았다.
+            골랐다. 안내는 위쪽 검색창과는 12px, 아래 칩과는 28px이라 위로 붙어
+            읽힌다.
 
             줄은 `justify-center`다. 375px에서는 칩이 줄을 거의 채워 좌우 여백이
             얼마 안 남지만, 넓은 화면(900px 기준 좌우 129px)에서는 뚜렷하다.
@@ -477,14 +407,20 @@ export function LocationPage() {
           <span className="flex min-w-0 items-center gap-1.5 rounded-full border border-brand bg-white px-3 py-1.5 text-xs text-ink shadow-resting">
             <Navigation size={13} className="shrink-0 text-brand" aria-hidden />
             <span className="truncate">
-              {isEn
-                ? `From ${locationSettings.origin ?? "current location"}`
-                : `${locationSettings.origin ?? "현재 위치"}에서 출발`}
+              {/* 정하지 않았으면 기기 위치인 것처럼 말하지 않는다 — 기기 위치를 받지 않으므로
+                  그런 출발지는 없다. 이때 서버는 검색 기준에서 거리를 잰다. */}
+              {locationSettings.origin
+                ? isEn
+                  ? `From ${locationSettings.origin}`
+                  : `${locationSettings.origin}에서 출발`
+                : isEn
+                  ? "Starting point not set"
+                  : "출발지 미설정"}
             </span>
             {locationSettings.origin && (
               <button
                 type="button"
-                aria-label={isEn ? "Reset starting point to current location" : "출발지를 현재 위치로 되돌리기"}
+                aria-label={isEn ? "Clear starting point" : "출발지 지우기"}
                 onClick={() => setLocationOrigin(null)}
                 className="shrink-0 text-muted transition-colors hover:text-rust"
               >
@@ -497,13 +433,17 @@ export function LocationPage() {
             {/* 핀이 아니라 바닥 원이 깔린 핀이다 — 이 칩은 "그 지점"이 아니라
                 "그 자리 주변"을 뒤진다는 뜻이라서다. */}
             <MapPinned size={13} className="shrink-0 text-brand" aria-hidden />
-            {/* 비어 있다고 기준이 없는 게 아니다 — 그때는 출발지가, 출발지도 없으면
-                기기 좌표가 검색 기준이 된다(agent_context/service.py). 그래서 실제로
-                어디를 뒤지는지를 그대로 쓴다. */}
+            {/* 비어 있다고 기준이 없는 게 아니다 — 그때는 출발지가 검색 기준이 된다
+                (agent_context/service.py). 그래서 실제로 어디를 뒤지는지를 그대로
+                쓴다. 둘 다 없으면 첫 발화에서 서버가 어디서 찾을지 되묻는다. */}
             <span className="truncate">
-              {isEn
-                ? `Search around ${locationSettings.center ?? locationSettings.origin ?? "current location"}`
-                : `${locationSettings.center ?? locationSettings.origin ?? "현재 위치"} 주변에서 검색`}
+              {(locationSettings.center ?? locationSettings.origin)
+                ? isEn
+                  ? `Search around ${locationSettings.center ?? locationSettings.origin}`
+                  : `${locationSettings.center ?? locationSettings.origin} 주변에서 검색`
+                : isEn
+                  ? "Search area not set"
+                  : "검색 위치 미설정"}
             </span>
             {locationSettings.center && (
               <button
