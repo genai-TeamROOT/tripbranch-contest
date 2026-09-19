@@ -11,6 +11,7 @@
  */
 
 import { lazy, Suspense } from "react";
+import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import { RequireUser } from "./auth/RequireUser";
@@ -49,11 +50,32 @@ const DeveloperOpsPage = lazy(() =>
   import("./pages/DeveloperOpsPage").then((m) => ({ default: m.DeveloperOpsPage })),
 );
 
-/* RequireUser의 로딩 표시와 같은 문구를 쓴다 — 화면 전환 중 문구가 바뀌지 않게. */
+/* RequireUser의 로딩 표시와 같은 문구를 쓴다 — 화면 전환 중 문구가 바뀌지 않게.
+   AuthScreen과 같은 `bg-bg`를 깐다 — 이 층에 배경이 없으면 청크를 받는 동안
+   body의 `--color-chip`이 비쳐서 화면이 한 번 번쩍인다. 높이는 다른 전체 화면과
+   같은 dvh로 맞춘다(100vh는 모바일 주소창 높이만큼 어긋난다). */
 function RouteFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-dvh items-center justify-center bg-bg">
       <p className="text-sm text-gray-600 dark:text-gray-400">불러오는 중이에요…</p>
+    </div>
+  );
+}
+
+/*
+ * 인증 화면 한 겹을 더 감싸 **불투명한 배경**을 깐다(2026-09-20).
+ *
+ * PageTransition은 나가는 화면을 즉시 지우고 들어오는 화면을 opacity 0에서
+ * 올린다. 인증 화면(AuthLayout)은 `bg-bg`(흰색)인데 그 뒤 body는
+ * `--color-chip`(#EEF1F8)이라, 페이드가 도는 220ms 동안 흰색 -> 회청색 -> 흰색으로
+ * 번쩍였다(로그인 <-> 회원가입 <-> 비밀번호 찾기에서 재현). 배경은 이 바깥
+ * 층이 들고 있어야 한다 — 애니메이션이 걸린 요소에 배경을 주면 그 배경까지
+ * 같이 투명해져서 소용이 없다.
+ */
+function AuthScreen({ path, children }: { path: string; children: ReactNode }) {
+  return (
+    <div className="min-h-dvh bg-bg">
+      <PageTransition pathKey={path}>{children}</PageTransition>
     </div>
   );
 }
@@ -78,31 +100,32 @@ function App() {
                    * 않기 때문이다.
                    *
                    * 셸 밖이라 fullHeight는 켜지 않는다 — 각 화면이 min-h-dvh로
-                   * 스스로 높이를 잡는다.
+                   * 스스로 높이를 잡는다. 감싸는 AuthScreen이 그 전환 동안
+                   * 비쳐 보일 배경까지 들고 있다(위 주석).
                    */}
                   <Route
                     path="/login"
                     element={
-                      <PageTransition pathKey="/login">
+                      <AuthScreen path="/login">
                         <LoginPage />
-                      </PageTransition>
+                      </AuthScreen>
                     }
                   />
                   {/* 회원가입·아이디찾기·비밀번호찾기는 아직 백엔드가 없는 UI 목업이다(D-062 Phase 5). */}
                   <Route
                     path="/signup"
                     element={
-                      <PageTransition pathKey="/signup">
+                      <AuthScreen path="/signup">
                         <SignupPage />
-                      </PageTransition>
+                      </AuthScreen>
                     }
                   />
                   <Route
                     path="/reset-password"
                     element={
-                      <PageTransition pathKey="/reset-password">
+                      <AuthScreen path="/reset-password">
                         <ResetPasswordPage />
-                      </PageTransition>
+                      </AuthScreen>
                     }
                   />
                   {/* 재설정 메일의 링크가 돌아오는 자리. Supabase 대시보드의
@@ -110,9 +133,9 @@ function App() {
                   <Route
                     path="/reset-password/new"
                     element={
-                      <PageTransition pathKey="/reset-password/new">
+                      <AuthScreen path="/reset-password/new">
                         <NewPasswordPage />
-                      </PageTransition>
+                      </AuthScreen>
                     }
                   />
                   {/* 로컬 개발 서버에서만 이 라우트를 등록한다. RequireUser는 로그인
