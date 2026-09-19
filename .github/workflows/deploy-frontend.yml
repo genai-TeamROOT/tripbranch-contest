@@ -37,13 +37,22 @@ jobs:
       - name: Check required variables
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: |
           # 변수를 안 채운 채 돌리면 빈 버킷 이름으로 sync를 시도해 알기 어려운
           # 오류가 난다. 여기서 이름을 찍어 멈춘다.
+          #
+          # Supabase 두 개도 여기서 막는다. 빠져도 빌드는 성공하는데,
+          # `getSupabaseClient()`가 첫 호출에서 SupabaseConfigError를 던져
+          # (frontend/src/auth/supabaseClient.ts) 로그인 경로가 통째로 죽는다.
+          # 배포는 초록불인데 심사위원이 로그인을 못 하는 상황이 된다.
           missing=""
           if [ -z "$S3_BUCKET" ]; then missing="$missing S3_BUCKET"; fi
           if [ -z "$CLOUDFRONT_DISTRIBUTION_ID" ]; then missing="$missing CLOUDFRONT_DISTRIBUTION_ID"; fi
           if [ -z "$VITE_API_BASE_URL" ]; then missing="$missing VITE_API_BASE_URL"; fi
+          if [ -z "$VITE_SUPABASE_URL" ]; then missing="$missing VITE_SUPABASE_URL"; fi
+          if [ -z "$VITE_SUPABASE_PUBLISHABLE_KEY" ]; then missing="$missing VITE_SUPABASE_PUBLISHABLE_KEY"; fi
           if [ -n "$missing" ]; then
             echo "저장소 변수가 비어 있습니다:$missing — docs/deploy.md를 참고하세요."
             exit 1
