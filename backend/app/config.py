@@ -178,6 +178,20 @@ class Settings(BaseSettings):
     # 무관하게 같은 경로로 간다.
     review_answer_enabled: bool = True
 
+    # IP별 요청 빈도 제한. `/api/chat`은 인증 없이 호출할 수 있고 호출마다 LLM
+    # 요금이 발생해서, 공개 배포에서는 그 조합이 그대로 비용 노출이 된다.
+    #
+    # **기본이 꺼짐인 이유가 둘이다.** 하나는 켜는 쪽을 명시적 선택으로 두는
+    # 이 파일의 관례(`taste_evidence_enabled`와 같다). 다른 하나는 테스트다 —
+    # 테스트는 같은 클라이언트에서 채팅 요청을 연달아 보내는데, 기본이 켜짐이면
+    # 그 테스트들이 429를 맞는다. 공개 배포의 `.env`에서만 켠다.
+    rate_limit_enabled: bool = False
+    rate_limit_requests: int = 20
+    rate_limit_window_seconds: int = 60
+    # 돈이 나가는 경로만 막는다. `/api/health`를 넣으면 배포 워크플로우의
+    # 헬스체크가 30회 폴링하다 막힌다.
+    rate_limit_path_prefixes: str = "/api/chat"
+
     # 장소 사진 분위기 기능의 스위치. 축 점수 조회(발화 경로)와 사진 최근접
     # 검색(사진 경로)을 함께 켜고 끈다. 기본 off인 이유는 취향 쪽과 같다 —
     # 사진 경로가 SigLIP을 서버 프로세스에 상주시키기 때문이다.
@@ -527,6 +541,15 @@ class Settings(BaseSettings):
                 "RECOMMENDATION_RESULT_LIMIT은 RECOMMENDATION_CANDIDATE_LIMIT 이하여야 합니다."
             )
         return self
+
+    @property
+    def resolved_rate_limit_path_prefixes(self) -> tuple[str, ...]:
+        """빈 항목을 뺀 제한 대상 경로 접두사."""
+        return tuple(
+            prefix.strip()
+            for prefix in self.rate_limit_path_prefixes.split(",")
+            if prefix.strip()
+        )
 
     @property
     def resolved_cors_allow_origins(self) -> list[str]:
