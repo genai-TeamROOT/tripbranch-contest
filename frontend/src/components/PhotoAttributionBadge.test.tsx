@@ -41,9 +41,14 @@ describe("PhotoAttributionBadge", () => {
     expect(screen.queryByRole("link")).toBeNull();
   });
 
-  it("좁은 자리에서도 작성자 이름을 지우지 않는다", () => {
-    render(<PhotoAttributionBadge attribution={attribution} compact />);
+  it("사진 오른쪽 아래에 얹힌다", () => {
+    // 목록 썸네일에서 출처를 생략할 수 있는 근거가 "큰 사진에서 온전히 밝힌다"라,
+    // 이 배지는 사진 위에 겹쳐 그 사진의 것임이 드러나야 한다.
+    render(<PhotoAttributionBadge attribution={attribution} />);
 
-    expect(screen.getByRole("link", { name: "북극돼지" })).toBeInTheDocument();
+    const badge = screen.getByTestId("photo-attribution");
+    expect(badge.className).toContain("absolute");
+    expect(badge.className).toContain("bottom-2");
+    expect(badge.className).toContain("right-2");
   });
 });

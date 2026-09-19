@@ -17,7 +17,6 @@
 import { ChevronRight, Heart, MapPin } from "lucide-react";
 import type { Language, RecommendationItem } from "../types";
 import { PlaceThumbnail } from "./PlaceThumbnail";
-import { PhotoAttributionBadge } from "./PhotoAttributionBadge";
 import { isAlwaysOpen } from "../utils/operatingHours";
 import { travelValue } from "../utils/travelDisplay";
 
@@ -123,9 +122,6 @@ export function PlaceCard({
               있어도 원본이 사라졌을 수 있어(D-087과 같은 종류) 자리표시는 같다.
               작은 썸네일만 죽은 장소는 image_url_fallback으로 갈아탄다. */}
           <PlaceThumbnail src={item.image_url} fallbackSrc={item.image_url_fallback} />
-          {/* Google 사진은 출처를 함께 그려야 쓸 수 있다. 관광공사 사진에는
-              attribution이 없어 아무것도 그리지 않는다. */}
-          <PhotoAttributionBadge attribution={item.image_attribution} />
 
           {onToggleSave && (
             <button
