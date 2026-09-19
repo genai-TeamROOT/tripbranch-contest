@@ -87,28 +87,41 @@ jobs:
 
       - name: Sync to S3
         run: |
-          # 해시가 붙은 정적 자산과 index.html을 나눠 올린다.
+          # 캐시 수명을 파일명 기준으로 가른다.
           #
-          # Vite가 내는 assets/*.js는 내용이 바뀌면 파일명이 바뀌므로 영구 캐시해도
-          # 안전하다. 반대로 index.html은 이름이 고정이라 캐시되면 새 배포가
-          # 브라우저에 영영 안 닿는다 — 그래서 no-cache로 올린다.
+          # `assets/`만 Vite가 내용 해시를 붙인다. 내용이 바뀌면 파일명이 바뀌므로
+          # 영구 캐시해도 낡은 것을 잡고 있을 수 없다.
           #
-          # --delete는 지워진 파일을 버킷에서도 치운다. index.html을 제외했으므로
-          # 이 단계에서 index.html이 지워지지 않는다(다음 단계가 덮어쓴다).
+          # **최상위 파일은 전부 이름이 고정이라 영구 캐시하면 안 된다.**
+          # index.html뿐 아니라 sw.js, registerSW.js, manifest.webmanifest,
+          # 아이콘들이 여기 있다. 특히 서비스 워커를 1년 캐시에 넣으면 새 배포가
+          # 브라우저에 영영 닿지 않는다 — vite.config.ts가 registerType을
+          # autoUpdate로 둔 이유("서비스워커가 낡은 화면을 붙잡고 있는 사고가
+          # 훨씬 비싸다")를 CDN 층에서 되살리는 셈이 된다.
+          #
+          # 순서가 중요하다. 자산을 먼저 올려야 새 index.html이 가리키는 파일이
+          # 이미 버킷에 있다. 반대로 하면 그 사이에 접속한 사람이 404를 본다.
           aws s3 sync dist "s3://$S3_BUCKET" \
             --delete \
-            --exclude index.html \
+            --exclude "*" --include "assets/*" \
             --cache-control "public, max-age=31536000, immutable"
 
-          aws s3 cp dist/index.html "s3://$S3_BUCKET/index.html" \
+          aws s3 sync dist "s3://$S3_BUCKET" \
+            --delete \
+            --exclude "assets/*" \
             --cache-control "no-cache, must-revalidate"
 
       - name: Invalidate CloudFront
         run: |
-          # index.html만 무효화하면 충분하다. 나머지는 파일명이 바뀌어 새로 받아간다.
-          # CloudFront 무효화는 월 1,000경로까지 무료라 경로를 좁혀두면 비용이 0으로 남는다.
+          # `/*` 하나로 전부 지운다. 무효화 요금은 경로 단위로 세는데 와일드카드는
+          # 1경로로 치므로(월 1,000경로 무료) 비용은 그대로 0이다.
+          #
+          # 최상위에 이름이 고정인 파일이 여럿이라(index.html, sw.js, registerSW.js,
+          # manifest.webmanifest, 아이콘) 목록으로 적으면 나중에 파일이 하나 늘 때
+          # 조용히 빠진다. 해시 붙은 assets까지 같이 지워지지만, 어차피 새 이름으로
+          # 한 번 더 받아갈 뿐이라 손해가 없다.
           ID=$(aws cloudfront create-invalidation \
             --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
-            --paths "/index.html" "/" \
+            --paths "/*" \
             --query Invalidation.Id --output text)
           echo "invalidation: $ID"

@@ -386,6 +386,24 @@ SPA라서 오류 응답 두 개를 반드시 설정한다. 없으면 새로고�
 | 403 | `/index.html` | 200 |
 | 404 | `/index.html` | 200 |
 
+### PWA 캐시 주의
+
+프론트는 PWA라 빌드 산출물 최상위에 **이름이 고정인 파일**이 여럿 나온다.
+
+```
+index.html  sw.js  registerSW.js  manifest.webmanifest  favicon.svg  pwa-*.png
+```
+
+내용 해시가 붙는 것은 `assets/` 안쪽뿐이다. 그래서 배포 워크플로우는 `assets/`만
+영구 캐시(`immutable`)로 올리고 나머지는 `no-cache, must-revalidate`로 올린다.
+**서비스 워커를 영구 캐시에 넣으면 새 배포가 브라우저에 영영 닿지 않는다** —
+`frontend/vite.config.ts`가 `registerType: "autoUpdate"`를 고른 이유를 CDN 층에서
+되돌리는 셈이 된다.
+
+CloudFront 쪽에 캐시 정책을 따로 만들 필요는 없다. 기본 정책이 오리진의
+`Cache-Control`을 존중한다. 다만 **버킷에 이미 잘못된 헤더로 올라간 파일은
+다시 올려야 고쳐진다** — 헤더는 객체에 저장되는 값이라 무효화만으로는 안 바뀐다.
+
 ### Cloudflare CNAME
 
 | 형식 | 이름 | 값 | 프록시 |
@@ -491,5 +509,5 @@ t3.micro가 모자라면 t3.small로 올린다. 인스턴스 중지 -> 작업 ->
 | 브라우저 콘솔에 CORS 오류 | `.env`의 `CORS_ALLOW_ORIGINS`에 `https://contest.tripbranch.co.kr`이 있는지 |
 | 음성 입력이 동작 안 함 | HTTPS로 접속했는지. `getUserMedia`는 보안 컨텍스트에서만 동작한다 |
 | 프론트 새로고침하면 XML 오류 | CloudFront 오류 페이지 403/404 -> `/index.html` 200 설정 |
-| 새 배포가 브라우저에 안 보임 | CloudFront 무효화 완료 여부, `index.html`의 `Cache-Control` |
+| 새 배포가 브라우저에 안 보임 | CloudFront 무효화 완료 여부. `curl -I`로 `index.html`과 `sw.js`의 `Cache-Control`이 `no-cache`인지 본다. `immutable`이면 다시 올려야 한다 |
 | 사이트가 통째로 죽음 | 크레딧 알람이 인스턴스를 중지시켰을 수 있다. EC2 상태 확인 |
