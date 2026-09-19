@@ -315,6 +315,18 @@ sudo tee /opt/caddy/Caddyfile >/dev/null <<'EOF'
 }
 
 api-contest.tripbranch.co.kr {
+	# 보안 헤더. CSP는 default-src none으로 둘 수 있지만, 이 응답은 JSON만
+	# 내보내고 브라우저가 문서로 렌더링할 일이 없어 실익이 적다. 대신 문서
+	# 경로를 아래에서 아예 막는다.
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# uvicorn임을 굳이 알릴 이유가 없다.
+		-Server
+	}
+
 	# 엣지에서 떨군다. FastAPI는 /docs·/redoc·/openapi.json을 기본으로 열어두는데,
 	# 공개 인터넷에 그대로 두면 API 스키마가 그대로 읽힌다. /api/chat이 무인증이라
 	# 스키마를 아는 순간 자동화된 호출로 LLM 비용을 태울 수 있다.
@@ -444,6 +456,27 @@ index.html  sw.js  registerSW.js  manifest.webmanifest  favicon.svg  pwa-*.png
 CloudFront 쪽에 캐시 정책을 따로 만들 필요는 없다. 기본 정책이 오리진의
 `Cache-Control`을 존중한다. 다만 **버킷에 이미 잘못된 헤더로 올라간 파일은
 다시 올려야 고쳐진다** — 헤더는 객체에 저장되는 값이라 무효화만으로는 안 바뀐다.
+
+### 응답 헤더 정책
+
+프론트에도 같은 보안 헤더를 붙인다. CloudFront -> 정책 -> 응답 헤더에서 만들고
+배포의 기본 캐시 동작에 연결한다.
+
+| 정책 | `tripbranch-contest-security-headers` (`3896c563-641c-4bec-8c94-361a40a67590`) |
+| --- | --- |
+| Strict-Transport-Security | `max-age=31536000` (includeSubDomains·preload 없음) |
+| X-Content-Type-Options | `nosniff` |
+| X-Frame-Options | `DENY` |
+| Referrer-Policy | `strict-origin-when-cross-origin` |
+| 제거 헤더 | `Server` — 오리진이 S3라는 것을 가린다 |
+
+**CSP는 넣지 않았다.** 넣으려면 `img-src`에 관광 API의 사진 도메인을 전부 열어야
+하고(장소 사진이 외부에서 온다), 애니메이션 라이브러리가 인라인 스타일을 써서
+`style-src 'unsafe-inline'`도 필요하다. 그 상태의 CSP는 얻는 것에 비해 깨질 위험이
+크다. 넣는다면 Report-Only로 먼저 한 바퀴 돌려보고 정해야 한다.
+
+`Server: CloudFront`는 남는다. CloudFront가 스스로 붙이는 값이라 제거 대상에
+넣어도 지워지지 않는다. 가리려던 것은 오리진 종류였고 그건 해결됐다.
 
 ### Cloudflare CNAME
 
