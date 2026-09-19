@@ -2,6 +2,8 @@ name: Deploy backend
 
 on:
   push:
+    # 작업 브랜치 -> develop -> 검수 -> main 순으로 올린다.
+    # main은 승격된 것만 들어오는 브랜치이므로 승격 = 배포로 둔다.
     branches: [main]
     paths:
       - "backend/**"

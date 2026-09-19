@@ -17,6 +17,20 @@
 - 배포는 GitHub Actions에서 OIDC로 역할을 맡아 진행한다. **액세스 키를 쓰지 않는다.**
 - EC2에는 **SSH 포트를 열지 않는다.** 접속은 SSM Session Manager로만 한다.
 
+## 브랜치와 배포 시점
+
+```
+작업 브랜치  ->  develop  ->  (검수)  ->  main  ->  배포
+```
+
+- **`main`에 들어온 것만 배포된다.** 배포 워크플로우는 `main` 푸시에만 반응한다.
+- `develop`은 통합 브랜치다. 여기에 머지해도 배포되지 않으므로, 검수는 로컬이나
+  PR 단위로 한다.
+- 워크플로우는 경로 필터를 쓴다. `backend/**`가 바뀌면 백엔드만, `frontend/**`가
+  바뀌면 프론트만 돈다. 둘 다 바뀌면 둘 다 돈다.
+- 급하게 되돌려야 하면 `main`을 고치기 전에 **롤백 절차**(아래)를 먼저 쓴다.
+  이미 ECR에 있는 이전 이미지를 띄우는 쪽이 새 배포보다 빠르다.
+
 ## 리소스 목록
 
 | 종류 | 이름 / ID | 비고 |
@@ -475,7 +489,7 @@ t3.micro가 모자라면 t3.small로 올린다. 인스턴스 중지 -> 작업 ->
 | `ImportError: sentence_transformers` | `.env`에서 `TASTE_EVIDENCE_ENABLED`나 `PLACE_MOOD_ENABLED`가 켜졌다. 이미지에 모델이 없다 |
 | 인증서 발급 실패 | Cloudflare 프록시가 켜졌는지(`dig`로 확인), 80번 포트가 열렸는지 |
 | 브라우저 콘솔에 CORS 오류 | `.env`의 `CORS_ALLOW_ORIGINS`에 `https://contest.tripbranch.co.kr`이 있는지 |
-| 위치·음성 입력이 동작 안 함 | HTTPS로 접속했는지. 브라우저 보안 컨텍스트에서만 동작한다 |
+| 음성 입력이 동작 안 함 | HTTPS로 접속했는지. `getUserMedia`는 보안 컨텍스트에서만 동작한다 |
 | 프론트 새로고침하면 XML 오류 | CloudFront 오류 페이지 403/404 -> `/index.html` 200 설정 |
 | 새 배포가 브라우저에 안 보임 | CloudFront 무효화 완료 여부, `index.html`의 `Cache-Control` |
 | 사이트가 통째로 죽음 | 크레딧 알람이 인스턴스를 중지시켰을 수 있다. EC2 상태 확인 |
