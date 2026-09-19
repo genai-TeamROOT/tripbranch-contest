@@ -133,8 +133,22 @@ function App() {
                       }
                     />
                   )}
-                  {/* 운영 점검 화면은 사용자 신원과 무관한 내부 도구라 관문 밖에 둔다. */}
-                  <Route path="/dev-ops" element={<DeveloperOpsPage />} />
+                  {/* 운영 점검 화면도 개발 빌드에서만 낸다.
+                    사용자 신원과 무관한 내부 도구라 관문(RequireUser) 밖에 두는데,
+                    그 상태로 배포하면 URL을 아는 누구나 들어올 수 있다. 실제로
+                    2026-09-19 공개 배포 점검에서 /dev-ops가 그대로 열려 있었다 —
+                    백엔드가 APP_ENV=local일 때만 감사 API를 등록해서 데이터는
+                    안 나왔지만, "TripBranch Ops · 호출량 · DB 상태 · 동기화"라는
+                    내부 화면이 깨진 채로 노출됐다.
+                    DEV 가드를 걸면 라우터에서 경로가 사라져 /dev-ops로 들어와도
+                    catch-all로 떨어진다(빌드 산출물에 "/dev-ops" 문자열이 남지
+                    않는 것으로 확인). 다만 페이지 청크 파일(102KB) 자체는 계속
+                    생성된다 — Vite가 동적 import 표현식을 보고 청크를 내기
+                    때문이다. 아무도 로드하지 않으므로 사용자는 받지 않지만,
+                    "번들에서 통째로 사라진다"고 오해하지 않도록 적어둔다. */}
+                  {import.meta.env.DEV && (
+                    <Route path="/dev-ops" element={<DeveloperOpsPage />} />
+                  )}
                   <Route path="/confirm" element={<Navigate to="/chat" replace />} />
                   <Route path="/results" element={<Navigate to="/chat" replace />} />
                   {/*
