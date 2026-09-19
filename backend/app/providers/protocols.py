@@ -609,6 +609,27 @@ class PlaceImageProvider(Protocol):
     ) -> ProviderResult[tuple[PlacePhoto, ...]]: ...
 
 
+class GooglePlacePhotoProviderProtocol(Protocol):
+    """관광공사 이미지가 없는 장소의 대표 사진 1장을 주는 최소 계약.
+
+    `PlaceImageProvider`와 나눈 이유는 부르는 식별자가 다르기 때문이다. 이쪽은
+    content_id로 부를 수 없다 — 우리 DB에 google_place_id가 없어 이름·주소·좌표로
+    찾아야 한다. 받는 것도 목록이 아니라 카드에 걸 1장뿐이다.
+
+    실패를 밖으로 내보내지 않고 None으로 답한다. 사진은 추천의 성립 조건이
+    아니라서, 여기서 올린 예외로 추천 전체를 잃으면 손해가 더 크다.
+    """
+
+    async def find_cover_photo(
+        self,
+        *,
+        name: str,
+        address: str | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+    ) -> str | None: ...
+
+
 class PlaceDetailByNameProvider(Protocol):
     """장소명으로 상세 1건을 찾는 최소 계약.
 

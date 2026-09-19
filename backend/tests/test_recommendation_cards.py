@@ -324,3 +324,121 @@ async def test_fake_repository_exercises_parking_and_category_paths() -> None:
     assert cafe.parking_status is ParkingAvailability.UNAVAILABLE
     assert cafe.category_label == "카페/ 찻집"
     assert cafe.thumbnail_url is None
+
+
+class SpyGooglePhotoProvider:
+    """호출 인자를 기록하는 가짜 Google 사진 Provider.
+
+    실제 Provider는 실패를 None으로 바꿔 돌려주기로 계약돼 있다. 그 계약이
+    깨졌을 때 카드 조립이 어떻게 되는지도 봐야 해서 예외를 던지는 모드를 둔다.
+    """
+
+    def __init__(
+        self,
+        photo_url: str | None = "https://example.test/google.jpg",
+        *,
+        error: Exception | None = None,
+    ) -> None:
+        self.photo_url = photo_url
+        self.error = error
+        self.calls: list[dict[str, object]] = []
+
+    async def find_cover_photo(
+        self,
+        *,
+        name: str,
+        address: str | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+    ) -> str | None:
+        self.calls.append(
+            {
+                "name": name,
+                "address": address,
+                "latitude": latitude,
+                "longitude": longitude,
+            }
+        )
+        if self.error is not None:
+            raise self.error
+        return self.photo_url
+
+
+@pytest.mark.asyncio
+async def test_이미지가_없는_장소만_google로_채운다() -> None:
+    """이미지가 있는 장소까지 부르면 7,223건에 돈이 나간다."""
+    rows = {
+        "1": _row("1"),
+        "2": _row("2", first_image_url=None, thumbnail_url=None),
+    }
+    provider = SpyGooglePhotoProvider()
+    tool = RecommendationCardTool(
+        FakeRepository(rows), google_photo_provider=provider
+    )
+
+    result = await tool.get_cards(["1", "2"])
+
+    with_image, without_image = result.cards
+    assert with_image.thumbnail_url == "https://example.test/thumb.jpg"
+    assert without_image.thumbnail_url == "https://example.test/google.jpg"
+    # 이미지가 있던 장소는 부르지 않았다.
+    assert len(provider.calls) == 1
+    assert provider.calls[0]["name"] == "장소 2"
+    # 검색 정확도를 위해 주소도 함께 넘긴다.
+    assert provider.calls[0]["address"] == "서울특별시 종로구"
+
+
+@pytest.mark.asyncio
+async def test_google이_사진을_못_찾으면_자리표시로_남는다() -> None:
+    rows = {"1": _row("1", first_image_url=None, thumbnail_url=None)}
+    tool = RecommendationCardTool(
+        FakeRepository(rows), google_photo_provider=SpyGooglePhotoProvider(None)
+    )
+
+    result = await tool.get_cards(["1"])
+
+    assert result.cards[0].thumbnail_url is None
+    assert result.status is ToolStatus.SUCCESS
+
+
+@pytest.mark.asyncio
+async def test_google이_예외를_던져도_추천은_그대로_나간다() -> None:
+    """사진은 있으면 좋은 값이라 추천 전체를 실패시키면 안 된다."""
+    rows = {
+        "1": _row("1"),
+        "2": _row("2", first_image_url=None, thumbnail_url=None),
+    }
+    tool = RecommendationCardTool(
+        FakeRepository(rows),
+        google_photo_provider=SpyGooglePhotoProvider(error=RuntimeError("boom")),
+    )
+
+    result = await tool.get_cards(["1", "2"])
+
+    assert result.status is ToolStatus.SUCCESS
+    assert len(result.cards) == 2
+    assert result.cards[1].thumbnail_url is None
+
+
+@pytest.mark.asyncio
+async def test_provider가_없으면_아무것도_바뀌지_않는다() -> None:
+    rows = {"1": _row("1", first_image_url=None, thumbnail_url=None)}
+    tool = RecommendationCardTool(FakeRepository(rows))
+
+    result = await tool.get_cards(["1"])
+
+    assert result.cards[0].thumbnail_url is None
+
+
+@pytest.mark.asyncio
+async def test_google_사진에는_대안_주소를_두지_않는다() -> None:
+    """비어 있던 관광공사 주소를 대안으로 넣으면 죽은 주소를 다시 부른다."""
+    rows = {"1": _row("1", first_image_url=None, thumbnail_url=None)}
+    tool = RecommendationCardTool(
+        FakeRepository(rows), google_photo_provider=SpyGooglePhotoProvider()
+    )
+
+    result = await tool.get_cards(["1"])
+
+    assert result.cards[0].thumbnail_url == "https://example.test/google.jpg"
+    assert result.cards[0].fallback_thumbnail_url is None
