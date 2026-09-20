@@ -557,3 +557,71 @@ async def test_intents_that_carry_no_conditions_never_retry() -> None:
     assert llm.calls == []
     assert output.intent is Intent.INFO
 
+
+
+@pytest.mark.asyncio
+async def test_modify_without_current_conditions_falls_back_to_recommend() -> None:
+    """MODIFY 전제조건이 깨진 턴은 되묻기로 끝내지 않고 RECOMMEND로 구제한다.
+
+    `prompts/router/context_rules.md`는 "이전 추천 없음이면 MODIFY로 판정하지
+    않는다"고 못 박아 뒀다 — 여기 들어온 것은 라우터 오분류이고, 그 발화의 올바른
+    목적지는 RECOMMEND다. 예전에는 "아직 추천한 결과가 없어요" 되묻기로 단락했는데,
+    이미 구체적으로 말한 사용자에게 같은 질문을 되돌려주는 막다른 길이었다
+    (2026-09-20 실사용: "강남역 근처 놀만한곳 추천").
+    """
+    llm = FakeLLMProvider()
+    with patch.object(
+        llm,
+        "classify_intent",
+        AsyncMock(
+            return_value=provider_result(
+                IntentClassificationResult(
+                    intent=Intent.MODIFY,
+                    interaction_mode=InteractionMode.DIRECT_REQUEST,
+                ),
+                source=ProviderSource.FAKE_LLM,
+            )
+        ),
+    ):
+        output = await build_interpretation(
+            InterpretRequest(
+                user_input="경복궁 근처 카페 추천해줘",
+                has_previous_recommendation=False,
+                current_conditions=None,
+            ),
+            llm,
+        )
+
+    assert output.intent is Intent.RECOMMEND
+    assert output.recommend is not None
+    assert output.recommend.conditions.search_center == "경복궁"
+
+
+@pytest.mark.asyncio
+async def test_modify_with_current_conditions_still_extracts_modify() -> None:
+    """구제 가드가 정상 MODIFY 턴까지 RECOMMEND로 끌고 가면 안 된다."""
+    llm = FakeLLMProvider()
+    with patch.object(
+        llm,
+        "classify_intent",
+        AsyncMock(
+            return_value=provider_result(
+                IntentClassificationResult(
+                    intent=Intent.MODIFY,
+                    interaction_mode=InteractionMode.DIRECT_REQUEST,
+                ),
+                source=ProviderSource.FAKE_LLM,
+            )
+        ),
+    ):
+        output = await build_interpretation(
+            InterpretRequest(
+                user_input="무료인 곳으로",
+                has_previous_recommendation=True,
+                shown_place_count=2,
+                current_conditions=UserConditions(search_center="경복궁"),
+            ),
+            llm,
+        )
+
+    assert output.intent is Intent.MODIFY

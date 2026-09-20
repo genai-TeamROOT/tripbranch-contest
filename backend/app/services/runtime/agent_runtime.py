@@ -3340,9 +3340,33 @@ async def _run_agent_flow(
             "location_required",
             "location_ambiguous",
         }
+        # 게이트는 "추천 결과가 있었나"가 아니라 **"바꿀 조건이 세션에 있나"**다.
+        # has_recommendation만 보면 추천을 여러 번 시도했지만 결과가 0건이었던
+        # 세션이 조건을 들고도 빈손으로 해석 단계에 들어간다 — 2026-09-20 실사용
+        # 사례에서 condition_version=7 · search_center="망원동"인 세션이
+        # has_recommendation=False라 current_conditions=None으로 내려갔고,
+        # 라우터는 대화 이력을 보고 MODIFY를 냈다. 두 판단이 어긋나 "아직 추천한
+        # 결과가 없어요" 되묻기로 끝났다(orchestrator._extract_for_intent의
+        # MODIFY 분기). 조건이 있으면 넘긴다 — 그러면 MODIFY 추출이 정상 동작해
+        # 검색 중심점만 바꾸는 발화가 제대로 처리된다.
+        # 기존 두 조건은 그대로 두고 조건 보유 여부를 OR로 더한다 — 좁히는
+        # 변경이 아니라 넓히는 변경이라 기존에 통과하던 턴은 그대로 통과한다.
+        #
+        # **condition_version이 아니라 실제 값으로 본다.** 버전만 보면 안 되는
+        # 세션이 실재한다 — 2026-09-20 Supabase `agent_states` 확인에서 최근 30개
+        # 중 둘이 `condition_version=7`인데 `user_conditions`가 전부 null이었다
+        # (문제 세션 sess_...b49ab37f 포함). 버전으로 게이트하면 그런 세션이 빈
+        # UserConditions를 넘겨, MODIFY 추출이 바꿀 것도 없는 상태로 돌고
+        # orchestrator의 RECOMMEND 구제도 못 타게 된다.
+        session_has_conditions = any(
+            value not in (None, [], "")
+            for value in session_context.user_conditions.model_dump().values()
+        )
         current_conditions = (
             to_user_conditions(session_context.user_conditions)
-            if session_context.has_recommendation or location_clarification_pending
+            if session_context.has_recommendation
+            or session_has_conditions
+            or location_clarification_pending
             else None
         )
         # 직전 턴이 INFO 되묻기(장소명 없음/장소 후보 모호)로 끝났을 때만 이전 질문

@@ -4,5 +4,13 @@
     "overrides": {
       "router/context_rules.md": "router/archive/context_rules__legacy-1.0.0.md"
     }
+  },
+  "router-explicit-recommend@legacy-2.7.0": {
+    "description": "명시적 추천 요청 예외(v2.8.0) 도입 전 router 분류 기준선",
+    "overrides": {
+      "router/context_rules.md": "router/archive/context_rules__legacy-2.7.0.md",
+      "router/intent_priority.md": "router/archive/intent_priority__legacy-2.7.0.md",
+      "router/boundary_cases.md": "router/archive/boundary_cases__legacy-2.7.0.md"
+    }
   }
 }

@@ -232,9 +232,9 @@ def _compose_condition_phrase(conditions: UserConditions) -> str:
 [response_composer.py:56-63](../../backend/app/services/runtime/response_composer.py)).
 `place_required`/`place_ambiguous`(INFO/COMPARE용)는 템플릿만 정의돼 있고 실제로 채워 넣는
 호출부를 찾지 못했다 — 버튼화 우선순위를 낮게 둔다. MODIFY의 "`current_conditions` 없음" 케이스
-(아직 아무 추천도 없는 상태에서 "다른 곳"류 발화)는 제안할 선택지 자체가 없어 버튼 후보에서
-제외하고, 기존 자유 입력 유도 문구("아직 추천한 결과가 없어요. 어떤 장소를 찾고 계신가요?")를
-그대로 유지한다.
+(아직 아무 추천도 없는 상태에서 "다른 곳"류 발화)는 **2026-09-20부터 되묻기 자체가 없다** —
+라우터 오분류로 보고 RECOMMEND 추출로 구제하므로 버튼 후보에서도 사라졌다
+(`backend/app/prompts/router/HISTORY.md` v2.8.0).
 
 `location_required`("어디 근처에서 찾아드릴까요?") 버튼: 서비스 지역이 종로구 한정이므로 대표
 스팟 고정 버튼 4개 — "경복궁 근처" / "인사동 근처" / "광화문 근처" / "북촌 근처".

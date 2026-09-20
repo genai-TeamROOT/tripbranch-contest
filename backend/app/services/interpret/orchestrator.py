@@ -442,20 +442,25 @@ async def _extract_for_intent(
 
     if classification.intent is Intent.MODIFY:
         if request.current_conditions is None:
-            return LLMOutput(
-                intent=Intent.MODIFY,
-                status=OutputStatus.NEEDS_CLARIFICATION,
-                clarification=ClarificationPayload(
-                    missing_fields=[
-                        {
-                            "field": "current_conditions",
-                            "reason": "변경할 기존 조건 정보가 없어 어떤 추천을 기준으로 "
-                            "바꿔야 할지 확인할 수 없습니다.",
-                        }
-                    ],
-                    message="아직 추천한 결과가 없어요. 어떤 장소를 찾고 계신가요?",
-                ),
+            # MODIFY의 전제조건(바꿀 기존 조건)이 깨진 상태다. 예전에는 여기서
+            # "아직 추천한 결과가 없어요" 되묻기로 단락했지만, 그 되묻기는 막다른
+            # 길이었다 — 사용자가 이미 "강남역 근처 놀만한곳 추천해줘"처럼 충분히
+            # 구체적으로 말했는데도 같은 질문을 되돌려준다(2026-09-20 실사용).
+            #
+            # `prompts/router/context_rules.md`는 "이전 추천 없음이면 MODIFY로
+            # 판정하지 않는다"고 이미 못 박아 뒀다. 즉 여기 들어온 것은 라우터가
+            # 자기 규칙을 어긴 오분류이고, 그 발화의 올바른 목적지는 RECOMMEND다.
+            # OUT_OF_SCOPE 분기가 interaction_mode 축을 근거로 오분류를 뒤집는 것과
+            # 같은 성격의 구제 가드다 — 되묻지 말고 추천으로 흘려보낸다.
+            #
+            # 오분류가 실제로 얼마나 일어나는지는 실측으로만 알 수 있어 반드시 남긴다.
+            logger.warning(
+                "MODIFY로 분류됐지만 바꿀 기존 조건이 없다 — RECOMMEND 추출로 구제한다: "
+                "user_input=%r has_previous_recommendation=%s",
+                request.user_input,
+                request.has_previous_recommendation,
             )
+            return await _extract_recommend_conditions(request, llm, history_kwargs)
         return (
             await llm.extract_modify_conditions(
                 request.user_input,
