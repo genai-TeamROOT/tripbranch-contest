@@ -118,6 +118,65 @@ def test_modify_category_replacement_updates_place_types_and_tags_together() -> 
     assert operations[("Update", "place_tags")] == ["공원"]
 
 
+def test_modify_dining_word_narrows_subcategory_even_when_llm_clears_tags() -> None:
+    """앞 턴이 카페여도 "맛집"이라고 말하면 식당으로 좁힌다.
+
+    MODIFY 추출이 place_tags를 비운 채 place_types=[restaurant]만 주면 음식점
+    대분류 전체가 후보가 돼 직전 카페가 다시 올라온다(2026-09-20 실사용:
+    "강남역 근처 맛집"에 빌즈 강남·썸띵어바웃커피가 재등장).
+    """
+
+    request = transform(
+        LLMOutput(
+            intent=Intent.MODIFY,
+            status=OutputStatus.COMPLETE,
+            modify=ModifyPayload(
+                modify_type=ModifyType.CHANGE_CONDITION,
+                condition_changes=UserConditions(
+                    search_center="강남역", place_types=["restaurant"], place_tags=[]
+                ),
+                changed_fields=["search_center", "place_types", "place_tags"],
+            ),
+        ),
+        _context(
+            user_conditions=StateUserConditions(place_types=["restaurant"], place_tags=["카페"])
+        ),
+        "강남역 근처 맛집 추천해줘",
+    )
+
+    operations = {
+        (operation.op, operation.field): operation.value for operation in request.operations
+    }
+    assert operations[("Update", "place_types")] == ["restaurant"]
+    assert operations[("Update", "place_tags")] == [PlaceTag.RESTAURANT]
+
+
+def test_modify_without_food_words_keeps_the_extracted_tags() -> None:
+    """음식 업종을 말하지 않은 MODIFY는 보정이 끼어들지 않는다."""
+
+    request = transform(
+        LLMOutput(
+            intent=Intent.MODIFY,
+            status=OutputStatus.COMPLETE,
+            modify=ModifyPayload(
+                modify_type=ModifyType.CHANGE_CONDITION,
+                condition_changes=UserConditions(place_types=["attraction"], place_tags=["공원"]),
+                changed_fields=["place_types", "place_tags"],
+            ),
+        ),
+        _context(
+            user_conditions=StateUserConditions(place_types=["restaurant"], place_tags=["카페"])
+        ),
+        "조용한 곳으로 바꿔줘",
+    )
+
+    operations = {
+        (operation.op, operation.field): operation.value for operation in request.operations
+    }
+    assert operations[("Update", "place_types")] == ["attraction"]
+    assert operations[("Update", "place_tags")] == ["공원"]
+
+
 def test_recommend_serializes_int_fields_as_int_not_str() -> None:
     """_serialize() 회귀: max_travel_time/time_available은 str()로 감싸지지 않는다.
 
