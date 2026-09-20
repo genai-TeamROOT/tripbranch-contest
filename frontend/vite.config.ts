@@ -37,7 +37,7 @@ export default defineConfig({
         name: "TripBranch",
         short_name: "TripBranch",
         description:
-          "여행이 틀어진 순간, 한마디로 다음 여행지를 찾아 줍니다. 대안 관광지부터 바뀐 일정까지 한 번에.",
+          "여행이 틀어진 순간, 한마디로 다음 여행지를 찾아 줍니다.",
         lang: "ko",
         start_url: "/",
         scope: "/",
