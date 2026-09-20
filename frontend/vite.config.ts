@@ -36,7 +36,8 @@ export default defineConfig({
       manifest: {
         name: "TripBranch",
         short_name: "TripBranch",
-        description: "지금 시각과 위치에 맞는 여행지를 찾아 하루 동선을 짜 주는 AI 여행 도우미",
+        description:
+          "여행이 틀어진 순간, 한마디로 다음 여행지를 찾아 줍니다. 대안 관광지부터 바뀐 일정까지 한 번에.",
         lang: "ko",
         start_url: "/",
         scope: "/",
@@ -67,7 +68,14 @@ export default defineConfig({
         /* 개발자 화면(/dev/*)은 미리 받아 둘 이유가 없다 — 일반 사용자에게는
            열 길조차 없는데 설치할 때마다 157 kB를 함께 내려받는다. 빼도 온라인에서
            평소처럼 열린다(그때 네트워크로 받는다). */
-        globIgnores: ["**/Developer*.js", "**/dev-*.js"],
+        globIgnores: [
+          "**/Developer*.js",
+          "**/dev-*.js",
+          /* 링크 카드용 썸네일은 크롤러만 읽는다. precache 에 넣으면 사용자가
+             설치할 때마다 293 kB 를 같이 내려받는데, 앱 화면에서는 한 번도
+             쓰이지 않는 파일이다. */
+          "**/og-image.png",
+        ],
       },
     }),
   ],
