@@ -161,6 +161,21 @@ class PreferenceTagScoreDetail(BaseModel):
     relative_score: float = Field(ge=0, le=1)
 
 
+class ImageAttribution(BaseModel):
+    """사진과 함께 화면에 그려야 하는 출처.
+
+    Google Maps Platform 정책은 사진을 보여줄 때 작성자를 밝히고, 사용자가
+    `source_uri`로 원본 사진을 Google 지도에서 볼 수 있게 하라고 요구한다.
+    `provider`를 따로 두는 이유는 정책이 "Google Maps"라는 이름을 밝히라고
+    하기 때문이다 — 작성자 이름만으로는 어디서 온 사진인지 알 수 없다.
+    """
+
+    provider: str = "Google Maps"
+    author_name: str
+    author_uri: str | None = None
+    source_uri: str | None = None
+
+
 class RecommendationItem(BaseModel):
     place_id: str
     name: str
@@ -230,6 +245,11 @@ class RecommendationItem(BaseModel):
     # 사라지는 장소가 있어서다 — 아현시장이 그렇다. 그 장소도 원본(firstimage)은 살아
     # 있고, 상세 카드는 원본을 먼저 고르기 때문에 사진이 나온다. 추천 카드만 비어 보인다.
     image_url_fallback: str | None = None
+    # image_url이 Google Places에서 온 경우에만 채워진다(관광공사 이미지가 하나도
+    # 없던 장소). **값이 있으면 화면이 반드시 출처를 함께 그려야 한다** — Google
+    # 정책이 사진에 작성자 표기와 원본 링크를 요구한다. 지킬 수 없으면 사진 자체를
+    # 쓸 수 없으므로, 서버가 출처 없는 사진은 아예 싣지 않는다.
+    image_attribution: ImageAttribution | None = None
 
 
 class TravelOriginToggle(BaseModel):
@@ -316,6 +336,9 @@ class ScheduleItem(BaseModel):
     # image_url이 404일 때 대신 그릴 주소. 추천 카드와 같은 규칙이다
     # (RecommendationItem.image_url_fallback 주석 참고).
     image_url_fallback: str | None = None
+    # Google Places에서 온 사진이면 출처가 함께 온다. 일정 카드도 같은 사진을
+    # 그리므로 같은 표기 의무를 진다(RecommendationItem.image_attribution 참고).
+    image_attribution: ImageAttribution | None = None
     # 도보로 이어지는 묶음 번호. 같은 번호끼리 한 묶음으로 그린다. (TP-243)
     #
     # **항목 배열 모양은 그대로 두고 번호만 얹는다.** saved_schedules.payload와

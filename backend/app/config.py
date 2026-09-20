@@ -192,6 +192,20 @@ class Settings(BaseSettings):
     # 헬스체크가 30회 폴링하다 막힌다.
     rate_limit_path_prefixes: str = "/api/chat"
 
+    # 관광공사 이미지가 없는 장소를 Google Places 사진으로 채울지 여부.
+    #
+    # places 8,067건 중 844건은 대표 이미지·썸네일이 둘 다 비어 있고, 그중
+    # 843건은 추가 사진(place_image_embeddings)도 없다(2026-09-20 실측). 추천
+    # 후보로 쓰이는 활성 장소만 세면 607곳이 카드에서 자리표시로 나온다.
+    #
+    # **기본이 꺼짐인 이유가 둘이다.** 하나는 켜는 쪽을 명시적 선택으로 두는 이
+    # 파일의 관례다. 다른 하나는 돈이다 — 이 경로는 장소 한 곳당 Google 호출이
+    # 2회(검색 1 + 사진 주소 1)라 켜 둔 채로 두면 사용량이 조용히 쌓인다.
+    #
+    # 켜려면 GOOGLE_PLACES_API_KEY도 필요하다. 키가 없으면 부팅을 막지 않고
+    # 경고만 남긴 뒤 꺼진 것으로 간주한다(get_google_place_photo_provider).
+    google_place_photo_enabled: bool = False
+
     # 장소 사진 분위기 기능의 스위치. 축 점수 조회(발화 경로)와 사진 최근접
     # 검색(사진 경로)을 함께 켜고 끈다. 기본 off인 이유는 취향 쪽과 같다 —
     # 사진 경로가 SigLIP을 서버 프로세스에 상주시키기 때문이다.
@@ -438,6 +452,9 @@ class Settings(BaseSettings):
     # Cloud Translation Basic(v2) 호출 전용 키. Gemini/Maps 키와 역할·API 제한을
     # 분리한다. 영어 UI를 쓰지 않는 한국어 요청에는 읽거나 요구하지 않는다.
     google_translate_api_key: str = Field(default="", repr=False, exclude=True)
+    # Places API(New) 호출 전용 키. Translation·Gemini 키와 API 제한을 분리해
+    # 관리한다. GOOGLE_PLACE_PHOTO_ENABLED가 false면 읽지 않는다.
+    google_places_api_key: str = Field(default="", repr=False, exclude=True)
     seoul_open_data_api_key: str = Field(default="", repr=False, exclude=True)
     naver_map_client_id: str = Field(default="", repr=False, exclude=True)
     naver_map_client_secret: str = Field(default="", repr=False, exclude=True)
@@ -480,6 +497,19 @@ class Settings(BaseSettings):
     #
     # 서버를 다시 띄우면 사라진다. 신선함은 이 값이 아니라 재적재 주기가 정한다.
     place_photo_api_cache_ttl_seconds: int = Field(default=6 * 60 * 60, ge=0)
+
+    # Google 사진 주소를 프로세스 메모리에 들고 있는 시간(초). 기본 1시간.
+    #
+    # TourAPI 쪽(6시간)보다 짧은 이유는 **받은 주소가 만료되기 때문이다.** Google
+    # 정책상 사진 파일과 사진 이름을 영구 저장할 수 없고 표시용 주소도 수명이
+    # 있어, 오래 들고 있으면 죽은 주소를 내보내게 된다. 반대로 캐시가 아예
+    # 없으면 같은 장소가 카드에 뜰 때마다 호출 2회가 다시 나간다.
+    google_place_photo_cache_ttl_seconds: int = Field(default=60 * 60, ge=0)
+
+    # Google 사진을 받을 최대 가로 픽셀. 추천 카드 썸네일 크기에 맞춘 값이라
+    # 원본을 그대로 받지 않는다 — 큰 이미지는 화면에서 어차피 줄어들고 전송만
+    # 느려진다.
+    google_place_photo_max_width_px: int = Field(default=800, ge=100, le=4800)
 
     # Recommendation pipeline budgets
     recommendation_result_limit: int = Field(

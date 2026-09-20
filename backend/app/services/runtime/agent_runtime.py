@@ -83,6 +83,7 @@ from app.schemas import (
     ConversationTurnView,
     GeneralPayload,
     GeneralTopic,
+    ImageAttribution,
     InfoPayload,
     Intent,
     InterpretRequest,
@@ -213,7 +214,7 @@ from app.state.service import (
 from app.state.session import new_trace_id
 from app.state.store import StateStore, get_store
 from app.tools.mode_judge import LlmModeJudge, narrow_accessibility_needs
-from app.tools.recommendation_cards import RecommendationCardTool
+from app.tools.recommendation_cards import RecommendationCard, RecommendationCardTool
 from app.tools.schedule_travel import (
     JUDGE_SKIPPED_TRANSPORTS,
     select_modes_for_segments,
@@ -4920,12 +4921,26 @@ async def _with_pinned_images(
             update={
                 "image_url": cards[item.place_id].thumbnail_url,
                 "image_url_fallback": cards[item.place_id].fallback_thumbnail_url,
+                # 사진을 덮어쓰면 출처도 함께 덮어야 한다. 이 Tool은 Google
+                # 보강 없이 조립되므로 결과는 늘 None인데, 그래도 명시해야
+                # 직전 턴에 붙었던 Google 출처가 새 관광공사 사진에 남지 않는다.
+                "image_attribution": _attribution_of(cards[item.place_id]),
             }
         )
         if item.place_id in cards
         else item
         for item in pinned_items
     ]
+
+
+def _attribution_of(card: RecommendationCard) -> ImageAttribution | None:
+    if card.photo_attribution is None:
+        return None
+    return ImageAttribution(
+        author_name=card.photo_attribution.author_name,
+        author_uri=card.photo_attribution.author_uri,
+        source_uri=card.photo_attribution.source_uri,
+    )
 
 
 async def _run_schedule_branch(

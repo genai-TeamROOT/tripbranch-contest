@@ -639,6 +639,10 @@ async def rerank_with_concentration(
             # (travel_distance_m·taste_evidence와 같은 유형, 위 주석 참고).
             image_url=item.image_url,
             image_url_fallback=item.image_url_fallback,
+            # 출처도 사진과 함께 이월한다. 빠뜨리면 혼잡도 재순위를 탄 요청에서만
+            # Google 사진이 출처 없이 나가는데, 그건 화면이 허전한 정도가 아니라
+            # 정책 위반이다.
+            image_attribution=item.image_attribution,
             # 분류 라벨도 같은 이유로 이월한다. 2차가 후보를 다시 만들지 않으므로
             # 여기 안 적으면 재순위를 탄 요청에서만 칩이 대분류로 되돌아간다.
             category_label=item.category_label,
@@ -845,6 +849,10 @@ async def rerank_with_co_visited(
             # 혼잡도 재순위와 같은 이유로 썸네일도 1차 값을 그대로 가져온다.
             image_url=item.image_url,
             image_url_fallback=item.image_url_fallback,
+            # 출처도 사진과 함께 이월한다. 빠뜨리면 혼잡도 재순위를 탄 요청에서만
+            # Google 사진이 출처 없이 나가는데, 그건 화면이 허전한 정도가 아니라
+            # 정책 위반이다.
+            image_attribution=item.image_attribution,
             # 분류 라벨도 같은 이유로 이월한다. 2차가 후보를 다시 만들지 않으므로
             # 여기 안 적으면 재순위를 탄 요청에서만 칩이 대분류로 되돌아간다.
             category_label=item.category_label,

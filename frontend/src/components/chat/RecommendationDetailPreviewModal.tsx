@@ -37,7 +37,8 @@ import { useTripState } from "../../state/TripContext";
 import { useTasteEnabled } from "../../state/FeatureFlagsContext";
 import { placeCategoryLabel } from "../../utils/placeCategory";
 import { isAlwaysOpen } from "../../utils/operatingHours";
-import type { InfoPlaceCard, RecommendationItem } from "../../types";
+import type { ImageAttribution, InfoPlaceCard, RecommendationItem } from "../../types";
+import { PhotoAttributionBadge } from "../PhotoAttributionBadge";
 import { useNaverDirections } from "../../hooks/useNaverDirections";
 import { openNaverMapSearch } from "../../utils/naverDirections";
 import {
@@ -69,6 +70,17 @@ interface RecommendationDetailPreviewModalProps {
    */
   placeId?: string;
   placeName?: string;
+  /**
+   * 목록에서 이미 그리고 있던 사진과 그 출처. 일정 카드처럼 item을 만들 수 없는
+   * 자리에서 넘긴다.
+   *
+   * **이 값이 상세에 사진을 띄우는 유일한 경로인 장소가 있다.** 관광공사 이미지가
+   * 없어 Google 사진으로 채운 장소는 상세 조회 응답에 사진이 하나도 없다. 목록에서
+   * 본 사진이 상세에서 사라지면 안 되고, 무엇보다 Google 정책이 요구하는 출처
+   * 표기를 할 자리가 없어진다 — 목록 썸네일에서 출처를 생략할 수 있는 근거가
+   * "더 큰 사진에서 온전히 밝힌다"이기 때문이다.
+   */
+  knownImage?: { url: string; attribution?: ImageAttribution | null } | null;
   onClose: () => void;
 }
 
@@ -1448,10 +1460,15 @@ function PlacePhotoGallery({
   card,
   title,
   item,
+  knownImageUrl,
+  knownAttribution,
 }: {
   card: InfoPlaceCard;
   title: string;
   item?: RecommendationItem;
+  /** 목록에서 그리던 사진. 관광공사 사진이 없는 장소는 이것뿐이다. */
+  knownImageUrl?: string | null;
+  knownAttribution?: ImageAttribution | null;
 }) {
   const photos = card.photos ?? [];
   /*
@@ -1467,7 +1484,18 @@ function PlacePhotoGallery({
    * 화면이 다른 사진으로 갈아치워진 것처럼 보인다.
    */
   const seen = new Set<string>();
+  /*
+   * Google 사진은 상세 응답에 없으므로 여기서 끼워 넣어야 한다. 관광공사 이미지가
+   * 하나도 없던 장소가 그렇다 — 빼면 상세를 여는 순간 목록에서 본 사진이 사라지고,
+   * 정책이 요구하는 출처를 밝힐 자리도 함께 없어진다.
+   *
+   * **출처가 있을 때만 넣는다.** 관광공사 사진은 이미 card.thumbnail_url로 들어오니
+   * 목록 사진을 또 넣으면 같은 장소의 사진 장수만 늘어난다(한 장이던 곳이 두 장으로
+   * 보이고 "1 / 2" 표시가 생긴다).
+   */
+  const googlePhotoUrl = knownAttribution?.author_name ? (knownImageUrl ?? null) : null;
   const urls = [
+    ...(googlePhotoUrl ? [googlePhotoUrl] : []),
     ...(card.thumbnail_url ? [card.thumbnail_url] : []),
     ...photos.map((photo) => photo.url),
   ].filter((url) => {
@@ -1550,6 +1578,16 @@ function PlacePhotoGallery({
             <span className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
               {safeIndex + 1} / {urls.length}
             </span>
+          )}
+          {/* 출처는 그 사진에만 딸린 것이라, 지금 보고 있는 장이 Google 사진일
+              때만 그린다. 옆으로 넘겨 관광공사 사진을 보는 중에 남아 있으면
+              엉뚱한 사진의 작성자를 가리키게 된다.
+              사진이 여러 장이면 오른쪽 아래를 장수 표시가 쓰므로 한 칸 위로 올린다. */}
+          {googlePhotoUrl != null && urls[safeIndex] === googlePhotoUrl && (
+            <PhotoAttributionBadge
+              attribution={knownAttribution}
+              className={urls.length > 1 ? "bottom-9" : ""}
+            />
           )}
         </div>
       }
@@ -1636,6 +1674,7 @@ export function RecommendationDetailPreviewModal({
   card,
   placeId: placeIdProp,
   placeName: placeNameProp,
+  knownImage,
   onClose,
 }: RecommendationDetailPreviewModalProps) {
   const { language } = useTripState();
@@ -1700,8 +1739,11 @@ export function RecommendationDetailPreviewModal({
    * 줄의 자리 예약(PHOTO_STRIP_HEIGHT)은 그대로 둔다.
    */
   const categoryLabel = item ? placeCategoryLabel(item) : null;
-  const knownImageUrl = item?.image_url ?? card?.thumbnail_url ?? null;
-  const expectsNoPhoto = (item != null || card != null) && knownImageUrl == null;
+  const knownImageUrl = item?.image_url ?? knownImage?.url ?? card?.thumbnail_url ?? null;
+  // 목록에서 그리던 사진의 출처. 관광공사 사진에는 없고 Google 사진에만 있다.
+  const knownAttribution = item?.image_attribution ?? knownImage?.attribution ?? null;
+  const expectsNoPhoto =
+    (item != null || card != null || knownImage != null) && knownImageUrl == null;
   const showSkeleton = useDelayedSkeleton(isLoading);
   /* 목적지 좌표와 출발점이 모두 있어야 길찾기 딥링크를 만들 수 있다. 출발점은 훅이
      정한다 — 위치 설정의 출발지다. */
@@ -1926,11 +1968,21 @@ export function RecommendationDetailPreviewModal({
               PhotoAreaShell을 써서 같은 높이를 차지한다 — 로딩에서 갤러리로 바뀔 때
               화면이 밀리지 않게 하려면 자리가 같아야 한다. expectsNoPhoto인 장소는
               애초에 그 전환이 없으므로 자리를 잡지 않는다. */}
-          {detailCard && (detailCard.photos?.length || detailCard.thumbnail_url) ? (
+          {detailCard &&
+          (detailCard.photos?.length ||
+            detailCard.thumbnail_url ||
+            // 상세에 사진이 하나도 없어도 Google 사진이 있으면 갤러리를 띄운다.
+            knownAttribution?.author_name) ? (
             /* 예외 1곳(8,067분의 1)은 카드에 이미지가 없는데 상세에 사진이 있다.
                그 장소에서는 사진이 도착한 시점에 갤러리가 생기며 아래가 밀린다 —
                사진을 안 보여주는 것보다 낫다. */
-            <PlacePhotoGallery card={detailCard} title={title} item={item} />
+            <PlacePhotoGallery
+              card={detailCard}
+              title={title}
+              item={item}
+              knownImageUrl={knownImageUrl}
+              knownAttribution={knownAttribution}
+            />
           ) : expectsNoPhoto && detailStatus !== "unavailable" ? null : isLoading ? (
             <PhotoAreaShell
               main={
@@ -1940,13 +1992,16 @@ export function RecommendationDetailPreviewModal({
                  * 이유) — 상세 조회 응답을 기다리지 않고 카드에서 본 그 사진을
                  * 바로 보여준다. 응답이 오면 detailCard 기준 갤러리로 바뀐다.
                  */
-                item?.image_url ? (
-                  <FadeInImage
-                    key={item.image_url}
-                    src={item.image_url}
-                    alt={`${title} 이미지`}
-                    className="aspect-[5/3] w-full rounded-2xl bg-chip object-cover"
-                  />
+                knownImageUrl ? (
+                  <div className="relative">
+                    <FadeInImage
+                      key={knownImageUrl}
+                      src={knownImageUrl}
+                      alt={`${title} 이미지`}
+                      className="aspect-[5/3] w-full rounded-2xl bg-chip object-cover"
+                    />
+                    <PhotoAttributionBadge attribution={knownAttribution} />
+                  </div>
                 ) : (
                   <div className="flex aspect-[5/3] animate-pulse items-center justify-center rounded-2xl bg-chip text-sm text-muted">
                     {isEn ? "Loading details..." : "상세 정보를 불러오는 중..."}
