@@ -155,6 +155,12 @@ async def scoring_node(
         # 덮으면 schedule_node·finalize_node가 tool_fetch_node가 넣은 원본을 읽어
         # 그렇게 들어온 후보의 좌표를 못 찾는다(TP-198).
         "tool_context": outcome.tool_context,
+        # 채점이 폐점 필터를 끄고 다시 돌았으면(SCHEDULE 심야 자동 전환) 이번 턴은
+        # 그 기준으로 끝까지 간다. 구 경로도 같은 값을 합쳐 넘긴다 — 한쪽만 합치면
+        # 경로에 따라 같은 발화가 다른 일정을 낸다.
+        "effective_ignore_operating_hours": (
+            state["effective_ignore_operating_hours"] or outcome.ignored_operating_hours
+        ),
     }
 
 

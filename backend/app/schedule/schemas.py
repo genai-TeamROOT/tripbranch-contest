@@ -43,6 +43,20 @@ class SchedulePlanningRequest(BaseModel):
     conditions: UserConditions
     # 기존 15개 조건 그대로 사용(time_available, transport 등 이미 있는 필드 재사용)
 
+    ignore_operating_hours: bool = False
+    # 이번 턴은 운영시간을 무시하고 편성한다 — 후보를 모을 때 폐점 필터를 끈
+    # 턴(A의 `effective_ignore_operating_hours`)에만 True로 온다.
+    #
+    # **후보를 고른 기준과 시간표를 짜는 기준을 맞추는 필드다.** 이 값이 없던
+    # 동안, "운영 중이 아닌 곳도 볼게요"로 들어온 폐점 후보를 시간표는 혼자
+    # 다시 운영시간으로 읽고 "문 열 때까지 기다리자"로 처리했다. 사용자는
+    # "닫혀 있어도 넣어줘"라고 답했는데 일정은 "그럼 12시간 기다리죠"로 나온
+    # 셈이다(실사용 재현, 2026-09-20 심야 SCHEDULE).
+    #
+    # True면 planner가 (1) 개장 전 대기를 아예 잡지 않고, (2) 시작 시각을 첫
+    # 장소가 문 여는 시각으로 옮긴다(`planner._shift_start_to_opening()`).
+    # 기본값 False라 이 필드를 모르는 기존 호출부는 동작이 바뀌지 않는다.
+
     visit_datetime: datetime | None = None
     # 방문 예정 시각. **운영 경로는 항상 None으로 넘긴다** — 채우는 곳이 없다.
     #
@@ -110,6 +124,20 @@ class SchedulePartialFillRequest(BaseModel):
     target_orders: list[int]
     candidates: list[RecommendationItem]
     conditions: UserConditions
+    ignore_operating_hours: bool = False
+    # 이번 턴은 운영시간을 무시하고 편성한다 — 후보를 모을 때 폐점 필터를 끈
+    # 턴(A의 `effective_ignore_operating_hours`)에만 True로 온다.
+    #
+    # **후보를 고른 기준과 시간표를 짜는 기준을 맞추는 필드다.** 이 값이 없던
+    # 동안, "운영 중이 아닌 곳도 볼게요"로 들어온 폐점 후보를 시간표는 혼자
+    # 다시 운영시간으로 읽고 "문 열 때까지 기다리자"로 처리했다. 사용자는
+    # "닫혀 있어도 넣어줘"라고 답했는데 일정은 "그럼 12시간 기다리죠"로 나온
+    # 셈이다(실사용 재현, 2026-09-20 심야 SCHEDULE).
+    #
+    # True면 planner가 (1) 개장 전 대기를 아예 잡지 않고, (2) 시작 시각을 첫
+    # 장소가 문 여는 시각으로 옮긴다(`planner._shift_start_to_opening()`).
+    # 기본값 False라 이 필드를 모르는 기존 호출부는 동작이 바뀌지 않는다.
+
     visit_datetime: datetime | None = None
     pairwise_distances_km: dict[tuple[str, str], float]
 

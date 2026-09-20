@@ -40,6 +40,25 @@ TravelMinutes = Callable[[str, str], int | None]
 # 어긋나지 않는다 — 거리가 있으면 양쪽 다 실제 거리를 쓴다(TP-239).
 FALLBACK_TRAVEL_MINUTES = 15
 
+# 개장 전에 도착했을 때 "기다린다"고 인정하는 상한(분).
+#
+# **왜 상한이 필요한가.** 대기는 총 소요시간에 그대로 더해진다. 상한이 없으면
+# 자정 직후에 시작한 일정이 정오 개장까지 720분을 기다리는 것으로 계산되어,
+# 식사 한 끼(60분) 일정이 13시간으로 나간다(실사용 재현, 2026-09-20 23:50
+# "추천한 곳으로 오후 일정 짜줘"). 사용자가 받은 것은 "9시간 초과" 경고였고,
+# 그 9시간의 정체는 문 열기를 기다리는 시간이었다.
+#
+# **왜 플래그(ignore_operating_hours)만으로는 부족한가.** 폐점 무시 결정은
+# 후보를 고르는 경로에만 흐른다. 유지한 자리(부분 재편성의 pinned)는 후보
+# 목록을 거치지 않고, 폐점 필터는 "지금" 기준인데 시간표는 "도착할 때"를
+# 본다 — 같은 폭주를 만드는 경로가 하나가 아니다. 그래서 계산기 자체에
+# 상한을 둔다.
+#
+# **상한을 넘으면 대기가 아니라 폐점으로 다룬다.** 대기를 0으로 두면 도착 =
+# 방문 시작이 되어 `planner._compose_items()`의 운영시간 경고가 그대로 붙는다 —
+# 조용히 감추는 것이 아니라 경고 경로로 넘기는 것이다.
+MAX_WAITING_MINUTES = 60
+
 
 @dataclass(frozen=True)
 class TimelineStop:
@@ -126,6 +145,7 @@ def _waiting_minutes(
     opens_at_min: int | None,
     *,
     started_on: date,
+    max_waiting_min: int,
 ) -> int:
     """운영 시작 전에 도착했으면 기다려야 하는 분.
 
@@ -142,7 +162,9 @@ def _waiting_minutes(
     arrived_at_min = _minutes_of_day(arrival)
     if arrived_at_min >= opens_at_min:
         return 0
-    return opens_at_min - arrived_at_min
+    waiting = opens_at_min - arrived_at_min
+    # 상한을 넘는 기다림은 기다림이 아니다 — `MAX_WAITING_MINUTES` 주석 참고.
+    return 0 if waiting > max_waiting_min else waiting
 
 
 def build_timeline(
@@ -151,12 +173,16 @@ def build_timeline(
     start_at: datetime,
     travel_minutes: TravelMinutes,
     fallback_travel_min: int = FALLBACK_TRAVEL_MINUTES,
+    max_waiting_min: int = MAX_WAITING_MINUTES,
 ) -> Timeline:
     """순서대로 방문할 때의 도착·대기·출발·총 소요시간을 계산한다.
 
     총 소요시간은 **첫 장소 도착부터 마지막 장소 체류 종료까지**다. 첫 구간
     이동시간(출발지 -> 첫 장소)은 출발지를 모르므로 포함하지 않는다 — 지금
     `visit_datetime`은 "이 시각에 첫 장소에 있다"는 뜻으로 쓰인다.
+
+    `max_waiting_min`은 개장 전 대기를 인정하는 상한이다(`MAX_WAITING_MINUTES`).
+    0을 주면 대기를 아예 잡지 않는다 — 운영시간을 무시하기로 한 턴이 쓴다.
     """
 
     if not stops:
@@ -167,7 +193,12 @@ def build_timeline(
 
     for index, stop in enumerate(stops):
         arrival = cursor
-        waiting = _waiting_minutes(arrival, stop.opens_at_min, started_on=start_at.date())
+        waiting = _waiting_minutes(
+            arrival,
+            stop.opens_at_min,
+            started_on=start_at.date(),
+            max_waiting_min=max_waiting_min,
+        )
         visit_start = arrival + timedelta(minutes=waiting)
         departure = visit_start + timedelta(minutes=stop.visit_duration_min)
 
@@ -198,6 +229,7 @@ def build_timeline(
 
 __all__ = [
     "FALLBACK_TRAVEL_MINUTES",
+    "MAX_WAITING_MINUTES",
     "PlannedStop",
     "Timeline",
     "TimelineStop",

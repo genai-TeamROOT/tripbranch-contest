@@ -1355,6 +1355,88 @@ class TestPlanScheduleTimelineIntegration:
         assert result.total_duration_min == 60 + 15 + 45 + 60
 
     @pytest.mark.asyncio
+    async def test_심야_요청이_개장까지_기다리는_일정으로_부풀지_않는다(self) -> None:
+        """23:50에 물었는데 13시간짜리 일정이 나오던 회귀(2026-09-20 실사용).
+
+        시작 시각이 10분 단위로 올라가며 자정을 넘기면(_round_up_start) 도착일과
+        출발일이 같아져 자정 넘김 방어가 안 걸렸고, 정오 개장까지 720분이 전부
+        대기로 잡혀 60분짜리 식사가 780분 일정이 됐다.
+        """
+
+        plan = ScheduleLLMPlan(
+            items=[_sample_item("place-1", 1)],
+            route_summary="테스트 동선 요약",
+        )
+        llm = _RecordingLLM(plan)
+        request = SchedulePlanningRequest(
+            candidates=[_candidate("place-1", operating_hours_display="12:00~22:00")],
+            conditions=UserConditions(time_available=240),
+            # 초까지 준다 — 10분 단위로 올리면 자정을 넘기는 그 시각이다.
+            visit_datetime=datetime(2026, 9, 20, 23, 50, 12, tzinfo=_KST),
+            pairwise_distances_km={},
+        )
+
+        result = await plan_schedule(request, llm)
+
+        # 대기가 총합에 들어가던 시절에는 780분이었다. 지금은 체류시간뿐이다.
+        assert result.total_duration_min <= 240
+        assert result.time_budget_status is not ScheduleBudgetStatus.OVER
+        # 기다리지 않으므로 방문 시작 = 도착이고, 닫혀 있다는 사실은 경고로 알린다.
+        assert result.items[0].estimated_arrival == "00:00"
+        assert result.items[0].warnings != []
+        # 자정을 넘긴 것은 10분 단위 반올림이지 "내일로 옮긴" 것이 아니다 —
+        # 안내 문구가 바뀌면 안 된다.
+        assert result.basis_note.startswith("23:50 기준으로")
+
+    @pytest.mark.asyncio
+    async def test_운영시간을_무시한_턴은_다음_개장_시각으로_짠다(self) -> None:
+        """폐점 후보로 짜는 턴은 새벽 도착이 아니라 다음 영업시간 기준으로 짠다."""
+
+        plan = ScheduleLLMPlan(
+            items=[_sample_item("place-1", 1)],
+            route_summary="테스트 동선 요약",
+        )
+        llm = _RecordingLLM(plan)
+        request = SchedulePlanningRequest(
+            candidates=[_candidate("place-1", operating_hours_display="12:00~22:00")],
+            conditions=UserConditions(time_available=240),
+            visit_datetime=datetime(2026, 9, 20, 23, 50, tzinfo=_KST),
+            pairwise_distances_km={},
+            ignore_operating_hours=True,
+        )
+
+        result = await plan_schedule(request, llm)
+
+        # 오늘 12:00은 이미 지났으므로 다음날 12:00이다.
+        assert result.items[0].estimated_arrival == "12:00"
+        assert result.items[0].warnings == []
+        assert result.total_duration_min <= 240
+        assert "09월 21일 12:00" in result.basis_note
+
+    @pytest.mark.asyncio
+    async def test_운영시간을_무시해도_아직_안_지난_개장_시각이면_오늘로_짠다(self) -> None:
+        """근거 없이 내일로 미루지 않는다 — 오늘 개장이 남았으면 오늘이다."""
+
+        plan = ScheduleLLMPlan(
+            items=[_sample_item("place-1", 1)],
+            route_summary="테스트 동선 요약",
+        )
+        llm = _RecordingLLM(plan)
+        request = SchedulePlanningRequest(
+            candidates=[_candidate("place-1", operating_hours_display="12:00~22:00")],
+            conditions=UserConditions(time_available=240),
+            visit_datetime=datetime(2026, 9, 20, 8, 0, tzinfo=_KST),
+            pairwise_distances_km={},
+            ignore_operating_hours=True,
+        )
+
+        result = await plan_schedule(request, llm)
+
+        assert result.items[0].estimated_arrival == "12:00"
+        assert result.total_duration_min <= 240
+        assert "12:00 기준으로 짰어요" in result.basis_note
+
+    @pytest.mark.asyncio
     async def test_자정을_넘겨도_순서와_시각이_뒤집히지_않는다(self) -> None:
         plan = ScheduleLLMPlan(
             items=[_sample_item("place-1", 1), _sample_item("place-2", 2)],
