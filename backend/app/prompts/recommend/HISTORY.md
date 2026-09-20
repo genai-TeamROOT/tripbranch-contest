@@ -5,10 +5,23 @@
 | 슬롯 | 관리 버전 | 템플릿 | 공유 규칙 |
 | --- | --- | --- | --- |
 | recommend.extract | 2.11.0 | extract.md, location_rules.md, place_tag_rules.md | budget, weather, concentration, environment, transport, accessibility_needs |
-| recommend.summary | 1.3.0 | summary_instruction.md | persona |
-| recommend.place_reason | 1.2.0 | place_reason_instruction.md | — |
+| recommend.summary | 1.4.0 | summary_instruction.md | persona |
+| recommend.place_reason | 1.3.0 | place_reason_instruction.md | — |
 
 ## Draft
+
+- 2026-09-20(recommend.summary v1.4.0): **엉뚱한 지역 이름을 말하던 것을 막았습니다.**
+  "강남역 근처 맛집"에 "사당역 근처에서 골라보았어요"라고 답한 일이 있었습니다. 조건
+  해석은 정확했지만, 말풍선을 쓰는 단계에 지역이 전달되지 않았고 카드 설명의 "사당역
+  4호선에서 대중교통 19분"만 보였기 때문입니다. 조건 요약 맨 앞에 검색 지역을 넣고
+  (`_stated_conditions_line`), **이동 출발점 이름을 지역처럼 말하지 말라**는 규칙을
+  더했습니다. 말투도 트리비답게 밝은 "~해요"체로 정리했습니다.
+
+- 2026-09-20(recommend.place_reason v1.3.0): **단점 고지를 안전한 범위로 좁히고 말투를
+  통일했습니다.** 맛·가격·서비스의 부정 후기는 섞지 않고 **주차·대기 주의만** 남기되,
+  "확인해 보세요" 같은 막연한 문장 대신 "주차가 어렵다는 후기가 있어 자차 이용 시 근처
+  공영주차장 여부를 확인해 보세요"처럼 구체적으로 안내합니다. 중간 문장만 "~습니다"로
+  튀지 않도록 **모든 문장**이 "~해요"체여야 한다고 못 박고, 분량을 1~3문장으로 늘렸습니다.
 
 - 2026-09-17(recommend.extract v2.11.0): **"식당"·"카페"·"술집"이라고 말한 요청이
   음식점 전체로 넓어지던 것을 막았습니다.** `restaurant`는 TourAPI 음식점 대분류라

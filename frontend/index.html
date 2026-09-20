@@ -10,9 +10,35 @@
     <meta name="theme-color" content="#ffffff" />
     <meta
       name="description"
-      content="지금 시각과 위치에 맞는 여행지를 찾아 하루 동선을 짜 주는 AI 여행 도우미"
+      content="여행이 틀어진 순간, 한마디로 다음 여행지를 찾아 줍니다."
     />
     <title>TripBranch</title>
+
+    <!--
+      링크를 공유했을 때 메신저가 보여줄 카드. 이 앱은 SPA라 HTML 본문이
+      `<div id="root">` 하나뿐이고, 크롤러는 JS를 돌리지 않는다 — 그래서
+      제목·설명·이미지를 여기 직접 박아 두지 않으면 카드가 비어서 뜬다
+      (2026-09-20에 썸네일이 깨진 채로 공유되고 있던 것을 고쳤다).
+
+      **og:image는 반드시 절대 주소여야 한다.** `/og-image.png`로 적으면
+      크롤러가 자기 도메인 기준으로 찾아서 못 읽는다.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TripBranch" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:url" content="https://contest.tripbranch.co.kr" />
+    <meta property="og:title" content="TripBranch — 계획이 틀어진 순간을 위한 AI 챗봇" />
+    <meta
+      property="og:description"
+      content="여행이 틀어진 순간, 한마디로 다음 여행지를 찾아 줍니다. 대안 관광지부터 바뀐 일정까지 한 번에."
+    />
+    <meta property="og:image" content="https://contest.tripbranch.co.kr/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TripBranch 소개 — 말 한마디로 대안 여행지를 추천받는 화면" />
+
+    <!-- OG만 있으면 X는 작은 카드로 띄운다. 큰 이미지로 내려면 이 줄이 필요하다. -->
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div id="root"></div>

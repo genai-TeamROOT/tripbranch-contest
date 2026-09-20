@@ -25,6 +25,7 @@ from app.providers.place_evidence import PlaceEvidenceProvider
 from app.repositories.supabase_places import SupabasePlaceRepository
 from app.schemas import (
     ConcentrationIntent,
+    ImageAttribution,
     PlaceTag,
     PlaceType,
     PreferenceTagSummary,
@@ -419,6 +420,14 @@ class RealRecommendationProvider:
             if card.thumbnail_url is not None:
                 update["image_url"] = card.thumbnail_url
                 update["image_url_fallback"] = card.fallback_thumbnail_url
+                # 출처는 사진과 같은 조건에서만 실린다. Google에서 온 사진은
+                # 출처를 못 그리면 표시 자체가 정책 위반이라 둘을 갈라 놓지 않는다.
+                if card.photo_attribution is not None:
+                    update["image_attribution"] = ImageAttribution(
+                        author_name=card.photo_attribution.author_name,
+                        author_uri=card.photo_attribution.author_uri,
+                        source_uri=card.photo_attribution.source_uri,
+                    )
             # 라벨은 썸네일과 독립이다. 사진 없는 장소(실측 20%)에도 분류는 있으므로
             # 위 조건에 묶으면 그 장소들이 라벨을 잃는다.
             if card.category_label is not None:

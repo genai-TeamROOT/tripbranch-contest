@@ -37,7 +37,7 @@
 | --- | --- | --- |
 | ECR | `tripbranch-contest-backend` | 수명주기: 최근 5개 유지 |
 | IAM 역할 | `github-actions-deploy-contest` | OIDC 공급자는 계정에 이미 있는 것을 재사용 |
-| 보안 그룹 | `tripbranch-contest-sg` (`sg-0f8b29b42cac41004`) | 인바운드 80/443만 |
+| 보안 그룹 | `tripbranch-contest-sg` (`sg-0f8b29b42cac41004`) | 인바운드 80/443만. 인스턴스의 sshd도 mask 상태(7-5) |
 | EC2 | `i-017735bd69e603ad5` | t3.micro, AL2023 x86_64, 30GB gp3 |
 | EIP | `43.203.3.121` | |
 | S3 | `tripbranch-contest-frontend` | 퍼블릭 액세스 차단 유지 |
@@ -50,6 +50,7 @@
 | EBS 스냅샷 | `snap-096939c6b5ad7d7e7` | 2026-09-19 복구 지점 |
 
 2026-09-19 구축 완료. 위 값은 실제로 만들어진 리소스다.
+2026-09-20에 접근 로그를 켜고 sshd를 내렸다.
 
 ---
 
@@ -206,6 +207,9 @@ gh api /repos/genai-TeamROOT/tripbranch-contest/actions/oidc/customization/sub
 **22번(SSH)은 열지 않는다.** 접속은 SSM으로 한다. 80번은 Let's Encrypt의
 HTTP-01 챌린지와 HTTPS 리디렉트에 쓰인다.
 
+**인스턴스 안의 sshd도 끈다**(7-5). 보안 그룹이 막고 있어도 데몬이 떠 있으면
+방어선이 그룹 규칙 하나뿐이다 — 22번을 실수로 여는 순간 바로 노출된다.
+
 ## 4. EC2 인스턴스
 
 | 항목 | 값 |
@@ -315,6 +319,19 @@ sudo tee /opt/caddy/Caddyfile >/dev/null <<'EOF'
 }
 
 api-contest.tripbranch.co.kr {
+	# 접근 로그. 이게 없으면 누가 무엇을 찔렀는지 남는 곳이 한 군데도 없다
+	# (2026-09-20에 켰다). **stdout 이 아니라 파일로 뺀다** — 도커 json-file
+	# 드라이버에 회전 설정이 없어서 stdout 으로 두면 디스크가 무한히 찬다.
+	# /data 는 caddy_data 볼륨이라 컨테이너를 다시 띄워도 로그가 남는다.
+	log {
+		output file /data/access.log {
+			roll_size 10MiB
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+
 	# 보안 헤더. CSP는 default-src none으로 둘 수 있지만, 이 응답은 JSON만
 	# 내보내고 브라우저가 문서로 렌더링할 일이 없어 실익이 적다. 대신 문서
 	# 경로를 아래에서 아예 막는다.
@@ -363,6 +380,37 @@ sudo docker logs caddy | tail -20
 
 `certificate obtained successfully` 같은 줄이 보이면 된다. 아직 백엔드 컨테이너가
 없으므로 접속하면 502가 나는 게 정상이다.
+
+`caddy_data` 볼륨에는 인증서 말고 접근 로그(`/data/access.log`)도 들어간다.
+
+### 7-5. sshd 끄기
+
+AL2023은 sshd가 켜진 채로 뜬다. 보안 그룹이 22번을 막고 있어 외부에서 닿지는
+않지만, **방어선이 그룹 규칙 하나뿐인 상태**다. 접속은 SSM으로만 하기로 했으니
+데몬 자체를 내린다.
+
+```bash
+sudo systemctl stop sshd
+sudo systemctl disable sshd
+sudo systemctl mask sshd
+```
+
+`mask`까지 거는 이유는 `disable`만으로는 다른 유닛이 의존성으로 끌어올릴 수
+있어서다. 마스크하면 `/etc/systemd/system/sshd.service`가 `/dev/null`로 연결돼
+어떤 경로로도 올라오지 않는다.
+
+확인:
+
+```bash
+systemctl is-active sshd     # inactive
+systemctl is-enabled sshd    # masked
+ss -tln | grep -c ':22 '     # 0
+systemctl is-active amazon-ssm-agent   # active — 이게 살아 있어야 접속이 된다
+```
+
+**끄기 전에 SSM 에이전트가 active인지 반드시 먼저 본다.** 둘 다 죽으면 인스턴스에
+들어갈 길이 없어진다. 되돌리려면 `sudo systemctl unmask sshd && sudo systemctl
+enable --now sshd`이지만, 그러려면 SSM으로 들어가야 하므로 순서가 중요하다.
 
 ## 8. GitHub 저장소 변수
 
@@ -578,6 +626,32 @@ sudo docker logs --tail 100 -f tripbranch-contest-backend
 sudo docker logs --tail 50 caddy
 ```
 
+**백엔드 로그의 클라이언트 IP는 `172.17.0.1`로 찍힌다** — Caddy를 거치면서
+도커 게이트웨이 주소로 바뀌기 때문이다. 실제 접속자를 보려면 아래 접근 로그를
+본다.
+
+### 접근 로그 (누가 무엇을 찔렀나)
+
+`/data/access.log`에 JSON 한 줄씩 쌓인다. 10MiB마다 회전하고 5개, 30일까지
+남는다.
+
+```bash
+# 최근 요청 요약
+sudo docker exec caddy tail -50 /data/access.log \
+  | jq -r '[.request.client_ip, .request.method, .request.uri, .status] | @tsv'
+
+# IP별 요청 수 — 스캐너를 찾을 때
+sudo docker exec caddy cat /data/access.log \
+  | jq -r .request.client_ip | sort | uniq -c | sort -rn | head
+
+# 차단 경로를 찌른 기록만
+sudo docker exec caddy cat /data/access.log \
+  | jq -r 'select(.status==404) | [.request.client_ip, .request.uri] | @tsv'
+```
+
+**프론트(CloudFront)는 여기 안 남는다.** 정적 파일 요청은 EC2를 거치지 않기
+때문이다. 그쪽까지 보려면 CloudFront 표준 로그를 따로 켜야 한다.
+
 ## 환경 변수 바꾸기
 
 ```bash
@@ -606,6 +680,30 @@ sudo docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 
 `validate`를 먼저 돌린다. 문법이 틀린 채 reload하면 이전 설정이 그대로 남아,
 고친 줄 알았는데 안 바뀐 상태가 된다.
+
+## Langfuse — 꺼 둔다
+
+공모전 배포는 `LANGFUSE_ENABLED`, `LANGFUSE_PROMPTS_ENABLED` 를 **둘 다 false** 로
+둔다. 코드는 그대로 두고 스위치만 끈다 — 취향 RAG·사진 분위기와 같은 방식이다.
+코드를 걷어내면 본 저장소에서 변경을 가져올 때마다 38개 파일에서 충돌한다.
+
+| 스위치 | 값 | 이유 |
+| --- | --- | --- |
+| `LANGFUSE_ENABLED` | `false` | 트레이스를 보낼 이유가 없다 |
+| `LANGFUSE_PROMPTS_ENABLED` | `false` | **아래 참고 — 이쪽이 더 중요하다** |
+
+**프롬프트 원격 조회가 위험한 이유.** `app/prompts/loader.py` 는 이 값이 켜져
+있으면 Langfuse 를 **먼저** 보고 실패했을 때만 디스크를 본다. 두 저장소가 같은
+Langfuse 프로젝트를 쓰므로, 켜 두면 본 저장소 팀이 프롬프트를 고치는 순간
+**배포하지 않은 공모전 서버의 답변이 바뀐다.** 심사 중에 그러면 손쓸 방법이 없다.
+2026-09-20 점검에서 서버가 실제로 `true` 였던 것을 발견해 껐다.
+
+끈 뒤에는 컨테이너를 **다시 만들어야** 반영된다. `--env-file` 은 컨테이너를 만들
+때 한 번만 읽으므로 `docker restart` 로는 바뀌지 않는다(7-3 참고).
+
+CI 의 `prompt-sync` job 도 같은 이유로 뺐다. 대조할 원격을 쓰지 않는데 job 만
+남으면 프롬프트를 가져올 때마다 CI 가 빨개진다. 저장소 시크릿
+`LANGFUSE_PROMPT_COMPARE` 는 되살릴 여지를 두고 지우지 않았다.
 
 ## 복구 지점 (EBS 스냅샷)
 

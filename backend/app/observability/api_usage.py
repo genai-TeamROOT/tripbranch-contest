@@ -70,6 +70,9 @@ _HOST_PREFIX_PROVIDERS: dict[str, tuple[tuple[str, str], ...]] = {
 _HOST_PROVIDERS: dict[str, str] = {
     "dapi.kakao.com": "kakao_map",
     "naverapihub.apigw.ntruss.com": "naver_local_search",
+    # 장소 검색과 사진 주소 조회가 같은 호스트를 쓰지만 operation 열로 갈린다.
+    # 이 줄이 없으면 Google 사진 호출이 전부 unknown으로 잡혀 사용량을 못 본다.
+    "places.googleapis.com": "google_places",
 }
 
 

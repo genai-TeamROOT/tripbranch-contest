@@ -67,57 +67,21 @@ jobs:
           line=$(grep -n 'SCORING_VERSION = ' "$file" | cut -d: -f1)
           echo "::warning file=$file,line=$line::점수 로직이 바뀌었는데 SCORING_VERSION은 그대로입니다. 순위가 바뀌지 않는 변경이면 그대로 두어도 됩니다 — 판단 기준은 docs/scoring-version.md 2절."
 
-  prompt-sync:
-    # 저장소의 프롬프트 Markdown과 Langfuse Prompt Management가 같은지 본다.
-    #
-    # **별도 job인 이유가 둘이다.** 하나는 실패 원인이 job 이름으로 바로 보이게 하려는
-    # 것이다 — Langfuse가 죽어서 빨간 것과 프롬프트가 어긋나서 빨간 것은 대응이
-    # 정반대인데, backend job에 섞으면 로그를 뒤져야 갈린다. 다른 하나는 이 job이
-    # Langfuse 자격증명을 환경에 푸는데, pytest와 한 job에 있으면 그 값이 테스트
-    # Provider 설정까지 건드릴 수 있어서다.
-    #
-    # **왜 필요한가**: 프롬프트를 고쳐도 Langfuse에 올리라고 알려주는 것이 아무것도
-    # 없다. 커밋도 되고 CI도 통과하고 머지도 된다. 그래서 2026-09-03에 실제로
-    # 어긋났다 — MODIFY 무장애 수정(#347)이 머지된 뒤 며칠이 아니라 몇 시간 만에,
-    # `LANGFUSE_PROMPTS_ENABLED=true`인 환경이 수정 전 프롬프트로 돌고 있었다.
-    # 오류도 경고도 나지 않아 사람이 우연히 `--check`를 돌려서야 발견했다.
-    #
-    # 조회 실패(Langfuse 장애)도 어긋남과 같이 실패로 친다 — "확인 못 했다"를
-    # "괜찮다"로 치지 않는다(D-042와 같은 원칙). develop에 브랜치 보호가 없으므로
-    # 이 job이 빨개도 기술적으로 머지가 막히지는 않는다. 장애로 판단되면 로그 첫
-    # 줄("원격 목록 조회 실패")을 보고 사람이 정한다.
-    name: Langfuse 프롬프트 대조
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: 프롬프트 대조
-        env:
-          LANGFUSE_PROMPT_COMPARE: ${{ secrets.LANGFUSE_PROMPT_COMPARE }}
-        run: |
-          # 시크릿은 .env 형식 여러 줄이다. **저장소 안에 .env를 만들지 않는다** —
-          # 만들면 같은 러너의 다른 단계가 그 파일을 읽어 Provider 설정이 바뀐다.
-          printf '%s\n' "$LANGFUSE_PROMPT_COMPARE" > "$RUNNER_TEMP/langfuse.env"
-          set -a
-          . "$RUNNER_TEMP/langfuse.env"
-          set +a
-          # --diff: 실패했을 때 무엇이 다른지 로그에서 바로 본다. 없으면 "different"만
-          # 뜨고 로컬에서 다시 돌려야 한다. 프롬프트 본문은 저장소에 이미 있는
-          # 텍스트라 새로 노출되는 것이 없다.
-          python -m scripts.sync_langfuse_prompts --diff
-
+  # **Langfuse 프롬프트 대조 job은 이 저장소에서 걷어냈다**(2026-09-20).
+  #
+  # 본 저장소에는 남아 있다. 그쪽은 Langfuse Prompt Management 를 실제로 쓰므로
+  # 저장소 Markdown 과 원격이 어긋나는 것을 잡아야 하지만, 공모전 제출본은
+  # `LANGFUSE_PROMPTS_ENABLED=false` 로 두고 **저장소의 프롬프트만 쓴다**.
+  # 대조할 원격이 없는데 job 만 남으니, 본 저장소에서 프롬프트를 고쳐 이쪽으로
+  # 가져올 때마다 CI 가 빨개졌다.
+  #
+  # 끈 이유가 CI 소음만은 아니다. 두 저장소가 같은 Langfuse 프로젝트를 보고
+  # 있어서, 원격 조회가 켜져 있으면 **본 저장소 팀이 프롬프트를 고치는 순간
+  # 배포도 안 한 공모전 서버의 답변이 바뀐다.** 심사 기간에 그 경로를 열어 둘
+  # 이유가 없다(docs/deploy.md "Langfuse" 절).
+  #
+  # 되살리려면 본 저장소의 ci.yml 에서 prompt-sync job 을 그대로 가져오면 된다.
+  # 저장소 시크릿 LANGFUSE_PROMPT_COMPARE 는 지우지 않고 남겨 두었다.
 
   frontend:
     name: Frontend (ESLint + Vitest + build)
