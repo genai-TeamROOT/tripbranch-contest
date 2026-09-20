@@ -244,13 +244,21 @@ def transform(
                 session_context, modify.target_indices, "not_interested"
             )
         elif modify.condition_changes is not None:
-            operations = _changed_field_operations(
-                modify.condition_changes, modify.changed_fields, session_context
-            )
+            # **RECOMMEND와 같은 음식 업종 보정을 여기서도 한다.** 앞 턴이 카페였고
+            # 이번에 "맛집"이라고 말하면 MODIFY로 들어오는데, 모델이 place_tags를 비운
+            # 채로 place_types=[restaurant]만 주면 음식점 대분류 전체가 후보가 돼
+            # 카페가 다시 섞인다 — 실제로 "강남역 근처 맛집"에 직전 카페가 다시
+            # 올라왔다(2026-09-20 실사용). 태그가 새로 정해지면 changed_fields에도
+            # 넣어야 Operation이 만들어진다.
+            changes = _with_explicit_food_subcategory(modify.condition_changes, user_input)
+            changed_fields = list(modify.changed_fields)
+            if changes.place_tags != modify.condition_changes.place_tags:
+                for field in ("place_types", "place_tags"):
+                    if field not in changed_fields:
+                        changed_fields.append(field)
+            operations = _changed_field_operations(changes, changed_fields, session_context)
             operations.extend(
-                _place_tag_cleanup_operations(
-                    modify.condition_changes, modify.changed_fields, session_context
-                )
+                _place_tag_cleanup_operations(changes, changed_fields, session_context)
             )
             # CHANGE_CONDITION은 사용자가 싫어서가 아니라 조건이 바뀌어서 제외되는 것이다.
             # rejected(영구 제외)로 기록하지 않는다 — 대신 reset_scope="history"로 직전

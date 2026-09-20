@@ -31,6 +31,21 @@ export interface InterpretedConditions {
   raw_conditions?: UserConditions | null;
 }
 
+/**
+ * 사진과 함께 화면에 그려야 하는 출처.
+ *
+ * Google Maps Platform 정책은 사진을 보여줄 때 작성자를 밝히고, 사용자가
+ * source_uri로 원본 사진을 Google 지도에서 볼 수 있게 하라고 요구한다.
+ * provider를 따로 두는 이유는 정책이 "Google Maps"라는 이름을 밝히라고 하기
+ * 때문이다 — 작성자 이름만으로는 어디서 온 사진인지 알 수 없다.
+ */
+export interface ImageAttribution {
+  provider: string;
+  author_name: string;
+  author_uri?: string | null;
+  source_uri?: string | null;
+}
+
 export interface RecommendationItem {
   place_id: string;
   name: string;
@@ -97,6 +112,12 @@ export interface RecommendationItem {
    * 카드에서만 PlaceThumbnail이 두 번째를 부른다.
    */
   image_url_fallback?: string | null;
+  /**
+   * image_url이 Google Places에서 온 사진일 때만 온다(관광공사 이미지가 하나도
+   * 없던 장소). **값이 있으면 사진과 함께 반드시 그려야 한다** — Google 정책이
+   * 작성자 표기와 원본 링크를 요구한다. 없앨 거면 사진도 같이 없애야 한다.
+   */
+  image_attribution?: ImageAttribution | null;
 }
 
 export interface PreferenceTagSummary {
@@ -264,6 +285,8 @@ export interface ScheduleItem {
   image_url?: string | null;
   /** image_url이 404일 때 대신 그릴 주소. PlaceThumbnail의 fallbackSrc로 넘긴다. */
   image_url_fallback?: string | null;
+  /** Google Places 사진이면 함께 온다. 있으면 반드시 화면에 그린다. */
+  image_attribution?: ImageAttribution | null;
   reason: string;
   // 백엔드가 항상 채워 보내지만(app.schemas.ScheduleItem, 기본값 []), 기존
   // 테스트 픽스처가 이 필드 없이 만든 객체와도 호환되도록 optional로 둔다.

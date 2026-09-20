@@ -25,6 +25,7 @@ from app.domain.travel_route import TravelMode
 from app.errors import AppError
 from app.schemas import (
     Environment,
+    ImageAttribution,
     PreferenceTagScoreDetail,
     RecommendationItem,
     RecommendationResponse,
@@ -1554,6 +1555,13 @@ async def test_reranks_carry_every_recommendation_item_field() -> None:
         "taste_evidence": [TasteEvidenceQuote(text="조용해요", similarity=0.7)],
         "image_url": "https://example.test/thumb.jpg",
         "image_url_fallback": "https://example.test/original.jpg",
+        # 출처가 사진과 함께 이월되지 않으면 재순위를 탄 요청에서만 Google 사진이
+        # 출처 없이 나간다 — 화면이 허전한 게 아니라 정책 위반이다.
+        "image_attribution": ImageAttribution(
+            author_name="북극돼지",
+            author_uri="https://maps.google.com/maps/contrib/1",
+            source_uri="https://www.google.com/maps/place/x",
+        ),
         "category_label": "한식",
         "taste_tag_score": 0.5,
         "taste_tag_label": "혼자 가기 좋은",

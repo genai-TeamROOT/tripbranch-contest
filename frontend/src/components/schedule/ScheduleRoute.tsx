@@ -271,6 +271,14 @@ export function ScheduleRoute({ items, isEn, visited, onToggleVisited }: Schedul
         <RecommendationDetailPreviewModal
           placeId={detailFor.place_id}
           placeName={detailFor.place_name}
+          /* 목록에서 그리던 사진을 그대로 넘긴다. Google 사진으로 채운 장소는
+             상세 조회 응답에 사진이 없어, 이걸 안 넘기면 상세에서 사진이 사라지고
+             출처를 밝힐 자리도 없어진다. */
+          knownImage={
+            detailFor.image_url
+              ? { url: detailFor.image_url, attribution: detailFor.image_attribution }
+              : null
+          }
           onClose={() => setDetailFor(null)}
         />
       )}

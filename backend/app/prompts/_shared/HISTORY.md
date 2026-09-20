@@ -4,7 +4,7 @@
 
 | 슬롯 | 관리 버전 | 템플릿 |
 | --- | --- | --- |
-| shared.persona | v1 | persona/trivi.md |
+| shared.persona | 1.1.0 | persona/trivi.md |
 | shared.service_scope | v1 (Draft) | rules/service_scope.md |
 | shared.safety | v1 (Draft) | rules/safety.md |
 | shared.factuality | v1 (Draft) | rules/factuality.md |
@@ -14,6 +14,12 @@
 | shared.conversation_history | v1 | rules/conversation_history.md |
 
 ## Draft
+
+- 2026-09-20(shared.persona): **물음표를 아무 데나 붙이던 습관을 잡았습니다.**
+  기존에는 "되묻는 문장과 실제 질문에는 반드시 `?`를 유지한다"고만 적혀 있어서,
+  되묻는 것이 아닌 제안·안내 문장 끝에도 물음표가 붙어 어색한 답변이 나왔습니다.
+  이 규칙을 빼고, 대신 **사용자가 답해 주기를 바라는 진짜 질문에만 물음표를 쓰고
+  제안·권유는 평서문으로 끝낸다**고 명시했습니다.
 
 - 2026-08-31: `rules/conversation_history.md`를 신설해 **대화 이력 사용법**을 한 곳에서
   정했습니다. 최근 대화는 이미 API `contents`로 user/model 역할을 나눠 전달되고

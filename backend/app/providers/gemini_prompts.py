@@ -533,6 +533,11 @@ def _stated_conditions_line(conditions: UserConditions | None) -> str:
         return ""
 
     parts: list[str] = []
+    # **지역이 제일 앞이다.** 카드의 설명문은 이동 출발점(현재 위치)을 이름으로 부르는데,
+    # 이 줄에 검색 지역이 없으면 말풍선이 그 출발점을 지역으로 착각한다 — "강남역 근처
+    # 맛집"에 "사당역 근처에서 골라보았어요"라고 답했다(2026-09-20 실사용).
+    if conditions.search_center:
+        parts.append(f"{conditions.search_center} 근처")
     if conditions.companion is not None:
         parts.append(_COMPANION_LABELS.get(conditions.companion.value, conditions.companion.value))
     if conditions.place_tags:

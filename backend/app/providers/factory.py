@@ -26,6 +26,10 @@ from app.providers.gemini import RealGeminiProvider
 from app.providers.gemini_audio import GeminiAudioTranscriber
 from app.providers.gemini_vlm_rerank import GeminiPhotoReranker
 from app.providers.geocoding import FakeGeocodingProvider, RealGeocodingProvider
+from app.providers.google_place_photos import (
+    FakeGooglePlacePhotoProvider,
+    GooglePlacePhotoProvider,
+)
 from app.providers.google_translate import GoogleTranslateProvider
 from app.providers.holiday import FakeHolidayProvider, RealHolidayProvider
 from app.providers.hybrid_place_details import HybridPlaceDetailsProvider
@@ -48,6 +52,7 @@ from app.providers.protocols import (
     DistrictPlaceSearchProvider,
     FestivalProvider,
     GeocodingProvider,
+    GooglePlacePhotoProviderProtocol,
     HolidayProvider,
     LLMProvider,
     LocalSearchProvider,
@@ -541,15 +546,20 @@ def get_recommendation_card_tool(
     Supabase 설정 유무로만 갈린다 — TourAPI 직접 조회 경로에는 대응 데이터가 없다.
     설정이 없는 개발·테스트 환경은 fake 저장소를 쓴다.
     """
+    google_photo_provider = get_google_place_photo_provider(client)
     if not settings.supabase_url.strip() or not settings.supabase_secret_key.strip():
-        return RecommendationCardTool(FakePlaceDetailsRepository())
+        return RecommendationCardTool(
+            FakePlaceDetailsRepository(),
+            google_photo_provider=google_photo_provider,
+        )
     return RecommendationCardTool(
         SupabasePlaceRepository(
             supabase_url=settings.supabase_url,
             secret_key=settings.supabase_secret_key,
             client=client,
             timeout_seconds=settings.external_api_timeout_seconds,
-        )
+        ),
+        google_photo_provider=google_photo_provider,
     )
 
 
@@ -841,6 +851,41 @@ def validate_provider_config(target: Settings | None = None) -> None:
                 "STATE_STORE_BACKEND=supabase에 필요한 환경변수가 비어 있습니다: "
                 + ", ".join(missing_state_store)
             )
+
+
+def get_google_place_photo_provider(
+    client: httpx.AsyncClient,
+) -> GooglePlacePhotoProviderProtocol | None:
+    """Google 사진 보강 Provider를 만든다. 꺼져 있으면 None이다.
+
+    None이면 관광공사 이미지가 없는 장소가 지금처럼 자리표시로 나간다 — 추천
+    자체는 달라지지 않는다.
+
+    LLM이 fake인 환경에서는 Fake를 준다. 실제 키로 돈이 나가는 호출을 개발·
+    테스트에서 내지 않기 위해서다. Fake는 사진을 찾지 못하는 경우도 재현하므로
+    "못 찾으면 원래대로 둔다"는 분기가 그 환경에서도 실제로 돈다.
+    """
+    if not settings.google_place_photo_enabled:
+        return None
+    if settings.resolved_llm_provider == "fake":
+        return FakeGooglePlacePhotoProvider()
+    if not settings.google_places_api_key.strip():
+        # 부팅을 막지 않는다. 사진은 있으면 좋은 값이라 없어도 추천은 동작하고,
+        # 여기서 죽이면 설정 하나 때문에 서비스 전체가 안 뜬다. 대신 왜 안
+        # 켜졌는지는 남긴다 — 조용히 사라지면 "켰는데 왜 사진이 그대로냐"를
+        # 추적할 방법이 없다.
+        logger.warning(
+            "GOOGLE_PLACE_PHOTO_ENABLED=true인데 GOOGLE_PLACES_API_KEY가 비어 있어"
+            " Google 사진 보강을 끕니다."
+        )
+        return None
+    return GooglePlacePhotoProvider(
+        api_key=settings.google_places_api_key,
+        client=client,
+        timeout_seconds=settings.external_api_timeout_seconds,
+        max_width_px=settings.google_place_photo_max_width_px,
+        cache_ttl_seconds=settings.google_place_photo_cache_ttl_seconds,
+    )
 
 
 def get_place_evidence_provider(

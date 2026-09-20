@@ -45,6 +45,7 @@ from app.domain.travel_route import (
 from app.place_search_policy import DEFAULT_PLACE_PROVIDER_RESULT_LIMIT
 from app.providers.contracts import ProviderResult
 from app.providers.festival import FestivalEvent
+from app.providers.google_place_photos import GooglePlaceCoverPhoto
 from app.schedule.schemas import (
     ScheduleLLMPlan,
     SchedulePartialFillRequest,
@@ -607,6 +608,30 @@ class PlaceImageProvider(Protocol):
     async def get_place_images(
         self, content_id: str, limit: int
     ) -> ProviderResult[tuple[PlacePhoto, ...]]: ...
+
+
+class GooglePlacePhotoProviderProtocol(Protocol):
+    """관광공사 이미지가 없는 장소의 대표 사진 1장을 주는 최소 계약.
+
+    `PlaceImageProvider`와 나눈 이유는 부르는 식별자가 다르기 때문이다. 이쪽은
+    content_id로 부를 수 없다 — 우리 DB에 google_place_id가 없어 이름·주소·좌표로
+    찾아야 한다. 받는 것도 목록이 아니라 카드에 걸 1장뿐이다.
+
+    실패를 밖으로 내보내지 않고 None으로 답한다. 사진은 추천의 성립 조건이
+    아니라서, 여기서 올린 예외로 추천 전체를 잃으면 손해가 더 크다.
+
+    주소만이 아니라 출처까지 함께 돌려주는 이유는 Google 정책이 사진을 표시할 때
+    작성자 표기를 요구하기 때문이다. 출처를 못 밝히는 사진은 아예 주지 않는다.
+    """
+
+    async def find_cover_photo(
+        self,
+        *,
+        name: str,
+        address: str | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+    ) -> GooglePlaceCoverPhoto | None: ...
 
 
 class PlaceDetailByNameProvider(Protocol):

@@ -35,6 +35,7 @@ from app.services.runtime.context_schemas import (
     ResolvedLocation,
 )
 from app.services.runtime.real_recommendation_provider import RealRecommendationProvider
+from app.tools.recommendation_cards import PhotoAttribution
 
 
 def _context(*, place_ids: list[str]) -> RecommendationContext:
@@ -830,9 +831,13 @@ class _FakeCard:
         thumbnail_url: str | None,
         fallback_thumbnail_url: str | None = None,
         category_label: str | None = None,
+        photo_attribution: PhotoAttribution | None = None,
     ) -> None:
         self.content_id = content_id
         self.thumbnail_url = thumbnail_url
+        # Google 사진에만 붙는 출처. 소비 측이 사진과 함께 읽으므로 비워 두면
+        # 출처 배선이 한 줄도 실행되지 않은 채 테스트만 통과한다.
+        self.photo_attribution = photo_attribution
         # 소비 측이 실제로 읽는 필드다. 비워 두면 폴백 배선이 한 줄도 실행되지 않은 채
         # 테스트만 통과한다(이 저장소의 "조용한 fake" 유형).
         self.fallback_thumbnail_url = fallback_thumbnail_url
