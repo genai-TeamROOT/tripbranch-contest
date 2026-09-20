@@ -607,6 +607,30 @@ sudo docker exec caddy caddy reload --config /etc/caddy/Caddyfile
 `validate`를 먼저 돌린다. 문법이 틀린 채 reload하면 이전 설정이 그대로 남아,
 고친 줄 알았는데 안 바뀐 상태가 된다.
 
+## Langfuse — 꺼 둔다
+
+공모전 배포는 `LANGFUSE_ENABLED`, `LANGFUSE_PROMPTS_ENABLED` 를 **둘 다 false** 로
+둔다. 코드는 그대로 두고 스위치만 끈다 — 취향 RAG·사진 분위기와 같은 방식이다.
+코드를 걷어내면 본 저장소에서 변경을 가져올 때마다 38개 파일에서 충돌한다.
+
+| 스위치 | 값 | 이유 |
+| --- | --- | --- |
+| `LANGFUSE_ENABLED` | `false` | 트레이스를 보낼 이유가 없다 |
+| `LANGFUSE_PROMPTS_ENABLED` | `false` | **아래 참고 — 이쪽이 더 중요하다** |
+
+**프롬프트 원격 조회가 위험한 이유.** `app/prompts/loader.py` 는 이 값이 켜져
+있으면 Langfuse 를 **먼저** 보고 실패했을 때만 디스크를 본다. 두 저장소가 같은
+Langfuse 프로젝트를 쓰므로, 켜 두면 본 저장소 팀이 프롬프트를 고치는 순간
+**배포하지 않은 공모전 서버의 답변이 바뀐다.** 심사 중에 그러면 손쓸 방법이 없다.
+2026-09-20 점검에서 서버가 실제로 `true` 였던 것을 발견해 껐다.
+
+끈 뒤에는 컨테이너를 **다시 만들어야** 반영된다. `--env-file` 은 컨테이너를 만들
+때 한 번만 읽으므로 `docker restart` 로는 바뀌지 않는다(7-3 참고).
+
+CI 의 `prompt-sync` job 도 같은 이유로 뺐다. 대조할 원격을 쓰지 않는데 job 만
+남으면 프롬프트를 가져올 때마다 CI 가 빨개진다. 저장소 시크릿
+`LANGFUSE_PROMPT_COMPARE` 는 되살릴 여지를 두고 지우지 않았다.
+
 ## 복구 지점 (EBS 스냅샷)
 
 인스턴스가 복구 불가능하게 망가지면 볼륨과 함께 사라지는 것이 둘이다 —
