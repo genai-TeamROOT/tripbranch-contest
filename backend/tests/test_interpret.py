@@ -111,8 +111,13 @@ def test_interpret_explicit_new_place_search_overrides_modify_history() -> None:
     assert body["recommend"]["conditions"]["place_tags"] == ["카페"]
 
 
-def test_interpret_modify_without_current_conditions_needs_clarification() -> None:
-    """current_conditions 없이 MODIFY로 판정될 상황이면 LLM 호출 없이 단락 처리."""
+def test_interpret_modify_without_current_conditions_falls_back_to_recommend() -> None:
+    """current_conditions 없이 MODIFY로 판정되면 되묻기로 끝내지 않고 RECOMMEND로 구제한다.
+
+    MODIFY의 전제조건이 깨진 상태는 라우터 오분류이고, 그 발화의 올바른 목적지는
+    RECOMMEND다. 예전에는 "아직 추천한 결과가 없어요" 되묻기로 단락했는데 이미
+    구체적으로 말한 사용자에게 같은 질문을 되돌려주는 막다른 길이었다.
+    """
     client = TestClient(app)
 
     response = client.post(
@@ -125,8 +130,8 @@ def test_interpret_modify_without_current_conditions_needs_clarification() -> No
     )
 
     body = response.json()["output"]
-    assert body["intent"] == "MODIFY"
-    assert body["status"] == "needs_clarification"
+    assert body["intent"] == "RECOMMEND"
+    assert body["recommend"] is not None
 
 
 def test_interpret_tc11_general() -> None:

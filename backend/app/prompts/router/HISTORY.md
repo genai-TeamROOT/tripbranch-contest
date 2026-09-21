@@ -4,9 +4,93 @@
 
 | 슬롯 | 관리 버전 | 템플릿 | 공유 규칙 |
 | --- | --- | --- | --- |
-| router.classify | v2.6.0 | intent_definitions.md, intent_priority.md, context_rules.md, boundary_cases.md | service_scope, safety |
+| router.classify | v2.8.0 | intent_definitions.md, intent_priority.md, context_rules.md, boundary_cases.md | service_scope, safety |
 
 ## Draft
+
+- 2026-09-20(v2.8.0): **지명과 함께 새 추천을 명시적으로 요청하면 이전 추천 이력이
+  있어도 RECOMMEND입니다**.
+
+  실사용(2026-09-20, `run_1789911299644bf59c624b6d6`): "강남역 근처 놀만한곳 추천"이
+  **MODIFY로 분류돼 "아직 추천한 결과가 없어요. 어떤 장소를 찾고 계신가요?" 되묻기로
+  끝났습니다**. 사용자가 이미 충분히 구체적으로 말했는데 같은 질문을 되돌려준 막다른
+  응답입니다.
+
+  원인은 `context_rules.md`의 "이전 추천 있음 + 지명에 근처/주변이 붙은 발화 → MODIFY"
+  규칙이 **암시적 발화와 명시적 추천 요청을 구분하지 않은 것**입니다. "광화문 근처
+  어때?"(중심점만 던짐)와 "강남역 근처 놀만한곳 추천해줘"(새 추천을 달라고 말함)가
+  같은 패턴으로 잡혔습니다.
+
+  가른 기준은 **이전 결과를 가리키는 말이 있는가**입니다. "추천해줘"가 붙었다는 것만으로
+  RECOMMEND로 보내면 "다른 곳 추천해줘"까지 새 추천이 되어 MODIFY가 무너지므로,
+  "다른"·"말고"·"더 ~한" 같은 지시 표현이 없을 때로 한정했습니다.
+
+  바꾼 슬롯은 셋입니다 — `context_rules.md`(예외 규칙, 두 MODIFY 규칙보다 우선),
+  `intent_priority.md` 3번(MODIFY 항목에 예외 한 줄), `boundary_cases.md`(경계 예시 넷:
+  명시 요청 / 지명 단독 / "다른 곳 추천해줘" 대조).
+
+  **코드 쪽 두 건과 함께 나갑니다** — 프롬프트만으로는 이 실패가 안 막힙니다.
+
+  1. `agent_runtime.py`의 `current_conditions` 게이트가 `has_recommendation`이라,
+     추천을 시도했지만 결과가 0건이었던 세션은 조건을 들고도(위 사례는
+     `condition_version=7`, `search_center="망원동"`) 빈손으로 해석 단계에
+     들어갔습니다. 게이트에 "세션에 조건이 있는가"를 OR로 더했습니다.
+  2. `orchestrator.py`의 MODIFY 분기가 `current_conditions=None`이면 되묻기로
+     단락하던 것을 **RECOMMEND 추출 폴백**으로 바꿨습니다. 라우터가 이 규칙을 또
+     어겨도 사용자가 막다른 길에 갇히지 않습니다(OUT_OF_SCOPE 구제 가드와 같은 성격).
+     구제가 실제로 걸리는 빈도는 `logger.warning`으로 남겨 실측합니다.
+
+  실측(2026-09-20, Gemini 실호출 `gemini-3.5-flash-lite`. 기준선은
+  `TRIPBRANCH_PROMPT_VARIANT=router-explicit-recommend@legacy-2.7.0`):
+
+  경계 7발화 × 3회, 이전 추천 있음(직전 턴 "망원동 근처 놀만한곳 추천해줘"):
+
+  | 발화 | 기대 | 전 | 후 |
+  | --- | --- | --- | --- |
+  | 강남역 근처 놀만한곳 추천 | RECOMMEND | MODIFY 3/3 | RECOMMEND 3/3 |
+  | 홍대 카페 찾아줘 | RECOMMEND | MODIFY 3/3 | RECOMMEND 3/3 |
+  | 성수동 갈 만한 곳 알려줘 | RECOMMEND | MODIFY 3/3 | RECOMMEND 3/3 |
+  | 다른 곳 추천해줘 | MODIFY | MODIFY 3/3 | MODIFY 3/3 |
+  | 강남역 근처 | MODIFY | MODIFY 3/3 | MODIFY 3/3 |
+  | 카페 말고 맛집 | MODIFY | MODIFY 3/3 | MODIFY 3/3 |
+  | 경복궁 근처 카페 추천해줘(이력 없음) | RECOMMEND | RECOMMEND 3/3 | RECOMMEND 3/3 |
+
+  겨냥한 세 발화가 전부 뒤집혔고 **MODIFY 쪽 회귀는 없습니다** — 흔들림도 0입니다.
+
+  회귀: 골든 dev셋(`test_results/agent_quality/evaluation_dev.csv`) 103케이스 131턴의
+  **분류 단계만** 재생했습니다. 정식 `scripts.evaluate_agent_quality`는 서버와 외부
+  API 전체가 필요해, `has_previous_recommendation`과 대화 이력을 기대 인텐트로 근사한
+  축약 실행입니다 — 절대 정확도는 정식 평가와 다르고, 기준선과 현재를 같은 근사로
+  돌린 **차이**만 근거로 씁니다.
+
+  | | 기준선 | 후 |
+  | --- | --- | --- |
+  | 인텐트 정확도(131턴) | 0.962 | 0.969 |
+  | MODIFY → RECOMMEND 오분류 | 0건 | 0건 |
+  | RECOMMEND → MODIFY 오분류 | 0건 | 0건 |
+
+  틀린 턴은 양쪽 모두 DEV-023·DEV-033(`경복궁`/`카페도 포함해줘`가 SCHEDULE 대신
+  MODIFY)과 DEV-053(`연희동은 어떤 동네야?`)으로 같습니다. 이 변경이 가른 경계가
+  아닙니다.
+
+  **이 중 SCHEDULE 3건은 재생 하니스의 근사가 만든 가짜 실패입니다.** 재생이
+  `assistant_summary`를 `"(이전 턴 응답)"`으로 채우는데, 실제 답변("어디 근처에서
+  일정을 짤까요?")을 넣으면 `경복궁`이 SCHEDULE 5/5로 나옵니다(2026-09-20 확인,
+  `pending_clarification` 유무와 무관). 이 하니스를 다시 쓸 사람은 **직전 턴 답변
+  요약을 근사하면 SCHEDULE 이어가기가 통째로 무너진다**는 것을 먼저 알아야 합니다. 차이 하나인 DEV-101(`벚꽃 언제 피어?`)은 5회 재실행에서 기준선
+  GENERAL 2/INFO 3, 현재 GENERAL 4/INFO 1로 **양쪽 다 흔들리는** 케이스입니다.
+
+  **중간에 실제 회귀를 한 번 잡았습니다.** 첫 문안은 DEV-030 1턴
+  `"비 와서 실내로 바꿔줘"`(이력 없음)를 RECOMMEND 5/5 → MODIFY 5/5로 뒤집었습니다.
+  MODIFY 항목에 덧말을 붙이고 RECOMMEND 조건을 나열한 탓에 "바꿔줘" 어미의 MODIFY
+  신호가 커진 것으로 봅니다. 세 곳을 고쳐 되돌렸습니다 — 예외 규칙에 "MODIFY
+  전제조건(이전 추천 있음)을 넓히지 않는다"를 명시, `이전 추천 없음 + 변경·교체
+  표현 → RECOMMEND` 예시 추가, `intent_priority.md` 3번을 전제조건이 앞에 오도록
+  재작성. 수정 후 RECOMMEND 5/5로 돌아왔습니다.
+
+  남은 것: 정식 `scripts.evaluate_agent_quality --split dev`(서버 기동 + 외부 API
+  전체)는 아직 돌리지 않았습니다. 승인 전에 조건 필드 정확도·케이스 통과율까지
+  포함해 한 번 확인해야 합니다.
 
 - 2026-09-05(v2.6.0): **기준점을 현재 위치로 바꾸는 후속 발화도 INFO를 유지합니다**(D-121).
 

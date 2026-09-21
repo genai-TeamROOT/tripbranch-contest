@@ -8330,3 +8330,79 @@ async def test_schedule_turn_survives_metrics_record_failure() -> None:
 
     assert response.schedule is not None
     assert "코스를 짜봤어요" in response.message
+
+
+class _EmptyRecommendationProvider:
+    """추천을 돌렸지만 결과가 0건인 상태를 재현한다 — 조건은 세션에 쌓이는데
+    노출 이력은 비어 있는, has_recommendation=False 세션을 만든다."""
+
+    async def recommend(
+        self,
+        conditions: UserConditions,
+        context: RecommendationContext,
+        excluded_place_ids: list[str],
+        limit: int = 5,
+        ignore_operating_hours: bool = False,
+    ) -> RecommendationResponse:
+        return RecommendationResponse(
+            recommendations=[],
+            unverified_recommendations=[],
+            elapsed_ms=0,
+        )
+
+
+@pytest.mark.asyncio
+async def test_session_conditions_reach_interpretation_without_any_recommendation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """추천 결과가 0건이었어도 세션이 든 조건은 해석 단계로 넘어가야 한다.
+
+    게이트가 `has_recommendation`이던 시절에는 추천을 시도했지만 0건으로 끝난
+    세션이 조건을 들고도 `current_conditions=None`으로 내려갔다. 라우터는 대화
+    이력을 보고 MODIFY를 내는데 오케스트레이터에는 바꿀 조건이 없어서
+    "아직 추천한 결과가 없어요" 되묻기로 끝났다(2026-09-20 실사용:
+    condition_version=7 · search_center="망원동" 세션에서 "강남역 근처 놀만한곳
+    추천"이 막혔다).
+    """
+    store = InMemoryStateStore()
+    providers = _providers()
+    providers["recommendation_provider"] = _EmptyRecommendationProvider()
+
+    first = await run_agent_flow(
+        AgentRequest(
+            user_input="경복궁 근처 카페 추천해줘",
+            session_id=None,
+            device_location=DEVICE_LOCATION,
+        ),
+        store=store,
+        **providers,
+    )
+    session_id = first.state.session_id
+    context = get_session_context(session_id, store=store)
+    # 이 테스트가 겨냥한 상태인지부터 확인한다 — 조건은 있고 노출 이력은 없다.
+    assert context.has_recommendation is False
+    assert context.condition_version > 0
+    assert context.user_conditions.search_center == "경복궁"
+
+    captured: list[object] = []
+    real_build = agent_runtime_module.build_interpretation
+
+    async def _capturing_build(interpret_request, llm):
+        captured.append(interpret_request)
+        return await real_build(interpret_request, llm)
+
+    monkeypatch.setattr(agent_runtime_module, "build_interpretation", _capturing_build)
+
+    await run_agent_flow(
+        AgentRequest(
+            user_input="강남역 근처 놀만한곳 추천",
+            session_id=session_id,
+            device_location=DEVICE_LOCATION,
+        ),
+        store=store,
+        **providers,
+    )
+
+    assert len(captured) == 1
+    assert captured[0].current_conditions is not None
+    assert captured[0].current_conditions.search_center == "경복궁"

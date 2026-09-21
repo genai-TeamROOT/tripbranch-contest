@@ -2,7 +2,7 @@ intent: ROUTER
 owner: A
 slots:
   router.classify:
-    version: "2.7.0"
+    version: "2.8.0"
     template: classify.md
     bundle:
       - router/intent_definitions.md
