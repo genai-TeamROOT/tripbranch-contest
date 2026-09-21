@@ -4155,6 +4155,11 @@ async def _run_agent_flow(
     # 보충 조회·보관함 주입으로 좌표가 합쳐진 컨텍스트. 원본을 넘기면 그렇게 들어온
     # 후보의 좌표를 아래 단계가 못 찾는다(TP-198).
     tool_context = scoring_outcome.tool_context
+    # 채점이 폐점 필터를 끄고 다시 돌았으면 이번 턴은 그 기준으로 끝까지 간다 —
+    # 편성이 같은 기준으로 시간표를 짜고, 되묻기를 다시 띄우지 않는다.
+    effective_ignore_operating_hours = (
+        effective_ignore_operating_hours or scoring_outcome.ignored_operating_hours
+    )
 
     if is_schedule:
         return await _run_schedule_branch(
@@ -4223,6 +4228,11 @@ class _ScoringOutcome:
 
     recommendations: RecommendationResponse
     tool_context: RecommendationContext
+    # 이 채점이 폐점 필터를 끄고 다시 돈 결과면 True(`_score_recommendations()`의
+    # SCHEDULE 자동 재조회). 호출부는 이 값을 자기 `effective_ignore_operating_hours`에
+    # 합쳐 다음 단계로 넘겨야 한다 — 편성이 같은 기준으로 시간표를 짜고, 되묻기를
+    # 다시 띄우지 않게 하는 신호다.
+    ignored_operating_hours: bool = False
 
 
 async def _fetch_tool_context(
@@ -4602,6 +4612,10 @@ async def _score_recommendations(
         if is_schedule
         else settings.recommendation_result_limit
     )
+    # 폐점 필터를 끄고 다시 돌 때(아래 6-1-2) 넘길 원본 Context. 아래에서
+    # `tool_context`는 보충·주입 결과로 덮여 나가므로 여기서 붙들어 둔다 —
+    # 덮인 것을 다시 넣으면 같은 후보를 두 번 합친 Context로 재조회하게 된다.
+    original_tool_context = tool_context
     await _emit_progress(
         stream_event_sink,
         "scoring",
@@ -4885,6 +4899,55 @@ async def _score_recommendations(
             store=store,
             principal=principal,
         )
+
+    # 6-1-2) SCHEDULE 한정 — 남은 후보가 없고 그 원인이 오직 폐점이면 되묻지 않고
+    #        폐점 필터를 끄고 한 번 더 돈다.
+    #
+    #        **왜 묻지 않는가.** 심야에는 이 상황이 예외가 아니라 기본값이다. 밤
+    #        11시에 "일정 짜줘"라고 한 사람에게 "운영 중이 아닌 곳도 볼까요?"를
+    #        먼저 띄우면, 밤마다 같은 버튼을 한 번씩 눌러야 일정이 나온다. 그
+    #        질문의 답이 사실상 정해져 있으면 묻는 것은 절차일 뿐이다.
+    #
+    #        **RECOMMEND/MODIFY는 그대로 묻는다.** "추천해줘"에 닫힌 곳을 말없이
+    #        내놓는 것은 지금 가볼 곳을 찾는 사람의 요청을 바꿔 답하는 것이다.
+    #        일정은 원래 앞으로의 계획이라 닫혀 있는 것이 덜 어긋난다.
+    #
+    #        무시하고 짰다는 사실은 편성 쪽이 basis_note로 알린다
+    #        (`planner._build_basis_note()`) — 조용히 넘어가지 않는다.
+    if (
+        is_schedule
+        and not effective_ignore_operating_hours
+        and recommendations.excluded_all_closed
+        and not recommendations.recommendations
+        and not recommendations.unverified_recommendations
+    ):
+        logger.info(
+            "schedule.auto_ignore_operating_hours session_id=%s closed=%d",
+            state_response.session_id,
+            len(recommendations.excluded_closed_place_ids),
+        )
+        retried = await _score_recommendations(
+            state_response,
+            tool_context=original_tool_context,
+            agent_conditions=agent_conditions,
+            context_gps=context_gps,
+            is_schedule=is_schedule,
+            shown_place_ids=shown_place_ids,
+            saved_places=saved_places,
+            place_details_repository=place_details_repository,
+            tool_provider=tool_provider,
+            recommendation_provider=recommendation_provider,
+            enrichment_provider=enrichment_provider,
+            travel_route_tool=travel_route_tool,
+            store=store,
+            principal=principal,
+            tool_executions=tool_executions,
+            effective_ignore_operating_hours=True,
+            stream_event_sink=stream_event_sink,
+            llm=llm,
+        )
+        return replace(retried, ignored_operating_hours=True)
+
     return _ScoringOutcome(recommendations=recommendations, tool_context=tool_context)
 
 
@@ -5103,6 +5166,8 @@ async def _run_schedule_branch(
                 schedule_candidates, places, fallback_coordinates=snapshot_coordinates
             ),
             weather=_segment_weather(tool_context),
+            # 부분 재편성과 같은 이유로 넘긴다.
+            ignore_operating_hours=effective_ignore_operating_hours,
         )
         await _emit_progress(
             stream_event_sink,
@@ -5134,6 +5199,10 @@ async def _run_schedule_branch(
                 schedule_candidates, places, fallback_coordinates=snapshot_coordinates
             ),
             weather=_segment_weather(tool_context),
+            # 후보를 모은 기준과 시간표를 짜는 기준을 맞춘다 — 이 값을 안 넘기면
+            # 편성 쪽이 폐점 후보를 혼자 다시 운영시간으로 읽는다
+            # (SchedulePlanningRequest.ignore_operating_hours 주석).
+            ignore_operating_hours=effective_ignore_operating_hours,
         )
         await _emit_progress(
             stream_event_sink,

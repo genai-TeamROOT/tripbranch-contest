@@ -77,8 +77,8 @@ def test_waiting_is_inserted_when_arriving_before_opening() -> None:
     timeline = build_timeline(
         [
             TimelineStop(place_id="a", visit_duration_min=30),
-            # 15:00 개장. 첫 장소가 13:30에 끝나고 이동 20분이면 13:50 도착이다.
-            TimelineStop(place_id="b", visit_duration_min=60, opens_at_min=15 * 60),
+            # 14:30 개장. 첫 장소가 13:30에 끝나고 이동 20분이면 13:50 도착이다.
+            TimelineStop(place_id="b", visit_duration_min=60, opens_at_min=14 * 60 + 30),
         ],
         start_at=START,
         travel_minutes=_fixed(20),
@@ -86,11 +86,58 @@ def test_waiting_is_inserted_when_arriving_before_opening() -> None:
 
     second = timeline.stops[1]
     assert second.arrival_at.strftime("%H:%M") == "13:50"
-    assert second.waiting_before_visit_min == 70
-    assert second.visit_start_at.strftime("%H:%M") == "15:00"
-    assert second.departure_at.strftime("%H:%M") == "16:00"
+    assert second.waiting_before_visit_min == 40
+    assert second.visit_start_at.strftime("%H:%M") == "14:30"
+    assert second.departure_at.strftime("%H:%M") == "15:30"
     # 대기도 총 소요시간에 들어간다 — 사용자가 실제로 쓰는 시간이다.
-    assert timeline.total_duration_min == 180
+    assert timeline.total_duration_min == 150
+
+
+def test_waiting_longer_than_the_cap_is_not_waited_out() -> None:
+    """상한을 넘는 기다림은 기다림이 아니라 "닫힌 곳"으로 다룬다.
+
+    상한이 없던 시절, 자정 직후에 시작한 일정이 정오 개장까지 720분을 기다리는
+    것으로 계산되어 식사 한 끼가 13시간 일정으로 나갔다(실사용 재현, 2026-09-20).
+    대기를 0으로 두면 도착 = 방문 시작이 되어 planner의 운영시간 경고가 붙는다.
+    """
+
+    timeline = build_timeline(
+        [TimelineStop(place_id="a", visit_duration_min=60, opens_at_min=12 * 60)],
+        start_at=datetime(2026, 9, 21, 0, 0),
+        travel_minutes=_fixed(20),
+    )
+
+    stop = timeline.stops[0]
+    assert stop.waiting_before_visit_min == 0
+    assert stop.visit_start_at == stop.arrival_at
+    assert timeline.total_duration_min == 60
+
+
+def test_waiting_exactly_at_the_cap_is_still_waited_out() -> None:
+    """상한과 같은 대기는 정상 범위다 — 경계에서 잘라내지 않는다."""
+
+    timeline = build_timeline(
+        [TimelineStop(place_id="a", visit_duration_min=60, opens_at_min=13 * 60)],
+        start_at=datetime(2026, 9, 1, 12, 0),
+        travel_minutes=_fixed(20),
+    )
+
+    assert timeline.stops[0].waiting_before_visit_min == 60
+    assert timeline.total_duration_min == 120
+
+
+def test_max_waiting_zero_skips_waiting_entirely() -> None:
+    """운영시간을 무시하기로 한 턴은 대기를 아예 잡지 않는다."""
+
+    timeline = build_timeline(
+        [TimelineStop(place_id="a", visit_duration_min=60, opens_at_min=13 * 60)],
+        start_at=datetime(2026, 9, 1, 12, 0),
+        travel_minutes=_fixed(20),
+        max_waiting_min=0,
+    )
+
+    assert timeline.stops[0].waiting_before_visit_min == 0
+    assert timeline.total_duration_min == 60
 
 
 def test_no_waiting_when_already_open_or_hours_unknown() -> None:

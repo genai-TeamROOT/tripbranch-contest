@@ -42,6 +42,7 @@ from app.schedule.schemas import (
     SchedulePlanningRequest,
 )
 from app.schedule.timeline import (
+    MAX_WAITING_MINUTES,
     Timeline,
     TimelineStop,
     TravelMinutes,
@@ -256,8 +257,14 @@ def _build_schedule_timeline(
     start_at: datetime,
     travel_minutes: TravelMinutes,
     candidates: Iterable[RecommendationItem],
+    ignore_operating_hours: bool = False,
 ) -> Timeline:
-    """초안 목록으로 시간표를 계산한다. 운영시간은 개장 전 대기 판정에만 쓴다."""
+    """초안 목록으로 시간표를 계산한다. 운영시간은 개장 전 대기 판정에만 쓴다.
+
+    `ignore_operating_hours`가 켜진 턴은 대기를 아예 잡지 않는다. 그 턴의 후보는
+    "닫혀 있어도 괜찮다"는 전제로 모은 것이라(SchedulePlanningRequest 주석), 여기서
+    문 열기를 기다리게 만들면 후보를 고른 기준과 시간표를 짜는 기준이 어긋난다.
+    """
 
     display_by_place = {c.place_id: c.operating_hours_display for c in candidates}
     stops: list[TimelineStop] = []
@@ -271,7 +278,12 @@ def _build_schedule_timeline(
                 closes_at_min=hours[1] if hours is not None else None,
             )
         )
-    return build_timeline(stops, start_at=start_at, travel_minutes=travel_minutes)
+    return build_timeline(
+        stops,
+        start_at=start_at,
+        travel_minutes=travel_minutes,
+        max_waiting_min=0 if ignore_operating_hours else MAX_WAITING_MINUTES,
+    )
 
 
 def _fit_to_time_available(
@@ -283,6 +295,7 @@ def _fit_to_time_available(
     start_at: datetime,
     travel_minutes: TravelMinutes,
     clustered_flags: Sequence[bool] | None = None,
+    ignore_operating_hours: bool = False,
 ) -> tuple[list[_ItemDraft], Timeline]:
     """체류시간을 활동 가능 시간에 맞춰 조절하고 시간표를 다시 계산한다. (TP-238)
 
@@ -345,6 +358,7 @@ def _fit_to_time_available(
         start_at=start_at,
         travel_minutes=travel_minutes,
         candidates=candidates,
+        ignore_operating_hours=ignore_operating_hours,
     )
 
 
@@ -512,15 +526,72 @@ def _drop_unknown_places(
     return kept, dropped
 
 
-def _build_basis_note(visit_datetime: datetime) -> str:
+def _first_opens_at_min(
+    drafts: Sequence[_ItemDraft], candidates: Iterable[RecommendationItem]
+) -> int | None:
+    """첫 장소가 문 여는 시각(자정 기준 분). 모르면 None."""
+
+    if not drafts:
+        return None
+    display_by_place = {c.place_id: c.operating_hours_display for c in candidates}
+    hours = _parse_operating_hours_range(display_by_place.get(drafts[0].place_id))
+    return None if hours is None else hours[0]
+
+
+def _shift_start_to_opening(start_at: datetime, opens_at_min: int | None) -> datetime:
+    """운영시간을 무시하는 턴의 시작 시각을 첫 장소가 문 여는 시각으로 옮긴다.
+
+    **왜 옮기는가.** 대기를 안 잡는 것만으로는 심야 요청이 "00:00 도착 / 01:00
+    도착"짜리 새벽 일정으로 나간다. 밤에 "일정 짜줘"는 사실상 다음 영업시간의
+    일정이라, 총 소요시간만 정직해지고 시각은 여전히 말이 안 되는 상태가 된다.
+
+    **오늘로 옮길지 내일로 옮길지는 개장 시각이 아직 남았는지로 정한다.** 08:00에
+    물었고 12:00 개장이면 오늘 12:00이고, 23:50에 물었고 12:00 개장이면 내일
+    12:00이다. 개장까지 남은 시간이 대기 상한(`MAX_WAITING_MINUTES`) 안이면
+    옮기지 않는다 — 그건 시간표가 정상적으로 기다릴 수 있는 범위다.
+
+    개장 시각을 모르면(`opens_at_min is None`) 옮기지 않는다. 근거 없이 일정을
+    내일로 미루지 않는다.
+    """
+
+    if opens_at_min is None:
+        return start_at
+    midnight = start_at.replace(hour=0, minute=0, second=0, microsecond=0)
+    opening_today = midnight + timedelta(minutes=opens_at_min)
+    if start_at <= opening_today:
+        # 아직 안 열었다. 상한 안에서 기다릴 수 있으면 시간표에 맡긴다.
+        waiting_min = (opening_today - start_at).total_seconds() / 60
+        return start_at if waiting_min <= MAX_WAITING_MINUTES else opening_today
+    return opening_today + timedelta(days=1)
+
+
+def _build_basis_note(
+    visit_datetime: datetime, schedule_start_at: datetime | None = None
+) -> str:
     """D 피드백 반영 — 근거 데이터(운영시간·날씨)가 단일 시각 기준이라 뒷 순서
     스탑에는 부정확할 수 있다는 걸 사용자에게 알리는 고정 안내 문구.
 
     LLM이 생성하지 않고 이 함수가 결정적으로 채운다(docs/design/
     int-07-schedule.md 6.2.1절) — 스탑별 재계산은 이번 범위 밖.
+
+    `schedule_start_at`은 **시작 시각을 실제로 옮겼을 때만** 채워 넘긴다(운영시간을
+    무시하고 다음 영업시간으로 옮긴 턴 — `_shift_start_to_opening()`). 화면에 찍힌
+    도착시각이 물어본 시각과 다른 이유를 사용자가 볼 수 있는 곳이 여기뿐이다.
     """
 
     formatted = visit_datetime.strftime("%H:%M")
+    if schedule_start_at is not None:
+        if schedule_start_at.date() != visit_datetime.date():
+            return (
+                f"지금({formatted})은 문을 연 곳이 거의 없어서 "
+                f"{schedule_start_at.strftime('%m월 %d일 %H:%M')} 기준으로 짰어요. "
+                "실제로 가시는 시간에는 운영시간이나 날씨가 달라질 수 있어요."
+            )
+        return (
+            f"지금({formatted})은 아직 문을 열지 않아서 "
+            f"{schedule_start_at.strftime('%H:%M')} 기준으로 짰어요. "
+            "실제로 가시는 시간에는 운영시간이나 날씨가 달라질 수 있어요."
+        )
     return (
         f"{formatted} 기준으로 짠 일정이에요. "
         "실제로 가시는 시간에는 운영시간이나 날씨가 달라질 수 있어요."
@@ -959,11 +1030,26 @@ async def plan_schedule(
         mode_judge=LlmModeJudge(llm),
     )
     schedule_start_at = _round_up_start(effective_visit_datetime)
+    if request.ignore_operating_hours:
+        # 운영시간을 무시하고 모은 후보다 — 새벽 도착으로 찍지 말고 첫 장소가 문
+        # 여는 시각으로 옮긴다(`_shift_start_to_opening()`).
+        schedule_start_at = _shift_start_to_opening(
+            schedule_start_at,
+            _first_opens_at_min(drafts, resolved_request.candidates),
+        )
+    # 실제로 옮겼을 때만 안내한다. 23:5x를 10분 단위로 올리다 자정을 넘긴 것은
+    # 옮긴 것이 아니라 반올림이라, 그때까지 "내일 기준으로 짰다"고 말하면 안 된다.
+    shifted_start_at = (
+        schedule_start_at
+        if schedule_start_at != _round_up_start(effective_visit_datetime)
+        else None
+    )
     timeline = _build_schedule_timeline(
         drafts,
         start_at=schedule_start_at,
         travel_minutes=travel.minutes,
         candidates=resolved_request.candidates,
+        ignore_operating_hours=request.ignore_operating_hours,
     )
     drafts, timeline = _fit_to_time_available(
         drafts,
@@ -973,6 +1059,7 @@ async def plan_schedule(
         start_at=schedule_start_at,
         travel_minutes=travel.minutes,
         clustered_flags=clustered_flags,
+        ignore_operating_hours=request.ignore_operating_hours,
     )
 
     items = _compose_items(
@@ -988,7 +1075,7 @@ async def plan_schedule(
         # 자리를 되돌렸으면 LLM 요약을 쓰지 않는다 — 그 문장은 지금 일정에 없는
         # 장소를 이름으로 언급할 수 있다.
         route_summary=_RESTORED_ROUTE_SUMMARY if restored_count else plan.route_summary,
-        basis_note=_build_basis_note(effective_visit_datetime),
+        basis_note=_build_basis_note(effective_visit_datetime, shifted_start_at),
         omitted_saved_place_names=omitted_names,
         over_capacity_place_names=over_capacity_names,
         added_place_names=_added_place_names(request, items),
@@ -1252,11 +1339,16 @@ async def plan_partial_schedule(
         # 모델이 갈려 관측·비용이 두 곳으로 흩어진다.
         mode_judge=LlmModeJudge(llm),
     )
+    # 운영시간을 무시한 턴은 개장 전 대기를 잡지 않는다(전체 편성과 같은 이유).
+    # **시작 시각은 옮기지 않는다** — 이 경로는 이미 짜여 있는 일정의 한 자리만
+    # 바꾸는 중이라, 자리 하나 때문에 일정 전체를 다음 영업시간으로 미루면
+    # 유지하기로 한 자리들의 시각까지 함께 움직인다.
     timeline = _build_schedule_timeline(
         drafts,
         start_at=start_at,
         travel_minutes=travel.minutes,
         candidates=resolved_request.candidates,
+        ignore_operating_hours=request.ignore_operating_hours,
     )
     drafts, timeline = _fit_to_time_available(
         drafts,
@@ -1265,6 +1357,7 @@ async def plan_partial_schedule(
         candidates=resolved_request.candidates,
         start_at=start_at,
         travel_minutes=travel.minutes,
+        ignore_operating_hours=request.ignore_operating_hours,
     )
 
     kept = len(request.pinned_items)

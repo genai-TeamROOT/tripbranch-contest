@@ -6864,15 +6864,50 @@ async def test_clarification_choice_schedule_no_candidates_stays_schedule_intent
     assert context.last_intent == "SCHEDULE"
 
 
+class _ClosedOnlyWithEnoughWhenIgnoredProvider(_ClosedOnlyRecommendationProvider):
+    """폐점 필터를 끄면 일정을 짤 만큼 후보가 나오는 대역.
+
+    부모는 무시해도 1곳만 돌려줘 편성 최소 개수에 못 미친다 — 자동 전환이
+    일어났는지까지만 볼 수 있다. 이 대역은 그 다음(실제로 일정이 나가는지)을
+    본다.
+    """
+
+    async def recommend(
+        self,
+        conditions: UserConditions,
+        context: RecommendationContext,
+        excluded_place_ids: list[str],
+        limit: int = 5,
+        ignore_operating_hours: bool = False,
+    ) -> RecommendationResponse:
+        self.calls.append(ignore_operating_hours)
+        if not ignore_operating_hours:
+            return RecommendationResponse(
+                recommendations=[],
+                unverified_recommendations=[],
+                elapsed_ms=0,
+                excluded_all_closed=True,
+            )
+        return RecommendationResponse(
+            recommendations=[_item("closed-1"), _item("closed-2"), _item("closed-3")],
+            unverified_recommendations=[],
+            elapsed_ms=0,
+        )
+
+
 @pytest.mark.asyncio
-async def test_schedule_offers_show_closed_before_no_candidates_loop() -> None:
-    """실사용 버그(2026-08-13): "경복궁 반나절 코스 짜줘"가 심야라 전부 폐점 후보뿐이면,
-    SCHEDULE도 RECOMMEND/MODIFY와 동일하게 "운영 중이 아닌 곳도 볼게요"를 먼저
-    제안해야 한다. 그렇지 않으면 실제 원인(운영시간)과 무관한 지역/카테고리 변경
-    버튼(schedule_no_candidates)만 계속 돌아 무한 되묻기가 된다."""
+async def test_schedule_ignores_operating_hours_without_asking() -> None:
+    """심야 SCHEDULE은 되묻지 않고 폐점 필터를 끄고 한 번 더 돈다(2026-09-20).
+
+    예전에는 "운영 중이 아닌 곳도 확인하시겠어요?"를 먼저 띄웠다. 심야에는 이
+    상황이 예외가 아니라 기본값이라, 밤마다 같은 버튼을 한 번씩 눌러야 일정이
+    나왔다. 답이 사실상 정해진 질문은 묻지 않고 넘어가고, 무시했다는 사실은
+    편성 쪽이 basis_note로 알린다.
+    """
     store = InMemoryStateStore()
     providers = _providers()
-    providers["recommendation_provider"] = _ClosedOnlyRecommendationProvider()
+    provider = _ClosedOnlyRecommendationProvider()
+    providers["recommendation_provider"] = provider
 
     response = await run_agent_flow(
         AgentRequest(
@@ -6885,15 +6920,57 @@ async def test_schedule_offers_show_closed_before_no_candidates_loop() -> None:
     )
 
     assert response.llm_output.intent == "SCHEDULE"
-    assert response.llm_output.status == OutputStatus.NEEDS_CLARIFICATION
+    # 폐점 필터를 켠 채 한 번, 끄고 한 번 — 사용자에게 묻는 턴이 사이에 없다.
+    assert provider.calls[:2] == [False, True]
+    clarification = response.llm_output.clarification
+    assert clarification is None or clarification.code != "no_data_closed"
+    context = get_session_context(response.state.session_id, store=store)
+    assert context.pending_clarification != "no_data_closed"
+
+
+@pytest.mark.asyncio
+async def test_schedule_auto_ignored_operating_hours_produces_schedule() -> None:
+    """자동 전환으로 후보가 확보되면 되묻기 없이 일정까지 나간다."""
+    store = InMemoryStateStore()
+    providers = _providers()
+    providers["recommendation_provider"] = _ClosedOnlyWithEnoughWhenIgnoredProvider()
+
+    response = await run_agent_flow(
+        AgentRequest(
+            user_input="경복궁 근처에서 반나절 코스 짜줘",
+            session_id=None,
+            device_location=DEVICE_LOCATION,
+        ),
+        store=store,
+        **providers,
+    )
+
+    assert response.llm_output.status is OutputStatus.COMPLETE
+    assert response.schedule is not None
+    assert response.schedule.items != []
+
+
+@pytest.mark.asyncio
+async def test_recommend_still_asks_before_showing_closed_places() -> None:
+    """RECOMMEND는 그대로 묻는다 — "추천해줘"에 닫힌 곳을 말없이 내놓지 않는다."""
+    store = InMemoryStateStore()
+    providers = _providers()
+    providers["recommendation_provider"] = _ClosedOnlyRecommendationProvider()
+
+    response = await run_agent_flow(
+        AgentRequest(
+            user_input="경복궁 근처 카페 추천해줘",
+            session_id=None,
+            device_location=DEVICE_LOCATION,
+        ),
+        store=store,
+        **providers,
+    )
+
+    assert response.llm_output.intent == "RECOMMEND"
     clarification = response.llm_output.clarification
     assert clarification is not None
     assert clarification.code == "no_data_closed"
-    option_ids = {option.id for option in clarification.options}
-    assert option_ids == {"show_closed"}
-    assert clarification.options[0].resolved_intent == "SCHEDULE"
-    context = get_session_context(response.state.session_id, store=store)
-    assert context.pending_clarification == "no_data_closed"
 
 
 class _SlowSchedulePlanLLM(_LLMProviderWithGeneralAnswer):
